@@ -1,69 +1,92 @@
-import Image from "next/image";
+import Link from "next/link";
+import { UI_COPY } from "@/content/copy";
 
-export default function Home() {
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="flex-1 bg-[#FAF9F5] px-4 py-8 sm:px-6 flex flex-col justify-center">
+      <div className="mx-auto w-full max-w-2xl py-6 sm:py-12">
+        {/* Subtle pill tag */}
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-stone-200/70 text-stone-700 text-xs font-medium mb-6">
+          <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+          <span>ເຄື່ອງມືສຳຫຼວດທິດທາງສ່ວນບຸກຄົນ</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Hero Title & Subtitle */}
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight text-stone-900 leading-[1.25]">
+          {UI_COPY.landing.h1}
+        </h1>
+        
+        <p className="mt-5 text-lg sm:text-xl text-stone-700 leading-relaxed font-normal">
+          {UI_COPY.landing.sub}
+        </p>
+
+        {/* Reassurance banner */}
+        <div className="mt-8 rounded-2xl bg-amber-50/70 border border-amber-200/80 p-4 sm:p-5 text-stone-800">
+          <div className="flex items-start gap-3">
+            <span className="text-amber-800 text-lg leading-none mt-0.5">✦</span>
+            <div>
+              <p className="text-base font-medium text-stone-900">
+                {UI_COPY.landing.not}
+              </p>
+              <p className="mt-1 text-sm text-stone-600 leading-relaxed">
+                ລະບົບນີ້ຖືກອອກແບບມາເພື່ອຊ່ວຍສະທ້ອນຄວາມຄິດ ບໍ່ແມ່ນການຕັດສິນ ທ່ານເປັນຜູ້ເລືອກ ແລະ ຕັດສິນໃຈເສັ້ນທາງຂອງຕົນເອງສະເໝີ
+              </p>
+            </div>
+          </div>
         </div>
-      </main>
-    </div>
+
+        {/* 3 Step Flow */}
+        <div className="mt-10 space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-stone-500">
+            ຂັ້ນຕອນການສຳຫຼວດ
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-2xl bg-white border border-stone-200/90 p-4 sm:p-5">
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-stone-100 text-stone-800 text-xs font-semibold mb-3">
+                1
+              </span>
+              <p className="text-sm font-medium text-stone-900">ຕອບ 28 ຄຳຖາມ</p>
+              <p className="mt-1 text-xs text-stone-500 leading-relaxed">
+                ໃຊ້ເວລາປະມານ 15–20 ນາທີ ຕອບຕາມຄວາມຮູ້ສຶກຈິງ
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-white border border-stone-200/90 p-4 sm:p-5">
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-stone-100 text-stone-800 text-xs font-semibold mb-3">
+                2
+              </span>
+              <p className="text-sm font-medium text-stone-900">ວິເຄາະຮູບແບບ</p>
+              <p className="mt-1 text-xs text-stone-500 leading-relaxed">
+                ລະບົບຊອກຫາຈຸດເຊື່ອມໂຍງ ຄວາມສົນໃຈ ແລະ ທັກສະ
+              </p>
+            </div>
+
+            <div className="rounded-2xl bg-white border border-stone-200/90 p-4 sm:p-5">
+              <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-stone-100 text-stone-800 text-xs font-semibold mb-3">
+                3
+              </span>
+              <p className="text-sm font-medium text-stone-900">ພື້ນທີ່ສະທ້ອນຄິດ</p>
+              <p className="mt-1 text-xs text-stone-500 leading-relaxed">
+                ເຫັນທາງເລືອກ ແລະ ຂໍ້ແນະນຳໃນການລອງປະຕິບັດ
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Start Action */}
+        <div className="mt-10 pt-4 flex flex-col sm:flex-row items-center gap-4">
+          <Link
+            href="/introduction"
+            className="w-full sm:w-auto btn-primary text-center justify-center shadow-sm"
+          >
+            {UI_COPY.landing.start}
+            <span className="ml-2">→</span>
+          </Link>
+          <span className="text-xs text-stone-500 text-center sm:text-left">
+            ບໍ່ຕ້ອງລົງທະບຽນ · ບໍ່ເກັບຂໍ້ມູນສ່ວນຕົວ
+          </span>
+        </div>
+      </div>
+    </main>
   );
 }
