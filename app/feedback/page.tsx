@@ -56,7 +56,7 @@ export default function FeedbackPage() {
               ຂອບໃຈສຳລັບຄຳຄິດເຫັນ
             </h2>
             <p className="text-xs sm:text-sm text-[#6A6357] leading-relaxed">
-              ທຸກຄຳຕອບ ແລະ ຂໍ້ສະເໜີແນະຂອງທ່ານມີຄຸນຄ່າໃນການປັບປຸງລະບົບ PATHAI ໃຫ້ດີຍິ່ງຂຶ້ນ.
+              ທຸກຄຳຕອບ ແລະ ຂໍ້ສະເໜີແນະຂອງທ່ານມີຄຸນຄ່າໃນການປັບປຸງລະບົບ Next-path ໃຫ້ດີຍິ່ງຂຶ້ນ.
             </p>
           </div>
           <div className="pt-2">

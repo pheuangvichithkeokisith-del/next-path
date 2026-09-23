@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Compass, BookOpen, RotateCcw } from "lucide-react";
 import { clearSessionId, useSessionId } from "@/hooks/useSession";
+import { clearDraft } from "@/utils/draft";
 
 export default function Header() {
   const pathname = usePathname();
@@ -15,7 +16,7 @@ export default function Header() {
     if (window.confirm("ເລີ່ມຕົ້ນໃໝ່ທັງໝົດ ຫຼື ບໍ່? ຂໍ້ມູນທີ່ຕອບໄວ້ຈະຖືກລຶບ.")) {
       clearSessionId();
       if (typeof window !== "undefined") {
-        window.localStorage.removeItem("pathai_draft_v1");
+        clearDraft(window.localStorage);
       }
       router.push("/");
       router.refresh();
@@ -36,7 +37,7 @@ export default function Header() {
             className="group flex items-baseline space-x-2 focus:outline-none"
           >
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[#1A1E24] group-hover:text-[#2D4C3E] transition-colors">
-              PATHAI
+              Next-path
             </span>
             <span className="hidden sm:inline-block text-xs uppercase tracking-widest text-[#7D7565] font-medium pl-2 border-l border-[#DCD7CB]">
               ພື້ນທີ່ສຳຫຼວດຕົນເອງ

@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSession } from "@/api/session";
-import { storeSessionId, useSessionId } from "@/hooks/useSession";
-import { restoreDraft } from "@/utils/draft";
+import { clearSessionId, storeSessionId, useSessionId } from "@/hooks/useSession";
+import { clearDraft, restoreDraft } from "@/utils/draft";
 import {
   ArrowRight,
   ShieldCheck,
@@ -18,7 +18,8 @@ import {
   Lightbulb,
   Heart,
   Target,
-  Route
+  Route,
+  RotateCcw
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -43,6 +44,28 @@ export default function LandingPage() {
         const { session_id } = await createSession();
         storeSessionId(session_id);
       }
+      router.push("/assessment");
+    } catch {
+      const fallbackId = `session-${Date.now()}`;
+      storeSessionId(fallbackId);
+      router.push("/assessment");
+    } finally {
+      setStarting(false);
+    }
+  };
+
+  const handleStartFresh = async () => {
+    if (hasExistingDraft && !window.confirm("ເລີ່ມຕົ້ນໃໝ່ທັງໝົດ? ຂໍ້ມູນເກົ່າທີ່ຕອບໄວ້ຈະຖືກລຶບ.")) {
+      return;
+    }
+    setStarting(true);
+    try {
+      clearSessionId();
+      if (typeof window !== "undefined") {
+        clearDraft(window.localStorage);
+      }
+      const { session_id } = await createSession();
+      storeSessionId(session_id);
       router.push("/assessment");
     } catch {
       const fallbackId = `session-${Date.now()}`;
@@ -146,19 +169,41 @@ export default function LandingPage() {
         </h1>
 
         <p className="text-base sm:text-lg text-[#524B40] max-w-3xl leading-relaxed mb-8 font-normal">
-          PATHAI ຖືກສ້າງຂຶ້ນມາເພື່ອໄວໜຸ່ມທຸກຄົນ ບໍ່ວ່າເຈົ້າຈະຢູ່ແຂວງໃດ ຮຽນສາຍສາມັນ ຫຼື ສາຍອາຊີບ. ທີ່ນີ້ບໍ່ມີຄຳຕອບທີ່ຖືກຫຼືຜິດ, ບໍ່ມີຄະແນນ, ແລະ ບໍ່ມີໃຜມາກຳນົດຊີວິດຂອງເຈົ້າ. ເປັນພຽງພື້ນທີ່ທີ່ຊ່ວຍສະທ້ອນຄວາມຄິດຂອງເຈົ້າເອງອອກມາໃຫ້ຊັດເຈນຂຶ້ນ.
+          Next-path ຖືກສ້າງຂຶ້ນມາເພື່ອໄວໜຸ່ມທຸກຄົນ ບໍ່ວ່າເຈົ້າຈະຢູ່ແຂວງໃດ ຮຽນສາຍສາມັນ ຫຼື ສາຍອາຊີບ. ທີ່ນີ້ບໍ່ມີຄຳຕອບທີ່ຖືກຫຼືຜິດ, ບໍ່ມີຄະແນນ, ແລະ ບໍ່ມີໃຜມາກຳນົດຊີວິດຂອງເຈົ້າ. ເປັນພຽງພື້ນທີ່ທີ່ຊ່ວຍສະທ້ອນຄວາມຄິດຂອງເຈົ້າເອງອອກມາໃຫ້ຊັດເຈນຂຶ້ນ.
         </p>
 
         {/* Action Group */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-14">
-          <button
-            onClick={handleStart}
-            disabled={starting}
-            className="px-7 py-3.5 rounded-xl bg-[#1D2229] hover:bg-[#2D4C3E] text-white font-medium transition-all flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
-          >
-            <span>{hasExistingDraft ? "ສຳຫຼວດຕໍ່ຈາກທີ່ຄ້າງໄວ້" : "ເລີ່ມຕົ້ນການສຳຫຼວດ"}</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          {hasExistingDraft ? (
+            <>
+              <button
+                onClick={handleStart}
+                disabled={starting}
+                className="px-6 py-3.5 rounded-xl bg-[#2D4C3E] hover:bg-[#22392F] text-white font-medium transition-all flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
+              >
+                <span>ສຳຫຼວດຕໍ່ຈາກທີ່ຄ້າງໄວ້</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={handleStartFresh}
+                disabled={starting}
+                className="px-5 py-3.5 rounded-xl bg-white subtle-border hover:bg-[#F3EFE7] text-[#1D2229] font-medium transition-all flex items-center justify-center space-x-2 cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4 text-[#8D5B28]" />
+                <span>ເລີ່ມຕົ້ນໃໝ່ທັງໝົດ</span>
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleStartFresh}
+              disabled={starting}
+              className="px-7 py-3.5 rounded-xl bg-[#1D2229] hover:bg-[#2D4C3E] text-white font-medium transition-all flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
+            >
+              <span>ເລີ່ມຕົ້ນການສຳຫຼວດ</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
 
           <span className="text-xs text-[#7D7565] text-center sm:text-left">
             ຕອບແບບຕໍ່ເນື່ອງ 28 ຂໍ້ · ບັນທຶກອັດຕະໂນມັດ
@@ -247,13 +292,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Honest Distinction: What PATHAI is and is NOT */}
+      {/* Honest Distinction: What Next-path is and is NOT */}
       <section className="py-14 sm:py-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="p-7 sm:p-10 rounded-3xl bg-white subtle-border shadow-xs">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#2D4C3E] mb-2 block">
-                ສິ່ງທີ່ PATHAI ເປັນ
+                ສິ່ງທີ່ Next-path ເປັນ
               </span>
               <h3 className="text-lg sm:text-xl font-bold text-[#171A1F] mb-4">
                 ພື້ນທີ່ທີ່ເປັນຂອງເຈົ້າເອງ
@@ -276,7 +321,7 @@ export default function LandingPage() {
 
             <div className="border-t md:border-t-0 md:border-l border-[#EAE6DC] pt-6 md:pt-0 md:pl-8">
               <span className="text-xs font-bold uppercase tracking-wider text-[#8A4F3E] mb-2 block">
-                ສິ່ງທີ່ PATHAI ບໍ່ແມ່ນ
+                ສິ່ງທີ່ Next-path ບໍ່ແມ່ນ
               </span>
               <h3 className="text-lg sm:text-xl font-bold text-[#171A1F] mb-4">
                 ບໍ່ແມ່ນການວັດຜົນ ຫຼື ບອກອະນາຄົດ

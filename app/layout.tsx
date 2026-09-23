@@ -10,7 +10,7 @@ const notoSansLao = Noto_Sans_Lao({
 });
 
 export const metadata: Metadata = {
-  title: "PATHAI — ພື້ນທີ່ສຳຫຼວດ ແລະ ສະທ້ອນເສັ້ນທາງການຮຽນ-ການເຮັດວຽກ",
+  title: "Next-path — ພື້ນທີ່ສຳຫຼວດ ແລະ ສະທ້ອນເສັ້ນທາງການຮຽນ-ການເຮັດວຽກ",
   description: "ພື້ນທີ່ຊ່ວຍໃຫ້ທ່ານເຂົ້າໃຈຕົນເອງ ແລະ ຄິດຫາເສັ້ນທາງການຮຽນ ຫຼື ການເຮັດວຽກ ບໍ່ແມ່ນການທຳນາຍ ບໍ່ມີຄະແນນ ບໍ່ຕັດສິນແທນທ່ານ",
 };
 
@@ -31,7 +31,7 @@ export default function RootLayout({
         <footer className="py-8 px-4 sm:px-6 subtle-border-t bg-[#F4F1EA] text-[#786E5E] text-xs">
           <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
             <div>
-              <span className="font-bold text-[#1D2229]">PATHAI</span>
+              <span className="font-bold text-[#1D2229]">Next-path</span>
               <span className="mx-2">•</span>
               <span>ພື້ນທີ່ສຳຫຼວດຕົນເອງ ສຳລັບໄວໜຸ່ມລາວ</span>
             </div>

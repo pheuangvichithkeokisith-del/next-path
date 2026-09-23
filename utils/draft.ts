@@ -17,3 +17,7 @@ export function saveDraft(
 ): void {
   storage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
 }
+
+export function clearDraft(storage: Pick<Storage, "removeItem">): void {
+  storage.removeItem(DRAFT_STORAGE_KEY);
+}

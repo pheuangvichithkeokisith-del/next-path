@@ -7,8 +7,9 @@ import type { ReportResponse, ReportPattern, ReportPath } from "@/types/report";
 import { isSessionNotFound } from "@/api/errors";
 import ErrorBanner from "@/components/ErrorBanner";
 import Loading from "@/components/Loading";
-import { clearSessionId, useSessionId } from "@/hooks/useSession";
-import { restoreDraft } from "@/utils/draft";
+import { createSession } from "@/api/session";
+import { clearSessionId, storeSessionId, useSessionId } from "@/hooks/useSession";
+import { clearDraft, restoreDraft } from "@/utils/draft";
 import type { DraftAnswers } from "@/types/form";
 import {
   Compass,
@@ -24,7 +25,8 @@ import {
   Bot,
   MessageSquare,
   Quote,
-  HeartHandshake
+  HeartHandshake,
+  RotateCcw
 } from "lucide-react";
 
 export default function ReportPage() {
@@ -96,7 +98,7 @@ export default function ReportPage() {
       writtenNotes.push(`- ລະດັບການສຶກສາ: ${userDraft["D2"].text_value}`);
     }
 
-    return `### ບົດສະຫຼຸບການສຳຫຼວດຕົນເອງຈາກ PATHAI (Self-Exploration Profile)
+    return `### ບົດສະຫຼຸບການສຳຫຼວດຕົນເອງຈາກ Next-path (Self-Exploration Profile)
 
 **1. ບົດສະຫຼຸບພາບລວມ (Summary):**
 ${report.summary_text}
@@ -117,7 +119,7 @@ ${unknownLines || "- ບໍ່ມີ"}
 
 ---
 ### ຄຳຖາມສຳລັບ AI (Instructions for AI Analysis):
-ຂ້າພະເຈົ້າໄດ້ເຮັດແບບສຳຫຼວດ PATHAI ແລະ ໄດ້ຮັບຜົນສະທ້ອນຂ້າງເທິງ. ກະລຸນາຊ່ວຍ:
+ຂ້າພະເຈົ້າໄດ້ເຮັດແບບສຳຫຼວດ Next-path ແລະ ໄດ້ຮັບຜົນສະທ້ອນຂ້າງເທິງ. ກະລຸນາຊ່ວຍ:
 1. ວິເຄາະວ່າ ຮູບແບບ ແລະ ທິດທາງຂ້າງເທິງນີ້ ມີຄວາມສອດຄ່ອງກັນແນວໃດ?
 2. ແນະນຳທັກສະຍ່ອຍ ຫຼື ໂອກາດຕົວຈິງທີ່ຂ້າພະເຈົ້າສາມາດເລີ່ມທົດລອງເຮັດໄດ້ໃນໄລຍະ 1-3 ເດືອນນີ້?
 3. ຊ່ວຍຕັ້ງຄຳຖາມສຳຄັນ 3 ຂໍ້ ທີ່ຂ້າພະເຈົ້າຄວນນຳໄປຄິດທົບທວນຕົນເອງຕື່ມ?
@@ -143,11 +145,27 @@ ${unknownLines || "- ບໍ່ມີ"}
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `pathai-reflection-${sessionId}.json`;
+      a.download = `nextpath-reflection-${sessionId}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleStartNew = async () => {
+    if (window.confirm("ເລີ່ມຕົ້ນການສຳຫຼວດຮອບໃໝ່? ຂໍ້ມູນເກົ່າຈະຖືກລຶບ ແລະ ສ້າງ Session ໃໝ່.")) {
+      clearSessionId();
+      if (typeof window !== "undefined") {
+        clearDraft(window.localStorage);
+      }
+      try {
+        const { session_id } = await createSession();
+        storeSessionId(session_id);
+      } catch {
+        storeSessionId(`session-${Date.now()}`);
+      }
+      router.push("/assessment");
     }
   };
 
@@ -416,13 +434,21 @@ ${unknownLines || "- ບໍ່ມີ"}
         </div>
       </div>
 
-      {/* Voluntary Feedback Link */}
-      <div className="pt-6 text-center">
+      {/* Action Footer: Start New Reflection & Voluntary Feedback */}
+      <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#EAE6DC]">
+        <button
+          onClick={handleStartNew}
+          className="px-6 py-3 rounded-xl bg-[#2D4C3E] hover:bg-[#22392F] text-white font-medium text-xs sm:text-sm transition-all flex items-center space-x-2 cursor-pointer shadow-xs"
+        >
+          <RotateCcw className="w-4 h-4" />
+          <span>ເລີ່ມຕົ້ນການສຳຫຼວດຮອບໃໝ່ (Start New)</span>
+        </button>
+
         <button
           onClick={() => router.push("/feedback")}
           className="text-xs text-[#7A7365] hover:text-[#1D2229] underline transition-colors cursor-pointer"
         >
-          ຕ້ອງການໃຫ້ຄຳເຫັນກ່ຽວກັບລະບົບ PATHAI (Feedback)
+          ຕ້ອງການໃຫ້ຄຳເຫັນກ່ຽວກັບລະບົບ Next-path (Feedback)
         </button>
       </div>
     </div>

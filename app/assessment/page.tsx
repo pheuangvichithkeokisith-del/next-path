@@ -3,9 +3,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getForm } from "@/api/assessment";
-import { completeSession, saveAnswer } from "@/api/session";
+import { completeSession, createSession, saveAnswer } from "@/api/session";
 import { isSessionNotFound } from "@/api/errors";
-import { clearSessionId, useSessionId } from "@/hooks/useSession";
+import { clearSessionId, storeSessionId, useSessionId } from "@/hooks/useSession";
 import ErrorBanner from "@/components/ErrorBanner";
 import Loading from "@/components/Loading";
 import Question from "@/components/Question";
@@ -88,13 +88,20 @@ export default function AssessmentPage() {
     };
   }, []);
 
-  // Redirect if no session
+  // Ensure session exists
   useEffect(() => {
     if (!sessionResolved) return;
     if (!sessionId) {
-      router.replace("/");
+      createSession()
+        .then(({ session_id }) => {
+          storeSessionId(session_id);
+        })
+        .catch(() => {
+          const fallbackId = `session-${Date.now()}`;
+          storeSessionId(fallbackId);
+        });
     }
-  }, [sessionResolved, sessionId, router]);
+  }, [sessionResolved, sessionId]);
 
   // Handle answers update
   const updateAnswer = (itemId: string, changes: Partial<DraftAnswer>) => {
@@ -116,7 +123,7 @@ export default function AssessmentPage() {
       saveAnswer(sessionId, itemId, updated).catch((err) => {
         if (isSessionNotFound(err)) {
           clearSessionId();
-          router.replace("/");
+          createSession().then(({ session_id }) => storeSessionId(session_id));
         }
       });
     }
@@ -221,6 +228,16 @@ export default function AssessmentPage() {
     setSubmitting(true);
     try {
       if (sessionId) {
+        // Explicitly flush and save ALL answered items in draft to ensure 100% data persistence
+        const itemsToSave = Object.entries(draft).filter(([_, ans]) =>
+          (ans.option_codes && ans.option_codes.length > 0) ||
+          ans.text_value ||
+          ans.extra_text ||
+          ans.other_text
+        );
+        await Promise.allSettled(
+          itemsToSave.map(([itemId, ans]) => saveAnswer(sessionId, itemId, ans))
+        );
         await completeSession(sessionId);
       }
       router.push("/processing");

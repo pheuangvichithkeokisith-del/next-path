@@ -31,16 +31,16 @@ async def get_or_create_session_report(
     result = await db.execute(query)
     report_model = result.scalar_one_or_none()
 
+    # Retrieve latest user answers for the session
+    ans_query = select(AnswerModel).where(AnswerModel.session_id == session_id)
+    ans_result = await db.execute(ans_query)
+    answers: List[AnswerModel] = list(ans_result.scalars().all())
+
+    # Extract structured DSAssessmentPayload and evaluate with deterministic DS Engine
+    payload = extract_ds_assessment_payload(session_obj, answers)
+    ds_result = evaluate_ds_assessment(payload)
+
     if not report_model:
-        # Retrieve user answers for the session
-        ans_query = select(AnswerModel).where(AnswerModel.session_id == session_id)
-        ans_result = await db.execute(ans_query)
-        answers: List[AnswerModel] = list(ans_result.scalars().all())
-
-        # Extract structured DSAssessmentPayload and evaluate with deterministic DS Engine
-        payload = extract_ds_assessment_payload(session_obj, answers)
-        ds_result = evaluate_ds_assessment(payload)
-
         report_model = ReportModel(
             session_id=session_id,
             response_pattern=[p.model_dump() for p in ds_result.response_patterns],
@@ -63,8 +63,21 @@ async def get_or_create_session_report(
             updated_at=datetime.now(timezone.utc),
         )
         db.add(report_model)
-        await db.commit()
-        await db.refresh(report_model)
+    else:
+        report_model.response_pattern = [p.model_dump() for p in ds_result.response_patterns]
+        report_model.possible_paths = [p.model_dump() for p in ds_result.possible_paths]
+        report_model.context_factors = {
+            "age_band": ds_result.context_factors.age_band,
+            "province_code": ds_result.context_factors.province_code or ds_result.context_factors.province_name,
+            "has_constraints": ds_result.context_factors.has_constraints,
+        }
+        report_model.unknowns = ds_result.unknowns
+        report_model.summary_text = ds_result.summary_text
+        report_model.template_id = ds_result.template_id
+        report_model.updated_at = datetime.now(timezone.utc)
+
+    await db.commit()
+    await db.refresh(report_model)
 
     return ReportResponse(
         response_pattern=[ReportPattern(**p) for p in report_model.response_pattern],
