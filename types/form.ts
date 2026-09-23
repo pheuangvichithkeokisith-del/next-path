@@ -10,6 +10,7 @@ export type FormItem = {
   type: "single" | "multi" | "text";
   stem: string;
   note?: string;
+  section?: string;
   section_lao?: string;
   options?: FormOption[];
   min_select?: number;

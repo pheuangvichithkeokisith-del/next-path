@@ -1,46 +1,56 @@
 "use client";
 
+import React from "react";
 import OptionList from "./OptionList";
 import type { DraftAnswer, FormItem } from "@/types/form";
 
 export type QuestionProps = {
   item: FormItem;
+  index: number;
   answer: DraftAnswer;
   onChange: (changes: Partial<DraftAnswer>) => void;
 };
 
-export default function Question({ item, answer, onChange }: QuestionProps) {
+export default function Question({ item, index, answer, onChange }: QuestionProps) {
+  const isDemographic = item.id.startsWith("D");
+
   return (
-    <section aria-labelledby={`${item.id}-stem`} className="space-y-4">
-      {/* Category / Section badge */}
-      {item.section_lao ? (
-        <span className="inline-block px-3 py-1 rounded-full bg-stone-100 text-stone-600 text-xs font-semibold tracking-wide">
-          {item.section_lao}
-        </span>
-      ) : null}
+    <div
+      id={`question-${item.id}`}
+      className="p-5 sm:p-7 rounded-2xl bg-white subtle-border transition-all duration-200 hover:shadow-2xs"
+    >
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="flex items-center space-x-2">
+          <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-md bg-[#F3EFE7] text-[#695F4F] text-xs font-bold">
+            {isDemographic ? item.id : `ຂໍ້ ${item.id.replace("Q", "")}`}
+          </span>
+          {item.section_lao && (
+            <span className="text-xs text-[#8A8170] font-medium hidden sm:inline">
+              · {item.section_lao}
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Main Question Stem */}
-      <h2
-        className="break-words text-xl sm:text-2xl font-semibold leading-snug text-stone-900"
-        id={`${item.id}-stem`}
-      >
+      <h3 className="text-base sm:text-lg font-bold leading-snug text-[#171A1F] mt-1">
         {item.stem}
-      </h2>
+      </h3>
 
-      {/* Note / Context if available */}
+      {/* Note / Context hint if available */}
       {item.note ? (
-        <p className="text-sm leading-relaxed text-stone-500 bg-stone-50 p-3 rounded-xl border border-stone-200/60">
+        <p className="mt-2 text-xs text-[#736A5B] italic bg-[#F8F6F1] p-2.5 rounded-lg border border-[#EAE6DC]">
           {item.note}
         </p>
       ) : null}
 
-      {/* Interaction input (Text input or Option list) */}
+      {/* Interaction input */}
       {item.type === "text" ? (
-        <div className="mt-6">
+        <div className="mt-4">
           <input
-            className="min-h-[52px] w-full rounded-2xl border border-stone-300 bg-white px-4 text-base text-stone-900 placeholder:text-stone-400 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-200 transition shadow-xs"
+            className="min-h-[48px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm sm:text-base text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
             onChange={(event) => onChange({ text_value: event.target.value })}
-            placeholder="ພິມຄຳຕອບຂອງທ່ານ (ເຊັ່ນ: ມ.6, ປວສ., ມະຫາວິທະຍາໄລ)..."
+            placeholder="ພິມຄຳຕອບຂອງທ່ານ..."
             type="text"
             value={answer.text_value ?? ""}
           />
@@ -57,12 +67,12 @@ export default function Question({ item, answer, onChange }: QuestionProps) {
 
       {/* Optional extra text input (e.g. Q7) */}
       {item.extra_text ? (
-        <div className="mt-4 pt-2">
-          <label className="block text-xs font-medium text-stone-600 mb-1.5">
-            {item.extra_text.placeholder || "ເລົ່າສັ້ນໆ (ບໍ່ບັງຄັນ)"}
+        <div className="mt-4 pt-3 border-t border-[#F4F1EA]">
+          <label className="block text-xs font-semibold text-[#797061] mb-1.5">
+            {item.extra_text.placeholder || "ເລົ່າສັ້ນໆ (ບໍ່ບັງຄັບ):"}
           </label>
           <input
-            className="min-h-[48px] w-full rounded-xl border border-stone-300 bg-white px-4 text-base text-stone-900 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-200 transition"
+            className="min-h-[46px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
             onChange={(event) => onChange({ extra_text: event.target.value })}
             placeholder={item.extra_text.placeholder}
             type="text"
@@ -70,6 +80,6 @@ export default function Question({ item, answer, onChange }: QuestionProps) {
           />
         </div>
       ) : null}
-    </section>
+    </div>
   );
 }

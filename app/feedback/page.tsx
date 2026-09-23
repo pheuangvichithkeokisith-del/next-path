@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitFeedback } from "@/api/feedback";
 import type { FeedbackAgreement, FeedbackPayload } from "@/types/feedback";
-import { UI_COPY } from "@/content/copy";
 import { useSessionId } from "@/hooks/useSession";
 import ErrorBanner from "@/components/ErrorBanner";
+import { ArrowLeft, CheckCircle2, Send } from "lucide-react";
 
 export default function FeedbackPage() {
   const router = useRouter();
@@ -46,17 +46,17 @@ export default function FeedbackPage() {
 
   if (submitted) {
     return (
-      <main className="flex-1 bg-[#FAF9F5] px-4 py-12 flex items-center justify-center">
-        <div className="card-calm max-w-md w-full text-center space-y-6 p-8">
-          <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto text-xl font-bold">
-            ✓
+      <main className="flex-1 px-4 py-16 flex items-center justify-center">
+        <div className="max-w-md w-full text-center space-y-6 p-8 rounded-3xl bg-white subtle-border shadow-xs">
+          <div className="w-12 h-12 rounded-full bg-[#EBF2EE] text-[#2D4C3E] flex items-center justify-center mx-auto text-xl font-bold">
+            <CheckCircle2 className="w-6 h-6" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-stone-900">
-              {UI_COPY.feedback.thanks}
+            <h2 className="text-2xl font-bold text-[#171A1F]">
+              ຂອບໃຈສຳລັບຄຳຄິດເຫັນ
             </h2>
-            <p className="text-sm text-stone-600 leading-relaxed">
-              ທຸກຄຳຕອບ ແລະ ຂໍ້ສະເໜີແນະຂອງທ່ານມີຄຸນຄ່າໃນການປັບປຸງລະບົບ PATHAI ໃຫ້ດີຍິ່ງຂຶ້ນ
+            <p className="text-xs sm:text-sm text-[#6A6357] leading-relaxed">
+              ທຸກຄຳຕອບ ແລະ ຂໍ້ສະເໜີແນະຂອງທ່ານມີຄຸນຄ່າໃນການປັບປຸງລະບົບ PATHAI ໃຫ້ດີຍິ່ງຂຶ້ນ.
             </p>
           </div>
           <div className="pt-2">
@@ -65,7 +65,7 @@ export default function FeedbackPage() {
               onClick={() => router.push("/")}
               type="button"
             >
-              {UI_COPY.feedback.backHome}
+              ກັບຄືນໜ້າຫຼັກ
             </button>
           </div>
         </div>
@@ -74,29 +74,37 @@ export default function FeedbackPage() {
   }
 
   return (
-    <main className="flex-1 bg-[#FAF9F5] px-4 py-8 sm:py-12 flex flex-col items-center">
-      <div className="w-full max-w-xl space-y-6">
+    <main className="flex-1 px-4 py-8 sm:py-12 flex flex-col items-center max-w-xl mx-auto w-full">
+      <div className="w-full space-y-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900">
-            {UI_COPY.feedback.submit}
+          <button
+            onClick={() => router.back()}
+            className="inline-flex items-center space-x-1.5 text-xs text-[#7A7365] hover:text-[#171A1F] mb-4 transition-colors cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>ກັບຄືນ</span>
+          </button>
+
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171A1F]">
+            ໃຫ້ຄຳເຫັນກ່ຽວກັບລະບົບ (Feedback)
           </h1>
-          <p className="mt-2 text-sm text-stone-600 leading-relaxed">
-            ບອກຄວາມຮູ້ສຶກ ແລະ ຄວາມຄິດເຫັນຂອງທ່ານກ່ຽວກັບຜົນສະທ້ອນທີ່ໄດ້ຮັບ
+          <p className="mt-1.5 text-xs sm:text-sm text-[#6A6357] leading-relaxed">
+            ບອກຄວາມຮູ້ສຶກ ແລະ ຄວາມຄິດເຫັນຂອງທ່ານກ່ຽວກັບຜົນສະທ້ອນທີ່ໄດ້ຮັບ.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Question 1: Agreement */}
-          <div className="card-calm space-y-3">
-            <label className="block text-base font-semibold text-stone-900">
-              1. {UI_COPY.feedback.agreementPrompt} <span className="text-amber-700">*</span>
+          <div className="p-5 sm:p-6 rounded-2xl bg-white subtle-border space-y-3">
+            <label className="block text-sm sm:text-base font-bold text-[#171A1F]">
+              1. ທ່ານຮູ້ສຶກວ່າຜົນສະທ້ອນກົງກັບຕົວທ່ານຫຼືບໍ່? <span className="text-[#8A4F3E]">*</span>
             </label>
-            
-            <div className="grid grid-cols-3 gap-2 sm:gap-2.5 pt-1">
+
+            <div className="grid grid-cols-3 gap-2.5 pt-1">
               {[
-                { value: "yes", label: UI_COPY.feedback.yes },
-                { value: "not_really", label: UI_COPY.feedback.notReally },
-                { value: "unsure", label: UI_COPY.feedback.unsure },
+                { value: "yes", label: "ກົງຫຼາຍ" },
+                { value: "not_really", label: "ບໍ່ຄ່ອຍກົງ" },
+                { value: "unsure", label: "ຍັງບໍ່ແນ່ໃຈ" },
               ].map((opt) => {
                 const isSelected = agreement === opt.value;
                 return (
@@ -104,10 +112,10 @@ export default function FeedbackPage() {
                     key={opt.value}
                     type="button"
                     onClick={() => setAgreement(opt.value as FeedbackAgreement)}
-                    className={`min-h-[48px] rounded-xl border px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition cursor-pointer text-center flex items-center justify-center ${
+                    className={`min-h-[46px] rounded-xl border px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold transition cursor-pointer text-center flex items-center justify-center select-none ${
                       isSelected
-                        ? "bg-stone-900 text-white border-stone-900 shadow-xs"
-                        : "bg-white text-stone-800 border-stone-200 hover:border-stone-400"
+                        ? "bg-[#2D4C3E] text-white border-[#2D4C3E] shadow-2xs"
+                        : "bg-white text-[#2C271F] subtle-border hover:bg-[#FAF9F5]"
                     }`}
                   >
                     {opt.label}
@@ -118,51 +126,42 @@ export default function FeedbackPage() {
           </div>
 
           {/* Question 2: Incorrect note */}
-          <div className="card-calm space-y-2">
-            <label className="block text-sm font-semibold text-stone-900">
-              2. {UI_COPY.feedback.incorrectNote}
+          <div className="p-5 sm:p-6 rounded-2xl bg-white subtle-border space-y-2">
+            <label className="block text-xs sm:text-sm font-bold text-[#171A1F]">
+              2. ມີຈຸດໃດທີ່ທ່ານຮູ້ສຶກວ່າຍັງບໍ່ຄ່ອຍຖືກຕ້ອງ? (ຖ້າມີ)
             </label>
             <textarea
-              className="w-full rounded-xl border border-stone-300 bg-white p-3 text-sm text-stone-900 placeholder:text-stone-400 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-200 transition min-h-[90px]"
+              className="w-full rounded-xl subtle-border bg-[#FAF9F6] p-3 text-xs sm:text-sm text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition min-h-[80px]"
               onChange={(e) => setIncorrectNote(e.target.value)}
-              placeholder="ຕົວຢ່າງ: ຮູ້ສຶກວ່າດ້ານຄວາມສົນໃຈບາງຢ່າງຍັງບໍ່ຄ່ອຍຕົງ..."
+              placeholder="ຕົວຢ່າງ: ຮູ້ສຶກວ່າດ້ານຄວາມສົນໃຈບາງຢ່າງຍັງບໍ່ຄ່ອຍກົງ..."
               value={incorrectNote}
             />
           </div>
 
           {/* Question 3: Next interest */}
-          <div className="card-calm space-y-2">
-            <label className="block text-sm font-semibold text-stone-900">
-              3. {UI_COPY.feedback.nextInterest}
+          <div className="p-5 sm:p-6 rounded-2xl bg-white subtle-border space-y-2">
+            <label className="block text-xs sm:text-sm font-bold text-[#171A1F]">
+              3. ທ່ານຢາກໃຫ້ລະບົບຊ່ວຍແນະນຳຫຍັງຕື່ມອີກໃນອະນາຄົດ?
             </label>
             <textarea
-              className="w-full rounded-xl border border-stone-300 bg-white p-3 text-sm text-stone-900 placeholder:text-stone-400 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-200 transition min-h-[90px]"
+              className="w-full rounded-xl subtle-border bg-[#FAF9F6] p-3 text-xs sm:text-sm text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition min-h-[80px]"
               onChange={(e) => setNextInterest(e.target.value)}
               placeholder="ຕົວຢ່າງ: ຢາກຮູ້ວິທີຝຶກທັກສະເທັກໂນໂລຊີ ຫຼື ທຶນການສຶກສາ..."
               value={nextInterest}
             />
           </div>
 
-          {hasError ? (
-            <ErrorBanner onRetry={() => setHasError(false)} />
-          ) : null}
+          {hasError ? <ErrorBanner onRetry={() => setHasError(false)} /> : null}
 
-          {/* Actions */}
-          <div className="flex items-center justify-between pt-2">
+          {/* Submit Action */}
+          <div className="pt-2">
             <button
-              className="btn-ghost text-sm"
-              onClick={() => router.back()}
-              type="button"
-            >
-              ← ກັບຄືນ
-            </button>
-
-            <button
-              className="btn-primary text-sm shadow-xs"
+              className="btn-primary w-full text-sm sm:text-base flex items-center justify-center space-x-2"
               disabled={!agreement || submitting}
               type="submit"
             >
-              {submitting ? "ກຳລັງສົ່ງ..." : UI_COPY.feedback.submit}
+              <span>{submitting ? "ກຳລັງສົ່ງ..." : "ສົ່ງຄຳຄິດເຫັນ"}</span>
+              <Send className="w-4 h-4" />
             </button>
           </div>
         </form>

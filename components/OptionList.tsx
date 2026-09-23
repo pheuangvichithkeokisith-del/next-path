@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+import { Check } from "lucide-react";
 import type { FormItem } from "@/types/form";
 
 export type OptionListProps = {
@@ -62,77 +64,75 @@ export default function OptionList({
   }
 
   return (
-    <fieldset className="mt-6 space-y-2.5">
+    <fieldset className="mt-4 space-y-2.5">
       <legend className="sr-only">{item.stem}</legend>
 
       {/* Helper text for multi-select */}
       {item.type === "multi" ? (
-        <p className="text-xs text-stone-500 mb-2">
+        <p className="text-xs text-[#7D7565] font-medium mb-2">
           {item.max_select
-            ? `(ເລືອກແລ້ວ ${selectedCodes.length}/${item.max_select} ຂໍ້${
+            ? `(ເລືອກໄດ້ສູງສຸດ ${item.max_select} ຂໍ້${
                 item.min_select ? `, ຢ່າງໜ້ອຍ ${item.min_select} ຂໍ້` : ""
-              })`
+              } · ເລືອກແລ້ວ ${selectedCodes.length}/${item.max_select})`
             : item.min_select
-            ? `(ເລືອກຢ່າງໜ້ອຍ ${item.min_select} ຂໍ້)`
-            : "(ເລືອກໄດ້ຫຼາຍຂໍ້)"}
+            ? `(ເລືອກຢ່າງໜ້ອຍ ${item.min_select} ຂໍ້ · ເລືອກແລ້ວ ${selectedCodes.length})`
+            : `(ເລືອກໄດ້ຫຼາຍຂໍ້ · ເລືອກແລ້ວ ${selectedCodes.length})`}
         </p>
       ) : null}
 
-      {options.map((option) => {
-        const selected = selectedCodes.includes(option.code);
-        const disabled =
-          item.type === "multi" &&
-          !selected &&
-          !option.exclusive &&
-          item.max_select !== undefined &&
-          selectedCodes.filter((c) => !options.find((o) => o.code === c)?.exclusive)
-            .length >= item.max_select;
+      <div className="grid grid-cols-1 gap-2.5">
+        {options.map((option) => {
+          const isSelected = selectedCodes.includes(option.code);
+          const disabled =
+            item.type === "multi" &&
+            !isSelected &&
+            !option.exclusive &&
+            item.max_select !== undefined &&
+            selectedCodes.filter((c) => !options.find((o) => o.code === c)?.exclusive)
+              .length >= item.max_select;
 
-        return (
-          <label
-            className={`flex min-h-[52px] cursor-pointer items-start gap-3.5 rounded-2xl border p-4 transition-all duration-150 ${
-              selected
-                ? "border-stone-900 bg-stone-900 text-white shadow-xs"
-                : "border-stone-200/90 bg-white text-stone-900 hover:border-stone-400 hover:bg-stone-50/50"
-            } ${disabled ? "cursor-not-allowed opacity-45" : ""}`}
-            key={option.code}
-          >
-            <div className="pt-0.5 shrink-0">
-              <input
-                checked={selected}
-                className={`h-5 w-5 shrink-0 rounded-full border cursor-pointer ${
-                  selected
-                    ? "accent-white text-stone-900 border-white"
-                    : "accent-stone-900 border-stone-300"
-                }`}
-                disabled={disabled}
-                name={item.id}
-                onChange={() => toggle(option.code)}
-                type={item.type === "single" ? "radio" : "checkbox"}
-                value={option.code}
-              />
-            </div>
-            <span
-              className={`break-words text-base leading-relaxed ${
-                selected ? "text-white font-medium" : "text-stone-800"
-              }`}
+          return (
+            <div
+              key={option.code}
+              onClick={() => {
+                if (!disabled) toggle(option.code);
+              }}
+              className={`w-full text-left p-4 rounded-xl transition-all flex items-start justify-between cursor-pointer select-none ${
+                isSelected
+                  ? "bg-[#F2ECE1] border-2 border-[#2D4C3E] text-[#171A1F] shadow-2xs"
+                  : "bg-white subtle-border text-[#332E26] hover:bg-[#FAF9F5] hover:border-[#CCC6B7]"
+              } ${disabled ? "opacity-45 cursor-not-allowed hover:bg-white hover:border-[#E5E1D8]" : ""}`}
             >
-              {option.text}
-            </span>
-          </label>
-        );
-      })}
+              <div className="pr-3 flex-1">
+                <span className="text-sm sm:text-base font-medium leading-relaxed block">
+                  {option.text}
+                </span>
+              </div>
+
+              <div
+                className={`w-5 h-5 rounded-full shrink-0 mt-0.5 flex items-center justify-center border transition-all ${
+                  isSelected
+                    ? "bg-[#2D4C3E] border-[#2D4C3E] text-white"
+                    : "border-[#CCC6B7] bg-white"
+                }`}
+              >
+                {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* 'Other' text input if selected */}
       {options
         .filter((option) => option.has_other && selectedCodes.includes(option.code))
         .map((option) => (
           <div key={`${option.code}-other`} className="pt-2">
-            <label className="block text-xs font-medium text-stone-600 mb-1.5">
+            <label className="block text-xs font-semibold text-[#6D6353] mb-1.5">
               ກະລຸນາລະບຸເພີ່ມເຕີມ:
             </label>
             <input
-              className="min-h-[48px] w-full rounded-xl border border-stone-300 bg-white px-4 text-base text-stone-900 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-200 transition"
+              className="min-h-[46px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
               onChange={(event) => onOtherTextChange(event.target.value)}
               placeholder="ພິມຄຳຕອບຂອງທ່ານທີ່ນີ້..."
               type="text"
