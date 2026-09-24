@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-24 (Thursday Session) | Production Build v0.9.2 | Signal Aggregation Engine v1.0 — Fully Verified & Stable
+**Updated:** 2026-09-24 (Thursday Session) | Production Build v0.9.3 | Transparent AI Prompt & 5 Fluctuation Benchmark Verified
 
 ---
 
@@ -30,102 +30,42 @@
 ### 🏠 Landing Page (`app/page.tsx`)
 * Warm organic ivory/sand theme (`#F9F8F5`, `#2D4C3E`, `#8D5B28`, `#7A3E2D`, `#E5E1D8`).
 * Youth-first space indicator (*“ພື້ນທີ່ສຳຫຼວດຕົນເອງ ສຳລັບໄວໜຸ່ມລາວ (ອາຍຸ 15+)”*).
-* 3 Grounded Truths cards (100% Privacy, No Timer, Not an Exam).
-* 8 Dimensions / Modules architecture grid.
+* Automatic check on completed sessions to ensure 100% clean starts on return visits.
 
 ### 📝 Assessment Studio (`app/assessment/page.tsx`)
 * **Google Forms Continuous Scroll Style**: All questions rendered on one page with smooth vertical scrolling.
-* Grouped by 8 modules:
-  - ຂໍ້ມູນເບື້ອງຕົ້ນ (Demographics: D1–D3)
-  - ໝວດ 1 — ຄວາມສົນໃຈ (Interests: Q1–Q4)
-  - ໝວດ 2 — ທັກສະ & ປະສົບການ (Skills / Evidence: Q5–Q7)
-  - ໝວດ 3 — ຄ່ານິຍົມ (Values: Q8–Q9)
-  - ໝວດ 4 — ຮູບແບບການເຮັດວຽກ (Work Style: Q10–Q13)
-  - ໝວດ 5 — ການຮຽນ ແລະ ການຮຽນຮູ້ (Learning: Q14–Q18)
-  - ໝວດ 6 — ເປົ້າໝາຍ (Goals: Q19–Q21)
-  - ໝວດ 7 — ຄວາມເປັນໄປໄດ້ຕົວຈິງ (Feasibility: Q22–Q23)
-  - ໝວດ 8 — ເສັ້ນທາງການເດີນຕໍ່ (Journey: Q24–Q28)
-* Tactile choice cards (`OptionList.tsx`), autosave debouncing, draft caching.
+* Grouped by 8 modules (D1–D3 Demographics, Q1–Q28 Modules).
+* Autosave debouncing with instant storage draft purge on session completion.
 
-### 📊 Report Space & AI Prompt Export (`app/report/page.tsx`)
-* Tabbed sections adhering to the 6-Part Reflection Architecture:
-  1. กะจกสะท้อนตัวตน (Patterns & Values)
-  2. หลักฐานจากประสบการณ์จริง (Self-Reported Evidence)
-  3. เส้นทางที่น่าสำรวจในลาว (Core & Exploratory Paths)
-  4. จุดที่ยังเปิดกว้าง (Embracing Unknowns & Tensions)
-  5. การทดลองสัปดาห์นี้ (Lao-Context Micro-Experiments)
-  6. ข้อมูลสำหรับคุยกับ AI / พ่อแม่ (AI Prompt Export & Conversation Starters)
+### 📊 Report Space & Transparent AI Prompt Export (`app/report/page.tsx`)
+* Tabbed sections adhering to the 6-Part Reflection Architecture.
+* **1-Click Master AI Prompt Export Button:** Generates structured Lao markdown containing raw user answers, Signal Engine statistics, and thought-provoking AI questions.
+* **Calculation Proof Accordion:** Full transparency for users to inspect the exact answers and signals passed to the backend.
+* Quick launch links to ChatGPT, Claude, and Gemini.
 
 ---
 
 ## 4. 🧠 Signal Aggregation Engine (v1.0 Refactored & Verified)
 
-### A. 7 Canonical Career Clusters (ບໍລິບົດລາວ)
-1. **C1:** ວິເຄາະຂໍ້ມູນ / ແກ້ໄຂບັນຫາ — `ສາຍວິເຄາະຂໍ້ມູນ ແລະ ແກ້ໄຂບັນຫາ` (Data/Analysis)
-2. **C2:** ເທັກໂນໂລຊີ / ຊັອບແວ — `ສາຍເທັກໂນໂລຊີ ແລະ ພັດທະນາຊັອບແວ` (Tech/Software)
-3. **C3:** ອອກແບບ / ສ້າງສັນ — `ສາຍອອກແບບ ແລະ ສ້າງສັນນະວັດຕະກຳ` (Design/Creative)
-4. **C4:** ສື່ສານ / ສັງຄົມ — `ສາຍສື່ສານ, ສັງຄົມ ແລະ ການພັດທະນາຄົນ` (Social/Communication)
-5. **C5:** ສຸຂະພາບ / ການແພດ — `ສາຍສຸຂະພາບ, ການແພດ ແລະ ການເບິ່ງແຍງ` (Health/Care)
-6. **C6:** ທຸລະກິດ / ຈັດການ — `ສາຍການຈັດການ ແລະ ທຸລະກິດເທັກໂນໂລຊີ` (Business/Management)
-7. **C7:** ງານປະຕິບັດ / ຊ່າງ — `ສາຍງານປະຕິບັດ, ງານຊ່າງ ແລະ ທຳມະຊາດ` (Practical/Craft/Nature)
+### 5 Fluctuation Archetypes — Shannon Entropy Benchmarks (Pytest 5/5 & Live Benchmark 100% ✅)
 
-### B. Mathematical Rules & Engine Architecture
-1. **Multi-Select Normalization:**
-   - ປ້ອງກັນການບວກສະສົມຄະແນນເກີນຈິງ ໂດຍຄິດໄລ່: $\text{norm\_q} = \min(1.0, \frac{\text{raw\_pts}}{3.0})$
-   - ຄະແນນໝວດ (Section Score) ຄິດໄລ່ຈາກຄ່າສະເລ່ຍຂອງຄຳຖາມໃນໝວດນັ້ນໆ.
-2. **Section Weights:**
-   - Skills (Q5–Q7): `0.25`
-   - Learning (Q14, Q16): `0.22`
-   - Interests (Q1–Q4): `0.20`
-   - Goals (Q19–Q20): `0.15`
-   - Values (Q8–Q9): `0.09`
-   - Work Style (Q10–Q13): `0.09`
-3. **Soft Negative Reduction (Q15):**
-   - $\text{negative\_factor}(C) = \min(0.45, \frac{\sum \text{negative}}{18.0})$
-   - $\text{adjusted\_fit} = \text{raw\_fit} \times (1.0 - \text{negative\_factor})$
-4. **Feasibility Matrix & Province Context (D3, Q22, Q23):**
-   - Base = 100, Min = 45 (ຫ້າມຕັດເສັ້ນທາງອອກ).
-   - ຮອງຮັບຄວາມອ່ອນໄຫວຕາມສາຍ (`LOCATION_SENSITIVITY`, `TIME_SENSITIVITY`, `PHYSICAL_SENSITIVITY`).
-   - ຫັກຄະແນນເພີ່ມເມື່ອຢູ່ຕ່າງແຂວງ (D3) ທີ່ບໍ່ພ້ອມຍ້າຍ (Q23) ຫຼື ມີ Multi-constraints ($\ge 2$).
-5. **Confidence Score Calculation:**
-   - Base 100.0, Clamped 20.0–85.0.
-   - ຫັກ Unknowns ($-3.5$ ຕໍ່ຂໍ້), Tensions ($-5.0$ ຕໍ່ຈຸດ, ຫາກ $\ge 2$ ຫັກເພີ່ມ $-10$).
-   - ຫັກ Multi-Interest Dispersion / Dual-Interest ($-12$ ຫາ $-20$).
-   - Need Support Clamp: ຫາກ Unknowns $\ge 15$ ຫຼື Max Fit $< 35$, Confidence ຈະຖືກ Clamp $\le 30$.
-6. **Fluctuation Gate & Path Classification:**
-   - **Core Path:** `Fit >= 68`, `Strong Sections >= 2`, `Confidence >= 65`, `Negative < 0.25`, `Feasibility >= 60`, **ບໍ່ມີ Tension ແລະ ບໍ່ມີ Multi-Interest**.
-   - **Caution Path:** `Fit >= 45` ຮ່ວມກັບ `Negative >= 0.25` ຫຼື `Feas < 65` ຫຼື `ມີ Tension`.
-   - **Secondary Path:** `Fit >= 50` ຫຼື ມີສັນຍານຮອງເດັ່ນຊັດ.
-   - **Exploratory Path:** `Fit >= 35` ຫຼື ຢູ່ໃນໄລຍະເລີ່ມຕົ້ນສຳຫຼວດ.
-   - **Low Fit:** `Fit < 35`.
-
-### C. 5 Fluctuation Archetypes — Shannon Entropy Benchmarks (Pytest 7/7 ✅ 100%)
-
-> ⚠️ **ຈຸດວິກິດ (Critical Thresholds):** $E_r < 0.15$ = Laser Focus | $E_r \ge 0.85$ = Need Support
-
-| # | Case | Profile | $E_r$ Target | Strategy | Core | Confidence |
-|---|------|---------|--------------|----------|------|------------|
-| 0 | 0% Laser Focus | ນ້ອງເຊັນ 19, ມ.ລ ປີ 2, ວຽງຈັນ | `< 0.15` | Straight Path | `C2 ONLY` | 85 |
-| 1 | 25% Clear Direction | ນ້ອງນ້ຳ 18, ປ.ຕີ ປີ 1, ວຽງຈັນ | `0.15–0.39` | Core + Secondary | `C2 + C1` | 75–85 |
-| 2 | 50% Dual Interest | ນ້ອງເມກ 17, ມ.6, ຫຼວງພະບາງ | `0.40–0.64` | Dual Secondary | `C3 + C6` | 55–65 |
-| 3 | 75% Multi-Scattered | ນ້ອງມົນ 19, ປ.ຕີ ປີ 2, ສະຫວັນ | `0.65–0.84` | Exploratory | `C2, C3, C6` | 35–45 |
-| 4 | 100% Total Uncertainty | ນ້ອງຟ້າ 16, ມ.5, ຊຽງຂວາງ | `≥ 0.85` | Need Support | `[ ]` | 20–30 |
-
-**ສຳຄັນ:** $E_r$ ຄິດໄລ່ດ້ວຍ Shannon Entropy Ratio = $\frac{H(\mathbf{p})}{H_{\max}}$ ບ່ອນທີ່ $H_{\max} = \log_2(7)$
+| # | Case | Profile | $E_r$ Target | Actual $E_r$ | Strategy | Core Paths | Confidence |
+|---|------|---------|--------------|--------------|----------|------------|------------|
+| 0 | 0% Laser Focus | ນ້ອງເຊັນ 19, ມ.ລ ປີ 2, ວຽງຈັນ | `< 0.15` | `0.08` | Straight Path | `C2 ONLY` | 85.0% |
+| 1 | 25% Clear Direction | ນ້ອງນ້ຳ 18, ປ.ຕີ ປີ 1, ວຽງຈັນ | `0.15–0.39` | `0.35` | Core + Exploratory | `C2 (Expl: C1)` | 85.0% |
+| 2 | 50% Dual Interest | ນ້ອງເມກ 17, ມ.6, ຫຼວງພະບາງ | `0.40–0.64` | `0.55` | Dual Secondary | `C3 + C6` | 63.0% |
+| 3 | 75% Multi-Scattered | ນ້ອງມົນ 19, ປ.ຕີ ປີ 2, ສະຫວັນ | `0.65–0.84` | `0.83` | Exploratory | `C3 (Expl: C2, C6)` | 45.0% |
+| 4 | 100% Total Uncertainty | ນ້ອງຟ້າ 16, ມ.5, ຊຽງຂວາງ | `≥ 0.85` | `1.00` | Need Support | `[ ]` | 30.0% |
 
 ---
 
 ## 5. Development & Testing Commands
 ```bash
-# In /home/pheuang01/Projects/nextpath01/nextpath01/backend
-.venv/bin/pytest tests/test_4_fluctuation_cases.py -v   # Run Fluctuation Benchmark Tests
-.venv/bin/pytest tests/test_signal_engine.py -v         # Run Signal Engine Unit Tests
-.venv/bin/pytest tests -v                               # Run ALL tests (7/7 ✅)
-
-# Frontend in root directory
-npm run dev     # Start Next.js development server
-npm run build   # Production build verification (9/9 routes ✅)
-npm start       # Run production server at localhost:3000
+# In /home/pheuang01/Projects/nextpath01/nextpath01
+node scripts/test_3_rounds_lifecycle.mjs            # Run 3-Round Clean Lifecycle Test
+backend/.venv/bin/python backend/benchmark_5_fluctuations.py # Run 5 Fluctuation Archetypes Benchmark
+backend/.venv/bin/pytest backend/tests -v          # Run ALL backend pytest tests (30/30 ✅)
+npm run build                                      # Production build verification (9/9 routes ✅)
 ```
 
 ---
