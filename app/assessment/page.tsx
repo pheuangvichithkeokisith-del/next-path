@@ -3,13 +3,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getForm } from "@/api/assessment";
-import { completeSession, createSession, saveAnswer } from "@/api/session";
+import { completeSession, createSession, getSessionStatus, saveAnswer } from "@/api/session";
 import { isSessionNotFound } from "@/api/errors";
 import { clearSessionId, storeSessionId, useSessionId } from "@/hooks/useSession";
 import ErrorBanner from "@/components/ErrorBanner";
 import Loading from "@/components/Loading";
 import Question from "@/components/Question";
-import { restoreDraft, saveDraft } from "@/utils/draft";
+import { clearDraft, restoreDraft, saveDraft } from "@/utils/draft";
 import {
   BookmarkCheck,
   CheckCircle2,
@@ -88,7 +88,7 @@ export default function AssessmentPage() {
     };
   }, []);
 
-  // Ensure session exists
+  // Ensure clean, valid session exists
   useEffect(() => {
     if (!sessionResolved) return;
     if (!sessionId) {
@@ -99,6 +99,24 @@ export default function AssessmentPage() {
         .catch(() => {
           const fallbackId = `session-${Date.now()}`;
           storeSessionId(fallbackId);
+        });
+    } else {
+      // If returning to assessment with an already completed session, start a fresh session
+      getSessionStatus(sessionId)
+        .then(({ status }) => {
+          if (status === "completed") {
+            clearSessionId();
+            if (typeof window !== "undefined") {
+              clearDraft(window.localStorage);
+            }
+            setDraft({});
+            createSession().then(({ session_id }) => {
+              storeSessionId(session_id);
+            });
+          }
+        })
+        .catch(() => {
+          // Offline fallback
         });
     }
   }, [sessionResolved, sessionId]);
@@ -240,8 +258,15 @@ export default function AssessmentPage() {
         );
         await completeSession(sessionId);
       }
+      // Auto-clear draft in localStorage so next assessment starts clean
+      if (typeof window !== "undefined") {
+        clearDraft(window.localStorage);
+      }
       router.push("/processing");
     } catch {
+      if (typeof window !== "undefined") {
+        clearDraft(window.localStorage);
+      }
       router.push("/processing");
     } finally {
       setSubmitting(false);

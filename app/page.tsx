@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createSession } from "@/api/session";
+import { createSession, getSessionStatus } from "@/api/session";
 import { clearSessionId, storeSessionId, useSessionId } from "@/hooks/useSession";
 import { clearDraft, restoreDraft } from "@/utils/draft";
 import {
@@ -31,16 +31,47 @@ export default function LandingPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const draft = restoreDraft(window.localStorage);
-      if (Object.keys(draft).length > 0) {
-        setHasExistingDraft(true);
+      const hasAnswers = Object.keys(draft).length > 0;
+      if (sessionId) {
+        getSessionStatus(sessionId)
+          .then(({ status }) => {
+            if (status === "completed") {
+              clearSessionId();
+              clearDraft(window.localStorage);
+              setHasExistingDraft(false);
+            } else {
+              setHasExistingDraft(hasAnswers);
+            }
+          })
+          .catch(() => {
+            setHasExistingDraft(hasAnswers);
+          });
+      } else {
+        setHasExistingDraft(hasAnswers);
       }
     }
-  }, []);
+  }, [sessionId]);
 
   const handleStart = async () => {
     setStarting(true);
     try {
-      if (!sessionId) {
+      if (sessionId) {
+        try {
+          const { status } = await getSessionStatus(sessionId);
+          if (status === "completed") {
+            clearSessionId();
+            if (typeof window !== "undefined") {
+              clearDraft(window.localStorage);
+            }
+            const { session_id } = await createSession();
+            storeSessionId(session_id);
+            router.push("/assessment");
+            return;
+          }
+        } catch {
+          // Fallback if status check fails
+        }
+      } else {
         const { session_id } = await createSession();
         storeSessionId(session_id);
       }
