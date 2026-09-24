@@ -3,13 +3,13 @@ from fastapi import HTTPException, status
 
 from app.schemas.answer import AnswerCreate
 from app.schemas.form import FormItem, QuestionnaireForm
-from app.services.form_service import load_questionnaire_form
 from app.validation.sanitizer import sanitize_text
 
 
 def get_form_items_map(form: Optional[QuestionnaireForm] = None) -> Dict[str, FormItem]:
     """Build a lookup map of all form items (demographics + questions) by ID."""
     if form is None:
+        from app.services.form_service import load_questionnaire_form
         form = load_questionnaire_form()
     
     items: Dict[str, FormItem] = {}

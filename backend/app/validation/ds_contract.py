@@ -5,7 +5,6 @@ from pydantic import BaseModel, ConfigDict
 from app.models.answer import AnswerModel
 from app.models.session import SessionModel
 from app.schemas.form import FormItem, QuestionnaireForm
-from app.services.form_service import load_questionnaire_form
 from app.validation.answer_validator import get_form_items_map
 
 
@@ -59,6 +58,7 @@ def extract_ds_assessment_payload(
 ) -> DSAssessmentPayload:
     """Extract and standardize session answers into a DS-compatible feature representation."""
     if form is None:
+        from app.services.form_service import load_questionnaire_form
         form = load_questionnaire_form()
 
     items_map = get_form_items_map(form)

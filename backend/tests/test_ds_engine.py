@@ -105,7 +105,7 @@ def test_ds_complete_valid_answers():
 
     # Check versions
     assert result.versions.form == "v0.9.1"
-    assert result.versions.ds == "v0.1.0"
+    assert result.versions.ds == "v1.0.0"
 
 
 def test_ds_partial_answers():

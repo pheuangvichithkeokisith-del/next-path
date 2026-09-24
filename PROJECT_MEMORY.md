@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** September 2026 | Production Build v0.9.1 Pre-Cognitive
+**Updated:** September 2026 | Production Build v0.9.1 Pre-Cognitive | Signal Aggregation Engine v1.0 Verified
 
 ---
 
@@ -58,44 +58,66 @@
 
 ---
 
-## 4. 🧠 Algorithm & Report Upgrade Specification (Q1–Q28 Engine)
+## 4. 🧠 Signal Aggregation Engine (v1.0 Refactored & Verified)
 
-### A. 7 Canonical Career Clusters (บริบทลาว)
-1. **C1:** สถิติ/ข้อมูล — `ສາຍວິເຄາະຂໍ້ມູນ ແລະ ແກ້ໄຂບັນຫາ` (Data Analysis & Problem Solving)
-2. **C2:** ไอที/ซอฟต์แวร์ — `ສາຍເທັກໂນໂລຊີ ແລະ ພັດທະນາຊັອບແວ` (Tech & Software Development)
-3. **C3:** ดีไซน์/สร้างสรรค์ — `ສາຍອອກແບບ ແລະ ສ້າງສັນນະວັດຕະກຳ` (Design & Creative Innovation)
-4. **C4:** สังคม/สื่อสาร — `ສາຍສື່ສານ, ສັງຄົມ ແລະ ການພັດທະນາຄົນ` (Social, Communication & People)
-5. **C5:** แพทย์/สุขภาพ — `ສາຍສຸຂະພາບ, ການແພດ ແລະ ການເບິ່ງແຍງ` (Health, Medicine & Care)
-6. **C6:** ธุรกิจ/บริหาร — `ສາຍການຈັດການ ແລະ ທຸລະກິດເທັກໂນໂລຊີ` (Management & Tech Business)
-7. **C7:** งานช่าง/ธรรมชาติ — `ສາຍງານປະຕິບັດ, ງານຊ່າງ ແລະ ທຳມະຊາດ` (Practical, Craft & Nature)
+### A. 7 Canonical Career Clusters (ບໍລິບົດລາວ)
+1. **C1:** ວິເຄາະຂໍ້ມູນ / ແກ້ໄຂບັນຫາ — `ສາຍວິເຄາະຂໍ້ມູນ ແລະ ແກ້ໄຂບັນຫາ` (Data/Analysis)
+2. **C2:** ເທັກໂນໂລຊີ / ຊັອບແວ — `ສາຍເທັກໂນໂລຊີ ແລະ ພັດທະນາຊັອບແວ` (Tech/Software)
+3. **C3:** ອອກແບບ / ສ້າງສັນ — `ສາຍອອກແບບ ແລະ ສ້າງສັນນະວັດຕະກຳ` (Design/Creative)
+4. **C4:** ສື່ສານ / ສັງຄົມ — `ສາຍສື່ສານ, ສັງຄົມ ແລະ ການພັດທະນາຄົນ` (Social/Communication)
+5. **C5:** ສຸຂະພາບ / ການແພດ — `ສາຍສຸຂະພາບ, ການແພດ ແລະ ການເບິ່ງແຍງ` (Health/Care)
+6. **C6:** ທຸລະກິດ / ຈັດການ — `ສາຍການຈັດການ ແລະ ທຸລະກິດເທັກໂນໂລຊີ` (Business/Management)
+7. **C7:** ງານປະຕິບັດ / ຊ່າງ — `ສາຍງານປະຕິບັດ, ງານຊ່າງ ແລະ ທຳມະຊາດ` (Practical/Craft/Nature)
 
-### B. Core DS Rules & Locked Boundaries (ห้ามละเมิดเด็ดขาด)
-1. **[BLOCKED] Q5–Q7 ห้ามแปลงเป็น Skill/Performance Score:**
-   - Q5–Q7 คือ *"Self-reported Evidence / ประสบการณ์ที่เคยทำ"* เช่น `[Evidence: ເຄີຍຊ່ວຍວຽກຄອບຄົວ/ຊຸມຊົນ]` ไม่ใช่คะแนนความเก่ง ห้ามใส่ `w=1.5` วัดผล
-2. **[REVISED LOGIC] การแยกประเภทสัญญาณ (Positive vs Negative vs Hard Constraint):**
-   - **Positive Signal (Q1–Q4, Q14, Q16, Q20):** เพิ่ม Domain Alignment ใน Cluster นั้น
-   - **Soft Negative Signal (Q15):** ลด Alignment ลงอย่างนุ่มนวล (Soft reduction) — **ห้ามใช้เป็น Hard Veto หรือตัดออกจากระบบ**
-   - **Feasibility & Constraints (D3, Q21, Q22, Q23):** นำไปประกอบเป็นคำแนะนำเชิงบริบทพื้นที่ (Lao Feasibility Context) และ Tensions
-3. **[STRUCTURE] การจัดกลุ่มผลลัพธ์ใน Report:**
-   - **Core Paths (1–3 เส้นทาง):** คลัสเตอร์ที่ได้รับ Positive Signals สอดคล้องกันหลายมิติ
-   - **Exploratory Paths (1–2 เส้นทาง):** คลัสเตอร์ที่มีสัญญาณรอง หรือมีศักยภาพที่น่าสำรวจเพิ่มเติม
-   - **Tensions:** จุดขัดแย้งเชิงบวก (เช่น สนใจ Tech ใน Q14 แต่บอกว่ายากใน Q15) เพื่อชวนคิดทบทวน
-   - **Micro-Experiments:** แผนการทดลองสัปดาห์นี้ที่ทำได้จริง ไม่เสียเงิน
+### B. Mathematical Rules & Engine Architecture
+1. **Multi-Select Normalization:**
+   - ປ້ອງກັນການບວກສະສົມຄະແນນເກີນຈິງ ໂດຍຄິດໄລ່: $\text{norm\_q} = \min(1.0, \frac{\text{raw\_pts}}{3.0})$
+   - ຄະແນນໝວດ (Section Score) ຄິດໄລ່ຈາກຄ່າສະເລ່ຍຂອງຄຳຖາມໃນໝວດນັ້ນໆ.
+2. **Section Weights:**
+   - Skills (Q5–Q7): `0.25`
+   - Learning (Q14, Q16): `0.22`
+   - Interests (Q1–Q4): `0.20`
+   - Goals (Q19–Q20): `0.15`
+   - Values (Q8–Q9): `0.09`
+   - Work Style (Q10–Q13): `0.09`
+3. **Soft Negative Reduction (Q15):**
+   - $\text{negative\_factor}(C) = \min(0.45, \frac{\sum \text{negative}}{18.0})$
+   - $\text{adjusted\_fit} = \text{raw\_fit} \times (1.0 - \text{negative\_factor})$
+4. **Feasibility Matrix & Province Context (D3, Q22, Q23):**
+   - Base = 100, Min = 45 (ຫ້າມຕັດເສັ້ນທາງອອກ).
+   - ຮອງຮັບຄວາມອ່ອນໄຫວຕາມສາຍ (`LOCATION_SENSITIVITY`, `TIME_SENSITIVITY`, `PHYSICAL_SENSITIVITY`).
+   - ຫັກຄະແນນເພີ່ມເມື່ອຢູ່ຕ່າງແຂວງ (D3) ທີ່ບໍ່ພ້ອມຍ້າຍ (Q23) ຫຼື ມີ Multi-constraints ($\ge 2$).
+5. **Confidence Score Calculation:**
+   - Base 100.0, Clamped 20.0–85.0.
+   - ຫັກ Unknowns ($-3.5$ ຕໍ່ຂໍ້), Tensions ($-5.0$ ຕໍ່ຈຸດ, ຫາກ $\ge 2$ ຫັກເພີ່ມ $-10$).
+   - ຫັກ Multi-Interest Dispersion / Dual-Interest ($-12$ ຫາ $-20$).
+   - Need Support Clamp: ຫາກ Unknowns $\ge 15$ ຫຼື Max Fit $< 35$, Confidence ຈະຖືກ Clamp $\le 30$.
+6. **Fluctuation Gate & Path Classification:**
+   - **Core Path:** `Fit >= 68`, `Strong Sections >= 2`, `Confidence >= 65`, `Negative < 0.25`, `Feasibility >= 60`, **ບໍ່ມີ Tension ແລະ ບໍ່ມີ Multi-Interest**.
+   - **Caution Path:** `Fit >= 45` ຮ່ວມກັບ `Negative >= 0.25` ຫຼື `Feas < 65` ຫຼື `ມີ Tension`.
+   - **Secondary Path:** `Fit >= 50` ຫຼື ມີສັນຍານຮອງເດັ່ນຊັດ.
+   - **Exploratory Path:** `Fit >= 35` ຫຼື ຢູ່ໃນໄລຍະເລີ່ມຕົ້ນສຳຫຼວດ.
+   - **Low Fit:** `Fit < 35`.
 
-### C. 6-Part Reflection Report Architecture
-1. **ສ່ວນທີ 1: ກະຈົກສະທ້ອນຕົວຕົນ (Patterns & Values):** สะท้อนสิ่งที่ให้คุณค่าและสไตล์การทำงาน
-2. **ສ່ວນທີ 2: ຫຼັກຖານຈາກປະສົບການຈິງ (Evidence Tags):** บันทึกสิ่งที่เคยทำจริงเพื่อเสริมความมั่นใจ
-3. **ສ່ວນທີ 3: ເສັ້ນທາງທີ່ໜ້າສຳຫຼວດ (Core & Exploratory Paths):** ทิศทางในลาว พร้อมสาขาวิชาที่เกี่ยวข้อง
-4. **ສ່ວນທີ 4: ຈຸດທີ່ຍັງເປີດກວ້າງ (Embracing Unknowns & Tensions):** สะท้อนเรื่องที่ยังไม่แน่ใจอย่างอบอุ่น
-5. **ສ່ວນທີ 5: ການທົດລອງອາທິດນີ້ (Micro-Experiments):** Action plan ก้าวเล็กๆ ในลาว
-6. **ສ່ວນທີ 6: ຂໍ້ມູນສຳລັບໄປລົມກັບ AI / ພໍ່ແມ່ (Conversation Starters & Prompt Export):** โครงสร้าง Prompt พร้อมคัดลอก
+### C. 4 Fluctuation Archetypes (Verified Passing Pytest 100%)
+* **Case 1: 100% Fluctuation (Need Support — ນ້ອງຟ້າ 16, ມ.5, ຊຽງຂວາງ)**
+  * *Result:* Core: `[]`, Secondary: `[]`, Confidence: `20.0` (Target: 20–30), Unknowns: 20, Feasibility: 100%.
+* **Case 2: 75% Fluctuation (Multi-Scattered Interest — ນ້ອງມົນ 19, ປີ 2, ສະຫວັນນະເຂດ)**
+  * *Result:* Core: `[]`, Sec/Exp: `C3 (62%), C2 (32%), C6 (32%)`, Confidence: `45.0` (Target: 35–45), Tensions: `T1, T6`, Feas: 76%.
+* **Case 3: 50% Fluctuation (Dual Interest — ນ້ອງເມກ 17, ມ.6, ຫຼວງພະບາງ)**
+  * *Result:* Core: `[]`, Dual Secondary: `C3 (76%), C6 (51%)`, Confidence: `60.0` (Target: 55–65), Tension: `T6`, Feas: 83%.
+* **Case 4: 25% Fluctuation (Clear Direction — ນ້ອງນ້ຳ 18, ປີ 1, ວຽງຈັນ)**
+  * *Result:* Core: `C2 (80%)`, Secondary: `C1 (40%)`, Confidence: `85.0` (Target: 75–85), Tensions: `[]`, Feas: 100%.
 
 ---
 
-## 5. Development Commands & Verification
+## 5. Development & Testing Commands
 ```bash
-# In /home/pheuang01/Projects/nextpath01/nextpath01
+# In /home/pheuang01/Projects/nextpath01/nextpath01/backend
+.venv/bin/pytest tests/test_4_fluctuation_cases.py -v   # Run 4 Fluctuation Unit Tests
+.venv/bin/pytest tests/test_signal_engine.py -v         # Run Signal Engine Tests
+
+# Frontend in root directory
 npm run dev     # Start Next.js development server
-npm run build   # Production build (Verified passing 0 errors)
-npm start       # Start production server
+npm run build   # Production build verification
 ```

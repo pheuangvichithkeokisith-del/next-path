@@ -30,6 +30,13 @@ class DSPath(BaseModel):
     description_lao: Optional[str] = None
     source_question_ids: List[str] = Field(default_factory=list)
     is_sample: bool = False
+    classification: str = "core"  # "core", "secondary", "exploratory", "caution", "low_fit"
+    fit_score: float = 0.0
+    adjusted_fit: float = 0.0
+    feasibility_score: float = 100.0
+    negative_factor: float = 0.0
+    study_paths: List[str] = Field(default_factory=list)
+    tensions: List[str] = Field(default_factory=list)
 
 
 class DSContextFactors(BaseModel):
@@ -90,6 +97,8 @@ class DSEngineResult(BaseModel):
     tensions: List[DSTension] = Field(default_factory=list)
     experiments: List[DSExperiment] = Field(default_factory=list)
     summary_text: str
+    confidence_score: float = 85.0
+    disclaimer: str = "ລາຍງານນີ້ຊ່ວຍໃນການຄິດ ແລະ ສຳຫຼວດຕົນເອງ ບໍ່ແມ່ນຄຳຕັດສິນສຸດທ້າຍ"
     template_id: str
     versions: DSEngineVersions
     is_complete: bool

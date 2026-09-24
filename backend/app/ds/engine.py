@@ -1,11 +1,12 @@
 from typing import List, Optional
 
 from app.ds.experiments import get_default_experiments
-from app.ds.matching import identify_possible_paths
+from app.ds.matching import identify_possible_paths_with_evaluation
 from app.ds.models import (
     DSAssessmentPayload,
     DSEngineResult,
     DSEngineVersions,
+    DSTension,
 )
 from app.ds.rules import (
     detect_tensions,
@@ -16,7 +17,7 @@ from app.ds.rules import (
 
 # Supported questionnaire form versions
 SUPPORTED_FORM_VERSIONS = {"v0.9.1", "v0.9.0"}
-CURRENT_DS_ENGINE_VERSION = "v0.1.0"
+CURRENT_DS_ENGINE_VERSION = "v1.0.0"
 
 
 class DSEngine:
@@ -53,11 +54,27 @@ class DSEngine:
         # 3. Extract descriptive response patterns
         response_patterns = extract_response_patterns(payload)
 
-        # 4. Identify possible exploration paths
-        possible_paths = identify_possible_paths(payload)
+        # 4. Identify possible exploration paths & run Signal Engine v1.0
+        possible_paths, eval_res = identify_possible_paths_with_evaluation(payload)
 
-        # 5. Detect structured tensions
-        tensions = detect_tensions(payload)
+        # 5. Detect structured tensions from rules + signal engine
+        rule_tensions = detect_tensions(payload)
+        existing_tension_titles = {t.title_lao for t in rule_tensions}
+
+        all_tensions: List[DSTension] = list(rule_tensions)
+        for t_info in eval_res.detected_tensions:
+            msg = t_info.get("message", "")
+            if msg and msg not in existing_tension_titles:
+                existing_tension_titles.add(msg)
+                all_tensions.append(
+                    DSTension(
+                        tension_id=t_info.get("id", f"T-{len(all_tensions)+1}"),
+                        title_lao=msg,
+                        description_lao=f"ຈຸດສະທ້ອນຄວາມຄິດ: {msg}",
+                        source_question_ids=[],
+                        is_resolved=False,
+                    )
+                )
 
         # 6. Retrieve structured 'Try Before Decide' experiments
         experiments = get_default_experiments(possible_paths)
@@ -68,7 +85,7 @@ class DSEngine:
             possible_paths=possible_paths,
             context_factors=context_factors,
             unknowns_count=len(unknowns),
-            tensions_count=len(tensions),
+            tensions_count=len(all_tensions),
         )
 
         template_id = "reflection-deterministic-v1"
@@ -87,8 +104,10 @@ class DSEngine:
             possible_paths=possible_paths,
             context_factors=context_factors,
             unknowns=unknowns,
-            tensions=tensions,
+            tensions=all_tensions,
             experiments=experiments,
+            confidence_score=eval_res.confidence_score,
+            disclaimer="ລາຍງານນີ້ຊ່ວຍໃນການຄິດ ແລະ ສຳຫຼວດຕົນເອງ ບໍ່ແມ່ນຄຳຕັດສິນສຸດທ້າຍ",
             summary_text=summary_text,
             template_id=template_id,
             versions=versions,

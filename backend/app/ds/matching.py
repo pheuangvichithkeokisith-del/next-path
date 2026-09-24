@@ -1,52 +1,62 @@
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Tuple
 
 from app.ds.dimensions import CANONICAL_CLUSTERS
 from app.ds.models import DSAssessmentPayload, DSPath
+from app.ds.signal_engine import (
+    CLUSTERS,
+    STUDY_PATH_MAPPING,
+    EngineEvaluationResult,
+    evaluate_signals,
+)
 
 
-def identify_possible_paths(payload: DSAssessmentPayload) -> List[DSPath]:
-    """Identify possible exploration directions strictly based on user's self-reported domain choices.
-    
-    Adheres strictly to the PATHAI principle:
-    - Exploration directions only
-    - No ranking
-    - No 'best career' or 'top match'
-    - No probability or predictive scores
-    - Every path retains exact source question IDs
-    """
-    paths: List[DSPath] = []
+def identify_possible_paths_with_evaluation(
+    payload: DSAssessmentPayload,
+) -> Tuple[List[DSPath], EngineEvaluationResult]:
+    """Evaluate exploration paths using PathAI Signal Aggregation Engine (v1.0)."""
     responses = payload.responses
 
-    # Map question IDs to their selected option codes
-    answers_by_qid: Dict[str, Set[str]] = {
-        qid: set(resp.option_codes)
+    answers_by_qid: Dict[str, List[str]] = {
+        qid: list(resp.option_codes)
         for qid, resp in responses.items()
         if resp.is_answered
     }
 
-    # Evaluate each canonical cluster in stable, deterministic order
-    for cluster_id, cluster in sorted(CANONICAL_CLUSTERS.items(), key=lambda x: x[0]):
-        matched_sources: List[str] = []
+    demographics_dict: Dict[str, str] = {
+        "age_band": payload.demographics.age_band or "",
+        "education_level": payload.demographics.education_level or "",
+        "province_code": payload.demographics.province_code or "",
+    }
 
-        for qid, selected_codes in answers_by_qid.items():
-            # Check if any selected option in this question corresponds to cluster
-            cluster_codes = (
-                cluster.interest_option_codes
-                | cluster.skill_option_codes
-                | cluster.learning_option_codes
-            )
-            if any(code in cluster_codes for code in selected_codes):
-                matched_sources.append(qid)
+    eval_res = evaluate_signals(answers_by_qid, demographics_dict)
 
-        if matched_sources:
+    paths: List[DSPath] = []
+    # Preserve deterministic order across clusters C1-C7 or ranked by adjusted_fit
+    for cluster_id, cluster_eval in eval_res.cluster_evaluations.items():
+        if cluster_eval.adjusted_fit >= 35.0 or len(cluster_eval.matched_qids) > 0:
+            canonical = CANONICAL_CLUSTERS.get(cluster_id)
+            desc = canonical.description_lao if canonical else ""
             paths.append(
                 DSPath(
-                    group_id=cluster.group_id,
-                    label_lao=cluster.label_lao,
-                    description_lao=cluster.description_lao,
-                    source_question_ids=matched_sources,
+                    group_id=cluster_id,
+                    label_lao=cluster_eval.label_lao,
+                    description_lao=desc,
+                    source_question_ids=cluster_eval.matched_qids,
                     is_sample=False,
+                    classification=cluster_eval.classification,
+                    fit_score=cluster_eval.raw_fit,
+                    adjusted_fit=cluster_eval.adjusted_fit,
+                    feasibility_score=cluster_eval.feasibility_score,
+                    negative_factor=cluster_eval.negative_factor,
+                    study_paths=cluster_eval.study_paths,
+                    tensions=cluster_eval.detected_tensions,
                 )
             )
 
+    return paths, eval_res
+
+
+def identify_possible_paths(payload: DSAssessmentPayload) -> List[DSPath]:
+    """Backward-compatible helper returning List[DSPath]."""
+    paths, _ = identify_possible_paths_with_evaluation(payload)
     return paths
