@@ -296,6 +296,27 @@ STUDY_PATH_MAPPING: Dict[str, List[str]] = {
 }
 
 
+import math
+
+def compute_shannon_entropy_ratio(scores: Dict[str, float], uniform_prior: float = 5.0) -> float:
+    """Compute Normalized Shannon Entropy Ratio E_r in [0.0, 1.0].
+    
+    Measures information dispersion across the 7 career clusters:
+    - 0.95 - 1.00: Maximum uncertainty / flat answers (Need Support)
+    - 0.82 - 0.95: High multi-interest dispersion (Exploratory)
+    - 0.75 - 0.82: Dual-interest / bi-modal (Secondary)
+    - < 0.75: Focused direction / unimodal spike (Straight Path)
+    """
+    smoothed = {k: max(0.0, s) + uniform_prior for k, s in scores.items()}
+    total = sum(smoothed.values())
+    if total <= 0:
+        return 1.0
+    probs = [v / total for v in smoothed.values()]
+    h = -sum(p * math.log2(p) for p in probs if p > 0)
+    h_max = math.log2(len(scores))  # log2(7) ~ 2.80735
+    return round(min(1.0, max(0.0, h / h_max)), 3)
+
+
 class ClusterEvaluation(BaseModel):
     cluster_id: str
     label_lao: str
@@ -313,6 +334,7 @@ class ClusterEvaluation(BaseModel):
 class EngineEvaluationResult(BaseModel):
     cluster_evaluations: Dict[str, ClusterEvaluation]
     confidence_score: float
+    entropy_ratio: float = 0.0
     detected_tensions: List[Dict[str, str]]
     core_paths: List[ClusterEvaluation]
     secondary_paths: List[ClusterEvaluation]
@@ -626,9 +648,12 @@ def evaluate_signals(
         elif classification == "caution":
             caution_paths.append(evaluation)
 
+    entropy_ratio = compute_shannon_entropy_ratio(adjusted_fits)
+
     return EngineEvaluationResult(
         cluster_evaluations=evaluations,
         confidence_score=round(confidence_score, 1),
+        entropy_ratio=entropy_ratio,
         detected_tensions=detected_tensions,
         core_paths=core_paths,
         secondary_paths=secondary_paths,
