@@ -7,8 +7,19 @@ and path classification for Lao youth career self-reflection.
 """
 
 import math
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Literal, Optional, Set, Tuple
 from pydantic import BaseModel, Field
+
+
+def clamp(val: float, low: float, high: float) -> float:
+    """Clamp val within [low, high]."""
+    return max(low, min(high, val))
+
+
+def smoothstep(x: float) -> float:
+    """Hermite interpolation smoothstep in [0.0, 1.0]."""
+    x = clamp(x, 0.0, 1.0)
+    return x * x * (3.0 - 2.0 * x)
 
 # 7 Canonical Clusters
 CLUSTERS = {
@@ -306,63 +317,52 @@ STUDY_PATH_MAPPING: Dict[str, List[str]] = {
 
 
 def compute_shannon_entropy_ratio(scores: Dict[str, float], unknown_count: int = 0) -> float:
-    """Compute Calibrated Shannon Entropy Ratio E_r in [0.0, 1.0].
+    """Compute Calibrated Shannon Entropy Ratio E_r in [0.0, 1.0] using N_eff = 2^H.
 
-    5 Fluctuation Archetype Bands (mapped by ratio12 = top2 / top1):
-    - 0%  Laser Focus    : E_r < 0.15  | ratio12 < 0.25  (top2 is tiny vs top1)
-    - 25% Clear Direction: 0.15–0.39   | ratio12 0.25–0.54
-    - 50% Dual Interest  : 0.40–0.64   | ratio12 0.55–0.74
-    - 75% Multi-Scattered: 0.65–0.84   | ratio12 >= 0.75 OR strong top3
-    - 100% Total Uncert. : E_r >= 0.85 | total_score <= 5 OR unknown >= 15
+    Mathematical Foundation:
+    - H = -sum(p_i * log2(p_i)) (Shannon Entropy)
+    - N_eff = 2^H (Effective number of competing clusters / Hill number of order 1)
 
-    Calibration uses ratio12 (continuous) instead of absolute top1/top2 thresholds,
-    so a 1-point score difference never causes a band jump.
+    Continuous Mapping Architecture (v1.1.2):
+    - Laser Focus      : N_eff < 1.75       | E_r: 0.00 – 0.14  (1 dominant cluster >= 82% share)
+    - Clear Direction  : 1.75 <= N_eff < 2.25| E_r: 0.15 – 0.39  (1 main + 1 minor tail e.g. 80:20)
+    - Dual Interest    : 2.25 <= N_eff < 2.85| E_r: 0.40 – 0.64  (2 competing clusters e.g. 100/85/10)
+    - Multi-Scattered  : 2.85 <= N_eff < 5.50| E_r: 0.65 – 0.84  (3, 4, 5 competing exploration clusters)
+    - Total Uncertainty: N_eff >= 5.50      | E_r: 0.85 – 1.00  (6-7 flat clusters, unknown >= 15, or top1 < 30)
     """
-    total_score = sum(max(0.0, s) for s in scores.values())
-    if total_score <= 5.0 or unknown_count >= 15:
+    total = sum(max(0.0, s) for s in scores.values())
+    if total <= 5.0 or unknown_count >= 15:
         return 1.00
 
     sorted_s = sorted([max(0.0, s) for s in scores.values()], reverse=True)
     top1 = sorted_s[0]
-    top2 = sorted_s[1] if len(sorted_s) > 1 else 0.0
-    top3 = sorted_s[2] if len(sorted_s) > 2 else 0.0
-
-    # Guard: if top1 is too weak, treat as high uncertainty
     if top1 < 30.0:
-        return round(min(1.0, max(0.85, sum(sorted_s[:3]) / (total_score + 1e-5))), 2)
+        return 0.85
 
-    active = [s for s in sorted_s if s > 0]
-    if len(active) <= 1:
+    p = [max(0.0, s) / total for s in scores.values() if s > 0]
+    if len(p) <= 1:
         return 0.05
 
-    probs = [s / sum(active) for s in active]
-    h = -sum(p * math.log2(p) for p in probs if p > 0)
-    raw_er = h / math.log2(7)
+    H = -sum(pi * math.log2(pi) for pi in p)
+    N_eff = 2.0 ** H
 
-    # Continuous calibration via ratio12 — no hard absolute thresholds
-    ratio12 = top2 / (top1 + 1e-5)   # 0.0 = total dominance, 1.0 = tied
-    ratio13 = top3 / (top1 + 1e-5)   # tertiary spread
-
-    # Detect "tied secondary cluster" pattern:
-    # e.g. Mon: top2=31.6, top3=31.6 — two clusters neck-and-neck → scattered
-    tied_secondary = (top3 >= 25.0 and abs(top2 - top3) <= 5.0)
-
-    if ratio12 < 0.25:
-        # Laser Focus: strong single leader, secondary is trivial
-        er = min(0.14, raw_er * max(0.3, ratio12 * 1.2))
-    elif ratio12 < 0.55 and not tied_secondary:
-        # Clear Direction: solid leader with minor secondary
-        # Linear interpolation 0.15–0.39 across the ratio range
-        t = (ratio12 - 0.25) / 0.30          # 0.0 → 1.0
-        er = 0.15 + t * 0.24
-    elif ratio12 < 0.75 and not tied_secondary:
-        # Dual Interest: two clusters competing
-        t = (ratio12 - 0.55) / 0.20          # 0.0 → 1.0
-        er = 0.40 + t * 0.24
+    if N_eff < 1.05:
+        er = 0.05
+    elif N_eff < 1.75:
+        # Laser Focus: 0.00 – 0.14 (linear interpolation across 1.00 -> 1.75)
+        er = 0.00 + (N_eff - 1.00) / 0.75 * 0.14
+    elif N_eff < 2.25:
+        # Clear Direction: 0.15 – 0.39 (linear interpolation across 1.75 -> 2.25)
+        er = 0.15 + (N_eff - 1.75) / 0.50 * 0.24
+    elif N_eff < 2.85:
+        # Dual Interest: 0.40 – 0.64 (linear interpolation across 2.25 -> 2.85)
+        er = 0.40 + (N_eff - 2.25) / 0.60 * 0.24
+    elif N_eff < 5.50:
+        # Multi-Scattered: 0.65 – 0.84 (linear interpolation across 2.85 -> 5.50, includes 3, 4, 5 clusters)
+        er = 0.65 + (N_eff - 2.85) / 2.65 * 0.19
     else:
-        # Multi-Scattered: secondary nearly as strong as primary,
-        # OR tied secondary cluster (top2 ≈ top3, both >= 25)
-        er = 0.65 + min(0.19, ratio13 * 0.5 + (ratio12 - 0.75) * 0.3)
+        # Total Uncertainty: 0.85 – 1.00 (linear interpolation across 5.50 -> 7.00, 6-7 flat clusters)
+        er = min(1.00, 0.85 + (N_eff - 5.50) / 1.50 * 0.15)
 
     return round(min(1.0, max(0.0, er)), 2)
 
@@ -382,6 +382,9 @@ class ClusterEvaluation(BaseModel):
 
 
 class EngineEvaluationResult(BaseModel):
+    algorithm_version: str = "1.1.2"
+    status: Literal["OK", "SUGGEST_EXPLORATION"] = "OK"
+    status_reason: Optional[Literal["low_signal", "too_many_unknowns", "extreme_uncertainty"]] = None
     cluster_evaluations: Dict[str, ClusterEvaluation]
     confidence_score: float
     entropy_ratio: float = 0.0
@@ -396,7 +399,7 @@ def evaluate_signals(
     answers_by_qid: Dict[str, List[str]],
     demographics: Optional[Dict[str, str]] = None,
 ) -> EngineEvaluationResult:
-    """Execute the refined PathAI Signal Aggregation Engine (v1.0)."""
+    """Execute the refined PathAI Signal Aggregation Engine (v1.1.0)."""
     # Normalize answers: ensure all values are List[str]
     normalized_answers: Dict[str, List[str]] = {}
     for qid, val in answers_by_qid.items():
@@ -459,7 +462,8 @@ def evaluate_signals(
             section_scores[sec_name][c] = avg_sec_score
             if avg_sec_score >= 0.55:
                 section_strong_count[c] += 1
-            if avg_sec_score >= 0.25:
+            # Point 6: pos_sections threshold increased from 0.25 to 0.35 for discriminative quality
+            if avg_sec_score >= 0.35:
                 section_positive_count[c] += 1
 
     # Raw Fit (0 - 100)
@@ -583,7 +587,7 @@ def evaluate_signals(
         (dispersion_top3 <= 15 and top3 >= 25)
         or close_secondary
         or (top2 >= 45.0 and has_tension_any)
-        or (top1 < 68 and top2 >= 25)
+        or (top1 < 68 and top2 >= 25 and (top1 - top2) <= 20)  # gap guard: weak leader must be close to top2
     )
 
     conf = 100.0
@@ -593,22 +597,18 @@ def evaluate_signals(
     conf -= unknowns_deduct
 
     # B. Tensions compound penalty — per-tension + group multiplier, capped at 25 pts
-    #    Rationale: 1 tension = mild flag, 2+ = systemic conflict worth more than linear
     tension_deduct = min(25.0, 5.0 * len(detected_tensions) + (8.0 if len(detected_tensions) >= 2 else 0.0))
     conf -= tension_deduct
 
     # C. Multi-interest dispersion — pick the single strongest applicable deduction (no double-count)
-    #    Tightly-spread top-3: strongest signal of confusion
-    #    Close top-2: secondary signal
-    #    High top-2 (>=45) with/without tension: tertiary signal
     if dispersion_top3 <= 15 and top3 >= 25:
-        dispersion_deduct = 20.0                          # all 3 clusters close → most scattered
+        dispersion_deduct = 20.0
     elif (top1 - top2) <= 10 and top2 >= 25:
-        dispersion_deduct = 12.0                          # top 2 nearly tied
+        dispersion_deduct = 12.0
     elif top2 >= 45.0:
-        dispersion_deduct = 15.0 + (12.0 if has_tension_any else 0.0)  # strong 2nd + tension bonus
+        dispersion_deduct = 15.0 + (12.0 if has_tension_any else 0.0)
     elif top2 >= 25.0 and top3 >= 25.0:
-        dispersion_deduct = 15.0                          # 2nd and 3rd both notable
+        dispersion_deduct = 15.0
     else:
         dispersion_deduct = 0.0
     conf -= dispersion_deduct
@@ -622,11 +622,11 @@ def evaluate_signals(
         conf -= (70.0 - top1) * 0.5
 
     # F. Structural clamps (override deduction total for extreme cases)
-    if unknown_count >= 15 or top1 < 35:          # Need Support
+    if unknown_count >= 15 or top1 < 35:
         conf = min(conf, 30.0)
-    if top2 > 0 and (top1 - top2) <= 10 and top1 < 70:  # Close second, weak leader
+    if top2 > 0 and (top1 - top2) <= 10 and top1 < 70:
         conf = min(conf, 60.0)
-    if unknown_count >= 3 and len(detected_tensions) >= 2 and top1 < 70:  # Multi-uncertainty
+    if unknown_count >= 3 and len(detected_tensions) >= 2 and top1 < 70:
         conf = min(conf, 45.0)
 
     conf = min(conf, 85.0)  # Self-report cap
@@ -710,7 +710,24 @@ def evaluate_signals(
 
     entropy_ratio = compute_shannon_entropy_ratio(adjusted_fits, unknown_count)
 
+    # 8. Status & Fallback Determination (Point 8)
+    status: Literal["OK", "SUGGEST_EXPLORATION"] = "OK"
+    status_reason: Optional[Literal["low_signal", "too_many_unknowns", "extreme_uncertainty"]] = None
+
+    if all(cluster_fit[c] < 25.0 for c in CLUSTERS):
+        status = "SUGGEST_EXPLORATION"
+        status_reason = "low_signal"
+    elif unknown_count >= 15:
+        status = "SUGGEST_EXPLORATION"
+        status_reason = "too_many_unknowns"
+    elif entropy_ratio >= 0.95 and top1 < 35.0:
+        status = "SUGGEST_EXPLORATION"
+        status_reason = "extreme_uncertainty"
+
     return EngineEvaluationResult(
+        algorithm_version="1.1.2",
+        status=status,
+        status_reason=status_reason,
         cluster_evaluations=evaluations,
         confidence_score=round(confidence_score, 1),
         entropy_ratio=entropy_ratio,
@@ -720,3 +737,4 @@ def evaluate_signals(
         exploratory_paths=exploratory_paths,
         caution_paths=caution_paths,
     )
+

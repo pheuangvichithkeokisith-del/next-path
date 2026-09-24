@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-24 (Thursday Session) | Production Build v0.9.3 | Transparent AI Prompt & 5 Fluctuation Benchmark Verified
+**Updated:** 2026-09-24 (Late Night Session) | Signal Engine v1.1.2 Production Ready (41/41 Pytest ✅ & 9/9 Next.js Build ✅) | Phase 2 Roadmap Integrated
 
 ---
 
@@ -64,7 +64,7 @@
 # In /home/pheuang01/Projects/nextpath01/nextpath01
 node scripts/test_3_rounds_lifecycle.mjs            # Run 3-Round Clean Lifecycle Test
 backend/.venv/bin/python backend/benchmark_5_fluctuations.py # Run 5 Fluctuation Archetypes Benchmark
-backend/.venv/bin/pytest backend/tests -v          # Run ALL backend pytest tests (30/30 ✅)
+backend/.venv/bin/pytest backend/tests -v          # Run ALL backend pytest tests (41/41 ✅)
 npm run build                                      # Production build verification (9/9 routes ✅)
 ```
 
@@ -112,11 +112,37 @@ npm run build                                      # Production build verificati
 **4. Production Build Verified**
 - `npm run build` ✅ — 9/9 static routes prerendered successfully
 - No TypeScript or build errors.
-- Committed to `main` branch with clean working tree.
+### Session 2026-09-24 (Late Night) — Signal Engine v1.1.2: Architecture Decisions & Final Production Release
 
-**5. Servers Verified Running**
-- Backend (FastAPI): `http://localhost:8000` — task-206 🟢 RUNNING
-- Frontend (Next.js): `http://localhost:3000` — task-208 🟢 RUNNING
+**🎯 Main Objective:**  
+ສະຫຼຸບການຕັດສິນໃຈທາງສະຖາປັດຕະຍະກຳ (Architectural Decisions) ກ່ຽວກັບ **Co-Signal Structural Floors** ແລະ **3–5 Clusters Multi-Scattered Range** ສູ່ Production Build v1.1.2.
+
+---
+
+**✅ Final Architectural Decisions:**
+
+**1. Pure C5 (Health) Co-Signal Handling:**
+- **ບົດວິເຄາະ:** ໃນ Matrix ແບບສອບຖາມ C5 ບໍ່ມີ Options ໃນ Q6, Q7, Q10–Q13 ແລະ Options ຂອງ C5 ໃນ Q1–Q5, Q8–Q9 ຈະໃຫ້ Co-signal ກັບ C4 (Social/Care) ສະເໝີ ($C5:3, C4:2$).
+- **ການຕັດສິນໃຈ:** ຍອມຮັບສະພາບ **Dual Care Companion (C5 + C4)** ຕາມທຳມະຊາດຈິດຕະວິທະຍາຂອງແບບສອບຖາມ (ບໍ່ໃຊ້ Mathematical Hack). ວາງແຜນ Rebalance Matrix ເພີ່ມ Option C5 ໃນ v1.2.0.
+
+**2. 3–5 Competing Clusters Multi-Scattered Mapping:**
+- **ການຕັດສິນໃຈ:** ຂະຫຍາຍຊ່ວງ Multi-Scattered ໃຫ້ກວມເອົາ $N_{\text{eff}} \in [2.85, 5.00)$ ເພື່ອຮອງຮັບໄວໜຸ່ມທີ່ມີຄວາມສົນໃຈ 3, 4, 5 ສາຍພ້ອມກັນ ($E_r \in [0.65, 0.84]$) ໃຫ້ໄດ້ຮັບ Micro-Experiments ຄົບທຸກສາຍ.
+- **Total Uncertainty Gate ($N_{\text{eff}} \ge 5.00$ ຫລື Unknown $\ge 15$ ຫລື Top1 $< 30$):** ສະຫງວນໄວ້ສະເພາະ Flat Diffusion (6–7 ສາຍເທົ່າກັນ) ແລະ Extreme Ambiguity ($E_r \ge 0.85$).
+
+**3. Final Continuous $N_{\text{eff}}$ Mapping Table (v1.1.2):**
+- **Laser Focus ($N_{\text{eff}} < 1.75$):** $E_r \in [0.00, 0.14]$ (1 Dominant cluster $\ge 82\%$ share)
+- **Clear Direction ($1.75 \le N_{\text{eff}} < 2.25$):** $E_r \in [0.15, 0.39]$ (1 Main + 1 Minor tail)
+- **Dual Interest ($2.25 \le N_{\text{eff}} < 2.85$):** $E_r \in [0.40, 0.64]$ (2 Competing clusters e.g. 100/85/10)
+- **Multi-Scattered ($2.85 \le N_{\text{eff}} < 5.50$):** $E_r \in [0.65, 0.84]$ (3, 4, 5 Competing exploration clusters)
+- **Total Uncertainty ($N_{\text{eff}} \ge 5.50$):** $E_r \in [0.85, 1.00]$ (6–7 Flat clusters / Need Support)
+
+**4. Production Verification & Engine Version Sync:**
+- **Backend Pytest:** **41/41 tests PASSED (100% ✅)**.
+- **Frontend Production Build:** Next.js 16 App Router **9/9 static routes prerendered ✅**.
+- **Engine Version:** Synchronized `algorithm_version="1.1.2"` across `signal_engine.py` and test suites.
+- **Phase 2 Roadmap:** Fully structured into 4 sprints across H1–H4, M1–M4, L1–L4, and R1–R2.
+
+
 
 ---
 
@@ -131,15 +157,47 @@ GET  /health                                  → Backend health check (NOT /api
 
 ---
 
-**⚠️ Known Issues / To Watch:**
-- Health endpoint is at `GET /health` (root), **not** `GET /api/v1/health` (returns 404).
-- Answer endpoint accepts **one question at a time** via `{question_id, option_codes[]}` — not bulk JSON.
-- Frontend at `localhost:3000` returns `200 OK` but full user-journey E2E browser test not yet completed.
+## 7. 🗺️ Phase 2 Roadmap — PATHAI Signal Engine v1.2.0
+
+> **Status:** Draft / Phase 2 Master Plan  
+> **Foundation:** v1.1.2 (Continuous $N_{\text{eff}} = 2^H$ Hill Number Core)  
+> **Target:** Explainability, Confidence Cross-Check, Matrix Rebalancing & Regression Harness
+
+### 🎯 3 Core Pillars of Phase 2
+1. **Explainability:** Transparent reasons for confidence deductions (`confidence_reasons[]`) and path-level matches (`reasons[]`).
+2. **Calibration:** $E_r \leftrightarrow$ Confidence cross-check and data-driven weights calibration ($n \ge 500$).
+3. **Matrix Quality & Safety:** Rebalance C5 Health co-signals with regression snapshot safety net (`scripts/snapshot.py`).
 
 ---
 
-**🚀 Next Session Priorities:**
-1. Complete E2E browser test: Submit full questionnaire via UI → verify report page renders all 6 tabs.
-2. Verify report page shows correct: Fit scores, Feasibility %, Confidence, Tensions list, Entropy $E_r$, Micro-Experiments.
-3. Test AI Prompt Export button — validate Lao-language markdown export is correct.
-4. Optional: Add "ນ້ອງເຊັນ (Case 0)" E2E test path to test suite.
+### 📋 Priority Matrix & Task Breakdown
+
+| Priority | Code | Task / Feature | Key Objective | Sprint |
+|---|---|---|---|---|
+| 🔴 **High** | **H1** | **$E_r \leftrightarrow$ Confidence Cross-Check** | Penalize confidence when entropy/dispersion is high (E_r ≥ 0.30 → max 80%, ≥ 0.45 → 70%, ≥ 0.60 → 55%, ≥ 0.75 → 40%). | Sprint 1 |
+| 🔴 **High** | **H2** | **`confidence_reasons[]` Output Field** | Output canonical reason codes (`unknown_penalty`, `tension_penalty`, `dispersion_penalty`, `province_penalty`, `weak_leader`, `entropy_cap`). | Sprint 1 |
+| 🔴 **High** | **H4** | **Regression Snapshot Framework** | Automated test harness (`scripts/snapshot.py`, `scripts/diff_snapshots.py`) running 100+ synthetic profiles to track regression delta. | Sprint 1 |
+| 🔴 **High** | **H3** | **C5 Matrix Rebalance (Health Co-Signals)** | Audit and rebalance questionnaire options for C5 in Q6, Q7, Q10–Q13 to reduce artificial C4 co-signals. | Sprint 2 |
+| 🟡 **Medium** | **M1** | **Dual Confidence Metrics** | Split confidence into `data_confidence` (completeness) and `fit_confidence` (clarity of preference). | Sprint 2 |
+| 🟡 **Medium** | **M2** | **Path-Level Explainability (`reasons[]`)** | Provide explicit reasons why each path was classified as Core, Secondary, or Exploratory. | Sprint 2 |
+| 🟡 **Medium** | **M3** | **Multi-Select Saturation Calibration** | Test and optimize multi-select scoring to prevent saturation on broad answers. | Sprint 3 |
+| 🟡 **Medium** | **M4** | **Tiered Province Feasibility** | Refine flat province penalties with regional education hub tiers (VTE, LPB, SVK, Remote). | Sprint 3 |
+| 🟢 **Low** | **L1** | **Extended Metadata Versioning** | Expose `weights_version`, `matrix_version`, and `rule_set_version` in output. | Sprint 4 |
+| 🟢 **Low** | **L2** | **Empirical Weights Calibration** | Bayesian/Grid optimization of `SECTION_WEIGHTS` with $n \ge 500$ real youth responses. | Sprint 4 |
+| 🟢 **Low** | **L3** | **UI Contextual Tooltip for C5 Dual** | Frontend guidance clarifying Health + Social Care companion synergies. | Sprint 1 |
+| 🟢 **Low** | **L4** | **Export / Share Feature** | Shareable report summary link / PDF export for parents and educators. | Sprint 4 |
+| 🔵 **Research** | **R1** | **Cross-Language Validation** | Validate semantic consistency between Lao and English versions. | Backlog |
+| 🔵 **Research** | **R2** | **Longitudinal Tracking** | 6–12 month user follow-up study on career reflection satisfaction. | Backlog |
+
+---
+
+### 🛡️ Phase 2 Quality & Safety Gates
+* **Automated Test Suite:** $\ge 50/50$ pytest test cases passing 100%.
+* **Regression Safety Diff:** $\le 15\%$ classification shift across 100+ synthetic snapshot profiles.
+* **Backward Compatibility:** All new fields optional with safe defaults for existing API clients.
+* **Lao-First UX:** All explainability reasons paired with friendly, supportive Lao descriptions.
+
+
+
+
+
