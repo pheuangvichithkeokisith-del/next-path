@@ -61,17 +61,29 @@ class DSEngine:
         rule_tensions = detect_tensions(payload)
         existing_tension_titles = {t.title_lao for t in rule_tensions}
 
+        # Traceability: map each tension ID to the question codes that trigger it
+        TENSION_SOURCE_QIDS: dict = {
+            "T1": ["Q1", "Q2", "Q3", "Q14", "Q15", "Q20"],   # Tech interest + Math/Science hard
+            "T2": ["Q1", "Q2", "Q14", "Q15", "Q20"],          # Health interest + Health hard
+            "T3": ["Q1", "Q15"],                               # Analysis interest + Math hard
+            "T4": ["Q19", "Q22"],                              # Business goal + Time constraint
+            "T5": ["Q22", "Q23"],                              # C5/C2 + Cannot relocate
+            "T6": ["Q8", "Q13", "Q22", "Q23"],                # Freedom pref + Location constraint
+            "T7": ["Q8", "Q19"],                               # Family value + Business goal
+        }
+
         all_tensions: List[DSTension] = list(rule_tensions)
         for t_info in eval_res.detected_tensions:
             msg = t_info.get("message", "")
             if msg and msg not in existing_tension_titles:
                 existing_tension_titles.add(msg)
+                tid = t_info.get("id", f"T-{len(all_tensions)+1}")
                 all_tensions.append(
                     DSTension(
-                        tension_id=t_info.get("id", f"T-{len(all_tensions)+1}"),
+                        tension_id=tid,
                         title_lao=msg,
                         description_lao=f"ຈຸດສະທ້ອນຄວາມຄິດ: {msg}",
-                        source_question_ids=[],
+                        source_question_ids=TENSION_SOURCE_QIDS.get(tid, ["Q1", "Q15"]),
                         is_resolved=False,
                     )
                 )

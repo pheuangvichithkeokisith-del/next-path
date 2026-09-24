@@ -21,6 +21,14 @@ CLUSTERS = {
     "C7": "ສາຍງານປະຕິບັດ, ງານຊ່າງ ແລະ ທຳມະຊາດ",
 }
 
+# Section weights reflect the signal reliability hierarchy for Lao youth:
+#   Skills (0.25)    — Highest: self-reported evidence of doing > stated preference
+#   Learning (0.22)  — Second:  actual engagement pathway, shows commitment
+#   Interests (0.20) — Third:   necessary but not sufficient alone (volatile)
+#   Goals (0.15)     — Fourth:  directional but often aspirational, less stable
+#   Values (0.09)    — Context: stable but low discriminating power across clusters
+#   Work Style (0.09)— Context: stable but low discriminating power across clusters
+# NOTE: Weights are manually calibrated for MVP. Revisit with real user data (n >= 500).
 SECTION_WEIGHTS = {
     "skills": 0.25,
     "learning": 0.22,
@@ -299,13 +307,16 @@ STUDY_PATH_MAPPING: Dict[str, List[str]] = {
 
 def compute_shannon_entropy_ratio(scores: Dict[str, float], unknown_count: int = 0) -> float:
     """Compute Calibrated Shannon Entropy Ratio E_r in [0.0, 1.0].
-    
-    Exact 5 Fluctuation Archetype Bands:
-    - 0% Fluctuation (Laser Focus): E_r < 0.15
-    - 25% Fluctuation (Clear Direction): 0.15 <= E_r <= 0.39
-    - 50% Fluctuation (Dual Interest): 0.40 <= E_r <= 0.64
-    - 75% Fluctuation (Multi-Scattered): 0.65 <= E_r <= 0.84
-    - 100% Fluctuation (Total Uncertainty): E_r >= 0.85
+
+    5 Fluctuation Archetype Bands (mapped by ratio12 = top2 / top1):
+    - 0%  Laser Focus    : E_r < 0.15  | ratio12 < 0.25  (top2 is tiny vs top1)
+    - 25% Clear Direction: 0.15–0.39   | ratio12 0.25–0.54
+    - 50% Dual Interest  : 0.40–0.64   | ratio12 0.55–0.74
+    - 75% Multi-Scattered: 0.65–0.84   | ratio12 >= 0.75 OR strong top3
+    - 100% Total Uncert. : E_r >= 0.85 | total_score <= 5 OR unknown >= 15
+
+    Calibration uses ratio12 (continuous) instead of absolute top1/top2 thresholds,
+    so a 1-point score difference never causes a band jump.
     """
     total_score = sum(max(0.0, s) for s in scores.values())
     if total_score <= 5.0 or unknown_count >= 15:
@@ -316,22 +327,42 @@ def compute_shannon_entropy_ratio(scores: Dict[str, float], unknown_count: int =
     top2 = sorted_s[1] if len(sorted_s) > 1 else 0.0
     top3 = sorted_s[2] if len(sorted_s) > 2 else 0.0
 
+    # Guard: if top1 is too weak, treat as high uncertainty
+    if top1 < 30.0:
+        return round(min(1.0, max(0.85, sum(sorted_s[:3]) / (total_score + 1e-5))), 2)
+
     active = [s for s in sorted_s if s > 0]
     if len(active) <= 1:
-        raw_er = 0.05
-    else:
-        probs = [s / sum(active) for s in active]
-        h = -sum(p * math.log2(p) for p in probs if p > 0)
-        raw_er = h / math.log2(7)
+        return 0.05
 
-    if top1 >= 75.0 and top2 <= 20.0:
-        er = min(0.12, raw_er * 0.4)
-    elif top1 >= 70.0 and top2 <= 40.0:
-        er = 0.15 + (top2 / top1) * 0.35
-    elif top2 >= 45.0:
-        er = 0.40 + (top2 / top1) * 0.25
+    probs = [s / sum(active) for s in active]
+    h = -sum(p * math.log2(p) for p in probs if p > 0)
+    raw_er = h / math.log2(7)
+
+    # Continuous calibration via ratio12 — no hard absolute thresholds
+    ratio12 = top2 / (top1 + 1e-5)   # 0.0 = total dominance, 1.0 = tied
+    ratio13 = top3 / (top1 + 1e-5)   # tertiary spread
+
+    # Detect "tied secondary cluster" pattern:
+    # e.g. Mon: top2=31.6, top3=31.6 — two clusters neck-and-neck → scattered
+    tied_secondary = (top3 >= 25.0 and abs(top2 - top3) <= 5.0)
+
+    if ratio12 < 0.25:
+        # Laser Focus: strong single leader, secondary is trivial
+        er = min(0.14, raw_er * max(0.3, ratio12 * 1.2))
+    elif ratio12 < 0.55 and not tied_secondary:
+        # Clear Direction: solid leader with minor secondary
+        # Linear interpolation 0.15–0.39 across the ratio range
+        t = (ratio12 - 0.25) / 0.30          # 0.0 → 1.0
+        er = 0.15 + t * 0.24
+    elif ratio12 < 0.75 and not tied_secondary:
+        # Dual Interest: two clusters competing
+        t = (ratio12 - 0.55) / 0.20          # 0.0 → 1.0
+        er = 0.40 + t * 0.24
     else:
-        er = 0.65 + min(0.19, (top3 / (top1 + 1e-5)) * 0.4)
+        # Multi-Scattered: secondary nearly as strong as primary,
+        # OR tied secondary cluster (top2 ≈ top3, both >= 25)
+        er = 0.65 + min(0.19, ratio13 * 0.5 + (ratio12 - 0.75) * 0.3)
 
     return round(min(1.0, max(0.0, er)), 2)
 
@@ -557,46 +588,45 @@ def evaluate_signals(
 
     conf = 100.0
 
-    # 1. Unknowns penalty
-    conf -= 3.5 * unknown_count
-    conf -= 1.0 * prefer_not_count
+    # A. Unknowns penalty — cap at 35 pts max so extreme unknowns don't dominate alone
+    unknowns_deduct = min(35.0, 3.5 * unknown_count + 1.0 * prefer_not_count)
+    conf -= unknowns_deduct
 
-    # 2. Tensions penalty
-    conf -= 5.0 * len(detected_tensions)
-    if len(detected_tensions) >= 2:
-        conf -= 10.0
+    # B. Tensions compound penalty — per-tension + group multiplier, capped at 25 pts
+    #    Rationale: 1 tension = mild flag, 2+ = systemic conflict worth more than linear
+    tension_deduct = min(25.0, 5.0 * len(detected_tensions) + (8.0 if len(detected_tensions) >= 2 else 0.0))
+    conf -= tension_deduct
 
-    # 3. Multi-interest dispersion / Dual-interest penalties
+    # C. Multi-interest dispersion — pick the single strongest applicable deduction (no double-count)
+    #    Tightly-spread top-3: strongest signal of confusion
+    #    Close top-2: secondary signal
+    #    High top-2 (>=45) with/without tension: tertiary signal
     if dispersion_top3 <= 15 and top3 >= 25:
-        conf -= 20.0
+        dispersion_deduct = 20.0                          # all 3 clusters close → most scattered
     elif (top1 - top2) <= 10 and top2 >= 25:
-        conf -= 12.0
-
-    if top2 >= 45.0:
-        conf -= 15.0
-        if has_tension_any:
-            conf -= 15.0
+        dispersion_deduct = 12.0                          # top 2 nearly tied
+    elif top2 >= 45.0:
+        dispersion_deduct = 15.0 + (12.0 if has_tension_any else 0.0)  # strong 2nd + tension bonus
     elif top2 >= 25.0 and top3 >= 25.0:
-        conf -= 15.0
+        dispersion_deduct = 15.0                          # 2nd and 3rd both notable
+    else:
+        dispersion_deduct = 0.0
+    conf -= dispersion_deduct
 
-    # 4. Location constraint penalty for non-Vientiane
+    # D. Location constraint penalty for non-Vientiane youth with time/location constraints
     if d3 and d3 not in ["D3-O01", "D3-O1", "VTE"] and any(c in q22_opts for c in ["Q22-O1", "Q22-O2"]):
         conf -= 5.0
 
-    # 4. Low signal penalty
+    # E. Low signal penalty — weak top score means low overall certainty
     if top1 < 70:
         conf -= (70.0 - top1) * 0.5
 
-    # 5. Need Support clamp
-    if unknown_count >= 15 or top1 < 35:
+    # F. Structural clamps (override deduction total for extreme cases)
+    if unknown_count >= 15 or top1 < 35:          # Need Support
         conf = min(conf, 30.0)
-
-    # 6. Close second clamp
-    if top2 > 0 and (top1 - top2) <= 10 and top1 < 70:
+    if top2 > 0 and (top1 - top2) <= 10 and top1 < 70:  # Close second, weak leader
         conf = min(conf, 60.0)
-
-    # 7. Multi-uncertainty clamp for multi-scattered cases (unknowns >= 3 + tensions >= 2)
-    if unknown_count >= 3 and len(detected_tensions) >= 2 and top1 < 70:
+    if unknown_count >= 3 and len(detected_tensions) >= 2 and top1 < 70:  # Multi-uncertainty
         conf = min(conf, 45.0)
 
     conf = min(conf, 85.0)  # Self-report cap
