@@ -6,6 +6,7 @@ confidence calculation with fluctuation adjustments, expanded tension detection,
 and path classification for Lao youth career self-reflection.
 """
 
+import math
 from typing import Dict, List, Optional, Set, Tuple
 from pydantic import BaseModel, Field
 
@@ -296,25 +297,43 @@ STUDY_PATH_MAPPING: Dict[str, List[str]] = {
 }
 
 
-import math
-
-def compute_shannon_entropy_ratio(scores: Dict[str, float], uniform_prior: float = 5.0) -> float:
-    """Compute Normalized Shannon Entropy Ratio E_r in [0.0, 1.0].
+def compute_shannon_entropy_ratio(scores: Dict[str, float], unknown_count: int = 0) -> float:
+    """Compute Calibrated Shannon Entropy Ratio E_r in [0.0, 1.0].
     
-    Measures information dispersion across the 7 career clusters:
-    - 0.95 - 1.00: Maximum uncertainty / flat answers (Need Support)
-    - 0.82 - 0.95: High multi-interest dispersion (Exploratory)
-    - 0.75 - 0.82: Dual-interest / bi-modal (Secondary)
-    - < 0.75: Focused direction / unimodal spike (Straight Path)
+    Exact 5 Fluctuation Archetype Bands:
+    - 0% Fluctuation (Laser Focus): E_r < 0.15
+    - 25% Fluctuation (Clear Direction): 0.15 <= E_r <= 0.39
+    - 50% Fluctuation (Dual Interest): 0.40 <= E_r <= 0.64
+    - 75% Fluctuation (Multi-Scattered): 0.65 <= E_r <= 0.84
+    - 100% Fluctuation (Total Uncertainty): E_r >= 0.85
     """
-    smoothed = {k: max(0.0, s) + uniform_prior for k, s in scores.items()}
-    total = sum(smoothed.values())
-    if total <= 0:
-        return 1.0
-    probs = [v / total for v in smoothed.values()]
-    h = -sum(p * math.log2(p) for p in probs if p > 0)
-    h_max = math.log2(len(scores))  # log2(7) ~ 2.80735
-    return round(min(1.0, max(0.0, h / h_max)), 3)
+    total_score = sum(max(0.0, s) for s in scores.values())
+    if total_score <= 5.0 or unknown_count >= 15:
+        return 1.00
+
+    sorted_s = sorted([max(0.0, s) for s in scores.values()], reverse=True)
+    top1 = sorted_s[0]
+    top2 = sorted_s[1] if len(sorted_s) > 1 else 0.0
+    top3 = sorted_s[2] if len(sorted_s) > 2 else 0.0
+
+    active = [s for s in sorted_s if s > 0]
+    if len(active) <= 1:
+        raw_er = 0.05
+    else:
+        probs = [s / sum(active) for s in active]
+        h = -sum(p * math.log2(p) for p in probs if p > 0)
+        raw_er = h / math.log2(7)
+
+    if top1 >= 75.0 and top2 <= 20.0:
+        er = min(0.12, raw_er * 0.4)
+    elif top1 >= 70.0 and top2 <= 40.0:
+        er = 0.15 + (top2 / top1) * 0.35
+    elif top2 >= 45.0:
+        er = 0.40 + (top2 / top1) * 0.25
+    else:
+        er = 0.65 + min(0.19, (top3 / (top1 + 1e-5)) * 0.4)
+
+    return round(min(1.0, max(0.0, er)), 2)
 
 
 class ClusterEvaluation(BaseModel):
@@ -347,6 +366,17 @@ def evaluate_signals(
     demographics: Optional[Dict[str, str]] = None,
 ) -> EngineEvaluationResult:
     """Execute the refined PathAI Signal Aggregation Engine (v1.0)."""
+    # Normalize answers: ensure all values are List[str]
+    normalized_answers: Dict[str, List[str]] = {}
+    for qid, val in answers_by_qid.items():
+        if isinstance(val, str):
+            normalized_answers[qid] = [val]
+        elif isinstance(val, list):
+            normalized_answers[qid] = val
+        else:
+            normalized_answers[qid] = list(val)
+    answers_by_qid = normalized_answers
+
     demographics = demographics or {}
     d3 = demographics.get("province_code") or demographics.get("D3", "")
     all_selected: Set[str] = set()
@@ -648,7 +678,7 @@ def evaluate_signals(
         elif classification == "caution":
             caution_paths.append(evaluation)
 
-    entropy_ratio = compute_shannon_entropy_ratio(adjusted_fits)
+    entropy_ratio = compute_shannon_entropy_ratio(adjusted_fits, unknown_count)
 
     return EngineEvaluationResult(
         cluster_evaluations=evaluations,
