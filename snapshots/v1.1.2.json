@@ -1,0 +1,1290 @@
+{
+  "sen_laser_c2": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.13,
+    "archetype": "Laser Focus",
+    "confidence": 85.0,
+    "core": [
+      "C2"
+    ],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "nam_clear_c2": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.28,
+    "archetype": "Clear Direction",
+    "confidence": 85.0,
+    "core": [
+      "C2"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C1"
+    ],
+    "caution": []
+  },
+  "mek_dual_c3_c6": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.49,
+    "archetype": "Dual Interest",
+    "confidence": 63.0,
+    "core": [],
+    "secondary": [
+      "C3",
+      "C6"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "mon_multi_c2_c3_c6": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.7,
+    "archetype": "Multi-Scattered",
+    "confidence": 51.0,
+    "core": [],
+    "secondary": [
+      "C3"
+    ],
+    "exploratory": [
+      "C2",
+      "C6"
+    ],
+    "caution": []
+  },
+  "fah_uncertain": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 1.0,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "pure_c1": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.46,
+    "archetype": "Dual Interest",
+    "confidence": 85.0,
+    "core": [
+      "C1"
+    ],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "pure_c2": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.33,
+    "archetype": "Clear Direction",
+    "confidence": 85.0,
+    "core": [
+      "C2"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C1"
+    ],
+    "caution": []
+  },
+  "pure_c3": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.1,
+    "archetype": "Laser Focus",
+    "confidence": 85.0,
+    "core": [
+      "C3"
+    ],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "pure_c4": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.38,
+    "archetype": "Clear Direction",
+    "confidence": 85.0,
+    "core": [
+      "C4"
+    ],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "pure_c5": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.66,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [],
+    "secondary": [
+      "C5"
+    ],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "pure_c6": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.16,
+    "archetype": "Clear Direction",
+    "confidence": 85.0,
+    "core": [
+      "C6"
+    ],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "pure_c7": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.12,
+    "archetype": "Laser Focus",
+    "confidence": 85.0,
+    "core": [
+      "C7"
+    ],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c1_c2": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.41,
+    "archetype": "Dual Interest",
+    "confidence": 60.0,
+    "core": [],
+    "secondary": [
+      "C2",
+      "C1"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c1_c3": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.68,
+    "archetype": "Multi-Scattered",
+    "confidence": 83.0,
+    "core": [],
+    "secondary": [
+      "C1",
+      "C3"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c1_c4": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.68,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [],
+    "secondary": [
+      "C4",
+      "C1"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c1_c5": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.69,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [
+      "C1"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C5"
+    ],
+    "caution": []
+  },
+  "dual_c1_c6": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.69,
+    "archetype": "Multi-Scattered",
+    "confidence": 60.0,
+    "core": [],
+    "secondary": [
+      "C6",
+      "C1"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c1_c7": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.66,
+    "archetype": "Multi-Scattered",
+    "confidence": 82.3,
+    "core": [],
+    "secondary": [
+      "C1",
+      "C7"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c2_c3": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.66,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [
+      "C2"
+    ],
+    "secondary": [
+      "C3"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c2_c4": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.7,
+    "archetype": "Multi-Scattered",
+    "confidence": 60.0,
+    "core": [],
+    "secondary": [
+      "C2",
+      "C4"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c2_c5": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.71,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [
+      "C2"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C1",
+      "C5"
+    ],
+    "caution": []
+  },
+  "dual_c2_c6": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.69,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [
+      "C2"
+    ],
+    "secondary": [
+      "C6"
+    ],
+    "exploratory": [
+      "C1"
+    ],
+    "caution": []
+  },
+  "dual_c2_c7": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.65,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [
+      "C2"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C7"
+    ],
+    "caution": []
+  },
+  "dual_c3_c4": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.67,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [
+      "C4"
+    ],
+    "secondary": [
+      "C3"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c3_c5": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.67,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [
+      "C3"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C5"
+    ],
+    "caution": []
+  },
+  "dual_c3_c6": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.61,
+    "archetype": "Dual Interest",
+    "confidence": 60.0,
+    "core": [],
+    "secondary": [
+      "C6",
+      "C3"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c3_c7": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.44,
+    "archetype": "Dual Interest",
+    "confidence": 85.0,
+    "core": [
+      "C3"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C7"
+    ],
+    "caution": []
+  },
+  "dual_c4_c5": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.5,
+    "archetype": "Dual Interest",
+    "confidence": 85.0,
+    "core": [
+      "C4"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C5"
+    ],
+    "caution": []
+  },
+  "dual_c4_c6": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.65,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [
+      "C4"
+    ],
+    "secondary": [
+      "C6"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "dual_c4_c7": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.65,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [
+      "C4"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C7"
+    ],
+    "caution": []
+  },
+  "dual_c5_c6": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.68,
+    "archetype": "Multi-Scattered",
+    "confidence": 85.0,
+    "core": [
+      "C6"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C5"
+    ],
+    "caution": []
+  },
+  "dual_c5_c7": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.6,
+    "archetype": "Dual Interest",
+    "confidence": 85.0,
+    "core": [
+      "C7"
+    ],
+    "secondary": [],
+    "exploratory": [
+      "C5"
+    ],
+    "caution": []
+  },
+  "dual_c6_c7": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.6,
+    "archetype": "Dual Interest",
+    "confidence": 85.0,
+    "core": [
+      "C6"
+    ],
+    "secondary": [
+      "C7"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_01": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_02": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C3"
+    ],
+    "caution": []
+  },
+  "random_user_03": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_04": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.84,
+    "archetype": "Multi-Scattered",
+    "confidence": 77.1,
+    "core": [],
+    "secondary": [
+      "C3"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_05": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.83,
+    "archetype": "Multi-Scattered",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4",
+      "C1",
+      "C6"
+    ],
+    "caution": []
+  },
+  "random_user_06": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_07": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.81,
+    "archetype": "Multi-Scattered",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C6",
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_08": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_09": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_10": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.78,
+    "archetype": "Multi-Scattered",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C3",
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_11": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_12": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_13": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_14": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.89,
+    "archetype": "Total Uncertainty",
+    "confidence": 61.5,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [
+      "C2"
+    ],
+    "caution": []
+  },
+  "random_user_15": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.86,
+    "archetype": "Total Uncertainty",
+    "confidence": 83.3,
+    "core": [],
+    "secondary": [
+      "C3"
+    ],
+    "exploratory": [
+      "C2"
+    ],
+    "caution": []
+  },
+  "random_user_16": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.86,
+    "archetype": "Total Uncertainty",
+    "confidence": 61.5,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_17": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_18": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 70.0,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_19": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.9,
+    "archetype": "Total Uncertainty",
+    "confidence": 43.6,
+    "core": [],
+    "secondary": [
+      "C3"
+    ],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_20": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C2"
+    ],
+    "caution": []
+  },
+  "random_user_21": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C2"
+    ],
+    "caution": []
+  },
+  "random_user_22": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.77,
+    "archetype": "Multi-Scattered",
+    "confidence": 62.2,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_23": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.8,
+    "archetype": "Multi-Scattered",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_24": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C2"
+    ],
+    "caution": []
+  },
+  "random_user_25": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C1",
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_26": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_27": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.88,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C2",
+      "C4",
+      "C6"
+    ],
+    "caution": []
+  },
+  "random_user_28": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.87,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C1"
+    ],
+    "caution": []
+  },
+  "random_user_29": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.89,
+    "archetype": "Total Uncertainty",
+    "confidence": 72.2,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_30": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_31": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.88,
+    "archetype": "Total Uncertainty",
+    "confidence": 57.9,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_32": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.91,
+    "archetype": "Total Uncertainty",
+    "confidence": 60.8,
+    "core": [],
+    "secondary": [
+      "C2"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_33": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.89,
+    "archetype": "Total Uncertainty",
+    "confidence": 38.9,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [
+      "C6",
+      "C2"
+    ],
+    "caution": []
+  },
+  "random_user_34": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.84,
+    "archetype": "Multi-Scattered",
+    "confidence": 83.8,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_35": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C6",
+      "C1"
+    ],
+    "caution": []
+  },
+  "random_user_36": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_37": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C7"
+    ],
+    "caution": []
+  },
+  "random_user_38": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.86,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_39": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.93,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C1",
+      "C2"
+    ],
+    "caution": []
+  },
+  "random_user_40": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.83,
+    "archetype": "Multi-Scattered",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C3",
+      "C7"
+    ],
+    "caution": []
+  },
+  "random_user_41": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4",
+      "C6"
+    ],
+    "caution": []
+  },
+  "random_user_42": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.93,
+    "archetype": "Total Uncertainty",
+    "confidence": 60.0,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [
+      "C7"
+    ],
+    "caution": []
+  },
+  "random_user_43": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C1"
+    ],
+    "caution": []
+  },
+  "random_user_44": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_45": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C1",
+      "C6"
+    ],
+    "caution": []
+  },
+  "random_user_46": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_47": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C1"
+    ],
+    "caution": []
+  },
+  "random_user_48": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.87,
+    "archetype": "Total Uncertainty",
+    "confidence": 70.8,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [
+      "C3"
+    ],
+    "caution": []
+  },
+  "random_user_49": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C3"
+    ],
+    "caution": []
+  },
+  "random_user_50": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C1"
+    ],
+    "caution": []
+  },
+  "random_user_51": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.8,
+    "archetype": "Multi-Scattered",
+    "confidence": 58.7,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_52": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_53": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_54": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_55": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.81,
+    "archetype": "Multi-Scattered",
+    "confidence": 77.6,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [
+      "C6"
+    ],
+    "caution": []
+  },
+  "random_user_56": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 55.4,
+    "core": [],
+    "secondary": [
+      "C2",
+      "C6"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_57": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_58": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C6"
+    ],
+    "caution": []
+  },
+  "random_user_59": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_60": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_61": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_62": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.79,
+    "archetype": "Multi-Scattered",
+    "confidence": 75.0,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [],
+    "caution": []
+  },
+  "random_user_63": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4",
+      "C7"
+    ],
+    "caution": []
+  },
+  "random_user_64": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.8,
+    "archetype": "Multi-Scattered",
+    "confidence": 61.0,
+    "core": [],
+    "secondary": [
+      "C3"
+    ],
+    "exploratory": [
+      "C4"
+    ],
+    "caution": []
+  },
+  "random_user_65": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4",
+      "C3"
+    ],
+    "caution": []
+  },
+  "random_user_66": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C1"
+    ],
+    "caution": []
+  },
+  "random_user_67": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.87,
+    "archetype": "Total Uncertainty",
+    "confidence": 48.4,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [
+      "C3"
+    ],
+    "caution": []
+  },
+  "random_user_68": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.85,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C4",
+      "C6"
+    ],
+    "caution": []
+  },
+  "random_user_69": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.89,
+    "archetype": "Total Uncertainty",
+    "confidence": 30.0,
+    "core": [],
+    "secondary": [],
+    "exploratory": [
+      "C6",
+      "C1"
+    ],
+    "caution": []
+  },
+  "random_user_70": {
+    "algorithm_version": "1.1.2",
+    "entropy_ratio": 0.79,
+    "archetype": "Multi-Scattered",
+    "confidence": 78.8,
+    "core": [],
+    "secondary": [
+      "C4"
+    ],
+    "exploratory": [],
+    "caution": []
+  }
+}
