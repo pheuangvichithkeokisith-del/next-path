@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-25 | PATHAI v4.0 validation hardening + Lao-first province typography + full browser QA | commit `a08b176` pushed to `origin/main`
+**Updated:** 2026-09-25 | PATHAI v4.0 validation hardening + Lao-first province typography + full browser QA | commits `a08b176`, `fb11975` pushed to `origin/main`
 
 ---
 
@@ -37,7 +37,7 @@
 * Grouped by 8 modules (D1–D3 Demographics, Q1–Q28 Modules).
 * Autosave debouncing with instant storage draft purge on session completion.
 * Active web form is explicitly `v4.0.0`; the backend loads the versioned v4 form and validates its option codes.
-* D3 province selection uses a native searchable/type-ahead `<select>` with all 18 Lao provinces/capital options and explicitly applies `Noto Sans Lao` to the select and its options for readable Lao rendering.
+* D3 province selection uses a native searchable/type-ahead `<select>` with all 18 Lao provinces/capital options and explicitly applies the distinct `Noto Sans Lao Looped` font to the select and its options for readable Lao rendering.
 * Option cards now use native radio/checkbox controls with keyboard focus support; D2 has an explicit label and the shared layout includes a skip link.
 * The assessment UI reads v4 validation metadata before opening a report (minimum total, minimum per section, required questions, and partial multi-select detection), without changing scoring or API contracts.
 
@@ -96,11 +96,11 @@ npm run build                                      # Production build verificati
 - Added backend v4 validation at the completion boundary. Invalid v4 sessions return `409 Conflict` and remain `in_progress`; legacy session behavior is unchanged.
 - Added a stale-invalid-v4 report guard so previously persisted invalid reports show a clear recovery state with a Start New action instead of a blank report.
 - Completed the v4 scoring/report hardening: active-signal denominators, per-section coverage metadata, semantic context normalization, v4 context serialization, and legacy context isolation.
-- Applied `Noto Sans Lao` explicitly to the D3 province `<select>` and `<option>` elements while preserving the native accessible/type-ahead control.
+- Applied the distinct `Noto Sans Lao Looped` font explicitly to the D3 province `<select>` and `<option>` elements while preserving the native accessible/type-ahead control.
 
 **Verification:** backend suite **71 passed**, focused v4/session tests **26 passed**, browser E2E passed for both complete and invalid-Q9 flows, production build and TypeScript passed, frontend ESLint passed, and `git diff --check` passed.
 
-**Release:** implementation committed as `a08b176` (`fix: validate v4 completion and improve Lao province font`) and pushed to `origin/main`.
+**Release:** implementation committed as `a08b176` (`fix: validate v4 completion and improve Lao province font`) and pushed to `origin/main`. Follow-up typography fix committed as `fb11975` (`fix: use distinct Lao font for province select`) and pushed to `origin/main`.
 
 ### Session 2026-09-25 — Integration Fail-Path Debug & Report Guard
 
