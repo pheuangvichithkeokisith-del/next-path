@@ -422,13 +422,13 @@ export default function AssessmentPage() {
   return (
     <div className="w-full pb-20">
       {/* Sticky Progress & Navigation Bar */}
-      <div className="sticky top-16 z-30 bg-[#F9F8F5]/95 backdrop-blur-md subtle-border-b py-3 px-4 sm:px-6 shadow-2xs">
+      <div aria-label="ຄວາມຄືບໜ້າການສຳຫຼວດ" className="sticky top-16 z-30 bg-[#F9F8F5]/95 backdrop-blur-md subtle-border-b py-3.5 px-4 sm:px-6 shadow-2xs">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center space-x-3">
             <span className="text-xs sm:text-sm font-bold text-[#1D2229]">
               ຕອບແລ້ວ {answeredQCount} / {totalQuestions} ຂໍ້
             </span>
-            <div className="w-24 sm:w-36 h-2 bg-[#EBE7DD] rounded-full overflow-hidden hidden xs:block">
+            <div aria-hidden="true" className="w-20 sm:w-36 h-2 bg-[#EBE7DD] rounded-full overflow-hidden hidden xs:block">
               <div
                 className="h-full bg-[#2D4C3E] rounded-full transition-all duration-300"
                 style={{ width: `${percentage}%` }}
@@ -451,7 +451,7 @@ export default function AssessmentPage() {
               <button
                 onClick={handleComplete}
                 disabled={submitting}
-                className="px-3.5 py-1.5 rounded-lg bg-[#2D4C3E] text-white text-xs font-semibold hover:bg-[#233C31] transition-all flex items-center space-x-1 cursor-pointer"
+                className="btn-primary min-h-11 px-3.5 py-1.5 rounded-lg bg-[#2D4C3E] hover:bg-[#233C31] text-xs"
               >
                 <span>ສັງເຄາະຜົນ</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -462,7 +462,7 @@ export default function AssessmentPage() {
       </div>
 
       {/* Main Continuous Form Content */}
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-12">
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-14">
         {submitError ? <ErrorBanner onRetry={handleComplete} /> : null}
 
         {/* Intro Banner */}
@@ -483,7 +483,7 @@ export default function AssessmentPage() {
             ref={validationNoticeRef}
             role="alert"
             aria-live="polite"
-            className="max-w-2xl mx-auto rounded-2xl border border-[#D7B97A] bg-[#FFF8E8] px-4 py-3 text-sm text-[#5B4525]"
+              className="max-w-2xl mx-auto rounded-2xl border border-[#D7B97A] bg-[#FFF8E8] px-4 py-4 text-sm text-[#5B4525] shadow-xs"
           >
             <p className="font-semibold">ກ່ອນເປີດບົດສະທ້ອນ ກະລຸນາຕອບຄຳຖາມໃຫ້ຄົບກ່ອນ</p>
             <p className="mt-1 text-xs leading-relaxed">
@@ -501,14 +501,14 @@ export default function AssessmentPage() {
         {sections.map((sec) => {
           const IconComp = sec.icon;
           return (
-            <section key={sec.id} className="space-y-6 pt-4">
+            <section key={sec.id} aria-labelledby={`${sec.id}-heading`} className="space-y-6 pt-4">
               {/* Section Header Card */}
               <div className="p-5 sm:p-6 rounded-2xl bg-[#F2EFE8] subtle-border">
                 <div className="flex items-center space-x-3 mb-1">
                   <div className="w-8 h-8 rounded-lg bg-white subtle-border flex items-center justify-center text-[#2D4C3E]">
                     <IconComp className="w-4 h-4" />
                   </div>
-                  <h2 className="text-lg sm:text-xl font-bold text-[#171A1F]">
+                  <h2 id={`${sec.id}-heading`} className="text-lg sm:text-xl font-bold text-[#171A1F]">
                     {sec.titleLo}
                   </h2>
                 </div>
@@ -556,7 +556,7 @@ export default function AssessmentPage() {
             <button
               onClick={handleComplete}
               disabled={submitting}
-              className="w-full py-4 rounded-xl bg-[#2D4C3E] hover:bg-[#22392F] text-white font-medium transition-all flex items-center justify-center space-x-2 shadow-xs cursor-pointer text-sm sm:text-base"
+              className="btn-primary w-full py-4 bg-[#2D4C3E] hover:bg-[#22392F] text-sm sm:text-base"
             >
               <span>{submitting ? "ກຳລັງສັງເຄາະຂໍ້ມູນ..." : completionStatus.isReady ? "ສັງເຄາະບົດສະທ້ອນ (Open Reflection)" : "ກວດຄຳຕອບກ່ອນ"}</span>
               <ArrowRight className="w-4 h-4" />

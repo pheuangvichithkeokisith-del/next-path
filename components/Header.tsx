@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Compass, BookOpen, RotateCcw } from "lucide-react";
+import { Compass, BookOpen, Home, RotateCcw } from "lucide-react";
 import { clearSessionId, useSessionId } from "@/hooks/useSession";
 import { clearDraft } from "@/utils/draft";
 
@@ -29,14 +29,11 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-[#F9F8F5]/90 backdrop-blur-md subtle-border-b">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 min-h-16 flex items-center justify-between gap-3">
         {/* Brand identity */}
         <div className="flex items-center space-x-3 sm:space-x-4">
-          <Link
-            href="/"
-            className="group flex items-baseline space-x-2"
-          >
-            <span className="text-xl sm:text-2xl font-bold tracking-tight text-[#1A1E24] group-hover:text-[#2D4C3E] transition-colors">
+          <Link href="/" className="group flex min-w-0 items-baseline space-x-2">
+            <span className="truncate text-lg sm:text-2xl font-bold tracking-tight text-[#1A1E24] group-hover:text-[#2D4C3E] transition-colors">
               Next-path
             </span>
             <span className="hidden sm:inline-block text-xs uppercase tracking-widest text-[#7D7565] font-medium pl-2 border-l border-[#DCD7CB]">
@@ -46,41 +43,48 @@ export default function Header() {
         </div>
 
         {/* Navigation links */}
-        <nav className="flex items-center space-x-1 sm:space-x-2 text-sm">
+        <nav aria-label="ການນຳທາງຫຼັກ" className="flex shrink-0 items-center gap-0.5 sm:gap-2 text-sm">
           <Link
             href="/"
-            className={`px-3 py-1.5 rounded-lg font-medium transition-all text-xs sm:text-sm ${
+            aria-current={isHome ? "page" : undefined}
+            aria-label="ໜ້າຫຼັກ"
+            className={`min-h-11 min-w-11 px-2 sm:px-3 py-1.5 rounded-lg font-medium transition-all text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 ${
               isHome
                 ? "bg-[#EFECE4] text-[#1A1E24]"
                 : "text-[#615B50] hover:text-[#1A1E24] hover:bg-[#F2EFE8]"
             }`}
           >
-            ໜ້າຫຼັກ
+            <Home className="h-4 w-4 sm:hidden" aria-hidden="true" />
+            <span className="hidden sm:inline">ໜ້າຫຼັກ</span>
           </Link>
 
           <Link
             href="/assessment"
-            className={`px-3 py-1.5 rounded-lg font-medium flex items-center space-x-1.5 transition-all text-xs sm:text-sm ${
+            aria-current={isAssessment ? "page" : undefined}
+            aria-label="ການສຳຫຼວດ"
+            className={`min-h-11 min-w-11 px-2 sm:px-3 py-1.5 rounded-lg font-medium flex items-center justify-center gap-1.5 transition-all text-xs sm:text-sm ${
               isAssessment
                 ? "bg-[#EFECE4] text-[#1A1E24]"
                 : "text-[#615B50] hover:text-[#1A1E24] hover:bg-[#F2EFE8]"
             }`}
           >
             <Compass className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8D5B28]" />
-            <span>ການສຳຫຼວດ</span>
+            <span className="hidden sm:inline">ການສຳຫຼວດ</span>
           </Link>
 
           {sessionId && (
             <Link
               href="/report"
-              className={`px-3 py-1.5 rounded-lg font-medium flex items-center space-x-1.5 transition-all text-xs sm:text-sm ${
+              aria-current={isReport ? "page" : undefined}
+              aria-label="ບົດສະທ້ອນ"
+              className={`min-h-11 min-w-11 px-2 sm:px-3 py-1.5 rounded-lg font-medium flex items-center justify-center gap-1.5 transition-all text-xs sm:text-sm ${
                 isReport
                   ? "bg-[#EFECE4] text-[#1A1E24]"
                   : "text-[#615B50] hover:text-[#1A1E24] hover:bg-[#F2EFE8]"
               }`}
             >
               <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#2D4C3E]" />
-              <span>ບົດສະທ້ອນ</span>
+              <span className="hidden sm:inline">ບົດສະທ້ອນ</span>
             </Link>
           )}
 

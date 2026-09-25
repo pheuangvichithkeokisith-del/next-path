@@ -16,7 +16,7 @@ export default function Question({ item, answer, onChange }: QuestionProps) {
   return (
     <div
       id={`question-${item.id}`}
-      className="p-5 sm:p-7 rounded-2xl bg-white subtle-border transition-all duration-200 hover:shadow-2xs"
+      className="scroll-mt-32 p-5 sm:p-7 rounded-2xl bg-white subtle-border transition-shadow duration-200 hover:shadow-2xs"
     >
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center space-x-2">

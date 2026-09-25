@@ -176,15 +176,15 @@ export default function LandingPage() {
   return (
     <div className="w-full">
       {/* Hero Section */}
-      <section className="relative px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-14 sm:pb-20 max-w-5xl mx-auto">
+      <section aria-labelledby="landing-heading" className="relative px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-16 sm:pb-24 max-w-5xl mx-auto">
         {/* Spatial Place Indicator */}
-        <div className="inline-flex items-center space-x-2 text-xs font-semibold tracking-wider uppercase text-[#736856] bg-[#F1ECE1] px-3.5 py-1.5 rounded-full mb-6">
-          <span className="w-2 h-2 rounded-full bg-[#2D4C3E]"></span>
+        <div className="eyebrow mb-7">
+          <span className="eyebrow-dot"></span>
           <span>ພື້ນທີ່ສຳຫຼວດຕົນເອງ ສຳລັບໄວໜຸ່ມລາວ (ອາຍຸ 15+)</span>
         </div>
 
         {/* Primary Statement */}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#171A1F] leading-[1.2] mb-6">
+        <h1 id="landing-heading" className="max-w-4xl text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#171A1F] leading-[1.2] mb-6">
           ພື້ນທີ່ໃຫ້ເຈົ້າໄດ້ຢຸດພັກ, <br className="hidden sm:inline" />
           ເຂົ້າໃຈສິ່ງທີ່ຢູ່ພາຍໃນ, <br className="hidden sm:inline" />
           ແລະ ຄົ້ນພົບເສັ້ນທາງທີ່ຈະລອງກ້າວຕໍ່ໄປ.
@@ -201,7 +201,7 @@ export default function LandingPage() {
               <button
                 onClick={handleStart}
                 disabled={starting}
-                className="px-6 py-3.5 rounded-xl bg-[#2D4C3E] hover:bg-[#22392F] text-white font-medium transition-all flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
+                className="btn-primary w-full sm:w-auto bg-[#2D4C3E] hover:bg-[#22392F]"
               >
                 <span>ສຳຫຼວດຕໍ່ຈາກທີ່ຄ້າງໄວ້</span>
                 <ArrowRight className="w-4 h-4" />
@@ -210,7 +210,7 @@ export default function LandingPage() {
               <button
                 onClick={handleStartFresh}
                 disabled={starting}
-                className="px-5 py-3.5 rounded-xl bg-white subtle-border hover:bg-[#F3EFE7] text-[#1D2229] font-medium transition-all flex items-center justify-center space-x-2 cursor-pointer"
+                className="btn-secondary w-full sm:w-auto"
               >
                 <RotateCcw className="w-4 h-4 text-[#8D5B28]" />
                 <span>ເລີ່ມຕົ້ນໃໝ່ທັງໝົດ</span>
@@ -220,7 +220,7 @@ export default function LandingPage() {
             <button
               onClick={handleStartFresh}
               disabled={starting}
-              className="px-7 py-3.5 rounded-xl bg-[#1D2229] hover:bg-[#2D4C3E] text-white font-medium transition-all flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
+              className="btn-primary w-full sm:w-auto"
             >
               <span>ເລີ່ມຕົ້ນການສຳຫຼວດ</span>
               <ArrowRight className="w-4 h-4" />
@@ -234,7 +234,7 @@ export default function LandingPage() {
 
         {/* 3 Grounded Truths */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8 subtle-border-t">
-          <div className="p-5 rounded-2xl bg-white/80 subtle-border shadow-2xs">
+          <div className="surface-panel p-5">
             <div className="flex items-center space-x-2 text-sm font-bold text-[#1A1E24] mb-1.5">
               <ShieldCheck className="w-4 h-4 text-[#2D4C3E]" />
               <span>ຄວາມເປັນສ່ວນຕົວ 100%</span>
@@ -244,7 +244,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-white/80 subtle-border shadow-2xs">
+          <div className="surface-panel p-5">
             <div className="flex items-center space-x-2 text-sm font-bold text-[#1A1E24] mb-1.5">
               <Clock className="w-4 h-4 text-[#8D5B28]" />
               <span>ບໍ່ມີການຈັບເວລາ</span>
@@ -254,7 +254,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-white/80 subtle-border shadow-2xs">
+          <div className="surface-panel p-5">
             <div className="flex items-center space-x-2 text-sm font-bold text-[#1A1E24] mb-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#7A3E2D]" />
               <span>ບໍ່ແມ່ນບົດສອບເສັງ</span>
@@ -287,7 +287,7 @@ export default function LandingPage() {
               return (
                 <div
                   key={dim.id}
-                  className="p-5 rounded-2xl bg-white subtle-border flex flex-col justify-between hover:shadow-xs transition-shadow"
+                  className="surface-panel p-5 flex flex-col justify-between hover:shadow-xs transition-shadow"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
@@ -316,7 +316,7 @@ export default function LandingPage() {
 
       {/* Honest Distinction: What Next-path is and is NOT */}
       <section className="py-14 sm:py-20 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-7 sm:p-10 rounded-3xl bg-white subtle-border shadow-xs">
+        <div className="surface-panel p-7 sm:p-10 rounded-3xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#2D4C3E] mb-2 block">
@@ -371,7 +371,7 @@ export default function LandingPage() {
           <button
             onClick={handleStart}
             disabled={starting}
-            className="inline-flex items-center space-x-2 px-8 py-4 rounded-xl bg-[#2D4C3E] hover:bg-[#22392F] text-white font-medium transition-all shadow-xs cursor-pointer text-sm sm:text-base"
+            className="btn-primary px-8 text-sm sm:text-base bg-[#2D4C3E] hover:bg-[#22392F]"
           >
             <span>ພ້ອມແລ້ວ, ເລີ່ມຕົ້ນກ້າວທຳອິດ</span>
             <ArrowRight className="w-4 h-4" />

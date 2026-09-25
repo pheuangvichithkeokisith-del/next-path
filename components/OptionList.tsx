@@ -97,7 +97,7 @@ export default function OptionList({
             <label
               key={option.code}
               htmlFor={inputId}
-              className={`relative w-full text-left p-4 rounded-xl transition-all flex items-start justify-between cursor-pointer select-none ${
+              className={`relative w-full min-h-[52px] text-left p-4 rounded-xl transition-colors flex items-start justify-between cursor-pointer select-none ${
                 isSelected
                   ? "bg-[#F2ECE1] border-2 border-[#2D4C3E] text-[#171A1F] shadow-2xs"
                   : "bg-white subtle-border text-[#332E26] hover:bg-[#FAF9F5] hover:border-[#CCC6B7]"

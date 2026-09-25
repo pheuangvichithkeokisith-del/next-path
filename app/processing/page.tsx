@@ -192,13 +192,13 @@ export default function ProcessingPage() {
   };
 
   return (
-    <main className="w-full min-h-[calc(100vh-8rem)] flex flex-col justify-between py-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+    <main aria-labelledby="processing-heading" className="w-full min-h-[calc(100vh-8rem)] flex flex-col justify-between py-10 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
       {/* Title & Atmosphere */}
       <div className="text-center max-w-2xl mx-auto mb-6">
         <span className="text-xs font-bold uppercase tracking-widest text-[#796F5F] block mb-1.5">
           ການເຊື່ອມໂຍງຮູບແບບຄວາມຄິດ
         </span>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#171A1F]">
+        <h1 id="processing-heading" className="text-2xl sm:text-3xl font-extrabold text-[#171A1F]">
           ສິ່ງທີ່ເຈົ້າແບ່ງປັນ ກຳລັງຕົກພຶກ ແລະ ເຊື່ອມຕໍ່ກັນ
         </h1>
         <p className="text-xs sm:text-sm text-[#675E4F] mt-2 leading-relaxed">
@@ -207,7 +207,7 @@ export default function ProcessingPage() {
       </div>
 
       {/* Spatial Connection Map */}
-      <div className="relative w-full aspect-4/3 sm:aspect-16/9 bg-white subtle-border rounded-3xl p-6 sm:p-10 shadow-xs overflow-hidden my-4">
+      <div aria-label="ແຜນທີ່ການເຊື່ອມໂຍງຮູບແບບຄຳຕອບ" className="relative w-full min-h-[30rem] sm:min-h-0 aspect-4/3 sm:aspect-16/9 bg-white subtle-border rounded-3xl p-6 sm:p-10 shadow-xs overflow-hidden my-4">
         {/* SVG Relationship Lines */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#E0DBD0] transition-opacity duration-1000">
           {phase >= 2 &&
@@ -249,14 +249,17 @@ export default function ProcessingPage() {
         {nodes.map((node) => {
           const isSelected = selectedNode?.id === node.id;
           return (
-            <div
+            <button
+              type="button"
+              aria-pressed={isSelected}
+              aria-label={node.labelLo}
               key={node.id}
               onClick={() => setSelectedNode(node)}
               style={{ left: `${node.x}%`, top: `${node.y}%` }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group transition-all duration-500"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group transition-all duration-500 bg-transparent border-0 p-0 text-left"
             >
               <div
-                className={`px-3 py-1.5 rounded-full text-xs font-medium subtle-border whitespace-nowrap shadow-2xs flex items-center space-x-1.5 transition-all ${
+                className={`processing-node-label max-w-[9rem] px-3 py-1.5 rounded-full text-xs font-medium subtle-border whitespace-normal shadow-2xs flex items-center space-x-1.5 transition-all ${
                   isSelected
                     ? "bg-[#1D2229] text-white border-[#1D2229] scale-110 z-20"
                     : "bg-[#F9F8F5] text-[#2C271F] hover:bg-white hover:border-[#B5AEA0]"
@@ -275,7 +278,7 @@ export default function ProcessingPage() {
                 />
                 <span>{node.labelLo}</span>
               </div>
-            </div>
+            </button>
           );
         })}
 
@@ -305,7 +308,7 @@ export default function ProcessingPage() {
           onClick={handleOpenReport}
           disabled={!readyToProceed}
           aria-disabled={!readyToProceed}
-          className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center space-x-2 shadow-xs text-xs sm:text-sm ${
+          className={`min-h-12 px-6 py-3 rounded-xl font-medium transition-all flex items-center justify-center space-x-2 shadow-xs text-xs sm:text-sm ${
             readyToProceed
               ? "bg-[#2D4C3E] hover:bg-[#21382E] text-white cursor-pointer"
               : "bg-[#E5E1D8] text-[#8A8170] cursor-not-allowed"

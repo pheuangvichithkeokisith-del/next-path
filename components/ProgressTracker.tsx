@@ -38,7 +38,14 @@ export default function ProgressTracker({
       </div>
 
       {/* Progress bar line */}
-      <div className="w-full h-1.5 bg-stone-200/80 rounded-full overflow-hidden">
+      <div
+        aria-label={UI_COPY.assessment.progress(current, total)}
+        aria-valuemax={total}
+        aria-valuemin={0}
+        aria-valuenow={current}
+        className="w-full h-2 bg-stone-200/80 rounded-full overflow-hidden"
+        role="progressbar"
+      >
         <div
           className="h-full bg-stone-900 transition-all duration-300 ease-out rounded-full"
           style={{ width: `${percentage}%` }}

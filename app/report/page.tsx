@@ -297,8 +297,8 @@ ${unknownLines || "- ບໍ່ມີ"}
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14 space-y-10">
       {/* Header of the Reflection Space */}
       <div className="pb-8 subtle-border-b space-y-4">
-        <div className="inline-flex items-center space-x-2 text-xs font-semibold uppercase tracking-wider text-[#796F5F] bg-[#EFEBE0] px-3.5 py-1.5 rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#2D4C3E]"></span>
+        <div className="eyebrow">
+          <span className="eyebrow-dot"></span>
           <span>ແວ່ນແຍງສະທ້ອນຄວາມຄິດ</span>
         </div>
 
@@ -321,14 +321,14 @@ ${unknownLines || "- ບໍ່ມີ"}
         </div>
 
         {/* Filter Tab Bar */}
-        <div className="flex flex-wrap gap-2 pt-6">
+        <div aria-label="ພາກສ່ວນຂອງບົດສະທ້ອນ" className="flex max-w-full gap-2 overflow-x-auto pt-6 pb-1 scrollbar-none">
           {REPORT_TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
               aria-pressed={activeTab === tab.id}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+              className={`min-h-11 shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === tab.id
                   ? "bg-[#1D2229] text-white shadow-2xs"
                   : "bg-white subtle-border text-[#5E5546] hover:bg-[#F2EFE8]"
@@ -497,7 +497,7 @@ ${unknownLines || "- ບໍ່ມີ"}
       )}
 
       {/* SUPERCHARGED AI PROMPT MASTER BOX */}
-      <div className="mt-12 p-7 sm:p-9 rounded-3xl bg-[#1D2229] text-white space-y-6 shadow-md border border-[#2D3540]">
+      <div className="mt-12 p-6 sm:p-9 rounded-3xl bg-[#1D2229] text-white space-y-6 shadow-md border border-[#2D3540]">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="inline-flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#B5AEA0]">

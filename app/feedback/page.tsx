@@ -82,7 +82,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <main className="flex-1 px-4 py-8 sm:py-12 flex flex-col items-center max-w-xl mx-auto w-full">
+    <main aria-labelledby="feedback-heading" className="flex-1 px-4 py-10 sm:py-14 flex flex-col items-center max-w-xl mx-auto w-full">
       <div className="w-full space-y-6">
         <div>
           <button
@@ -93,7 +93,7 @@ export default function FeedbackPage() {
             <span>ກັບຄືນ</span>
           </button>
 
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171A1F]">
+          <h1 id="feedback-heading" className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171A1F]">
             ໃຫ້ຄຳເຫັນກ່ຽວກັບລະບົບ (Feedback)
           </h1>
           <p className="mt-1.5 text-xs sm:text-sm text-[#6A6357] leading-relaxed">
@@ -103,7 +103,7 @@ export default function FeedbackPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Question 1: Agreement */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-white subtle-border space-y-3">
+          <div className="surface-panel p-5 sm:p-6 space-y-3">
             <label className="block text-sm sm:text-base font-bold text-[#171A1F]">
               1. ທ່ານຮູ້ສຶກວ່າຜົນສະທ້ອນກົງກັບຕົວທ່ານຫຼືບໍ່? <span className="text-[#8A4F3E]">*</span>
             </label>
@@ -120,7 +120,7 @@ export default function FeedbackPage() {
                     key={opt.value}
                     type="button"
                     onClick={() => setAgreement(opt.value as FeedbackAgreement)}
-                    className={`min-h-[46px] rounded-xl border px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold transition cursor-pointer text-center flex items-center justify-center select-none ${
+                    className={`min-h-12 rounded-xl border px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold transition cursor-pointer text-center flex items-center justify-center select-none ${
                       isSelected
                         ? "bg-[#2D4C3E] text-white border-[#2D4C3E] shadow-2xs"
                         : "bg-white text-[#2C271F] subtle-border hover:bg-[#FAF9F5]"
@@ -134,12 +134,12 @@ export default function FeedbackPage() {
           </div>
 
           {/* Question 2: Incorrect note */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-white subtle-border space-y-2">
+          <div className="surface-panel p-5 sm:p-6 space-y-2">
             <label className="block text-xs sm:text-sm font-bold text-[#171A1F]">
               2. ມີຈຸດໃດທີ່ທ່ານຮູ້ສຶກວ່າຍັງບໍ່ຄ່ອຍຖືກຕ້ອງ? (ຖ້າມີ)
             </label>
             <textarea
-              className="w-full rounded-xl subtle-border bg-[#FAF9F6] p-3 text-xs sm:text-sm text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition min-h-[80px]"
+              className="input-calm w-full min-h-[7rem] resize-y text-sm"
               onChange={(e) => setIncorrectNote(e.target.value)}
               placeholder="ຕົວຢ່າງ: ຮູ້ສຶກວ່າດ້ານຄວາມສົນໃຈບາງຢ່າງຍັງບໍ່ຄ່ອຍກົງ..."
               value={incorrectNote}
@@ -147,12 +147,12 @@ export default function FeedbackPage() {
           </div>
 
           {/* Question 3: Next interest */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-white subtle-border space-y-2">
+          <div className="surface-panel p-5 sm:p-6 space-y-2">
             <label className="block text-xs sm:text-sm font-bold text-[#171A1F]">
               3. ທ່ານຢາກໃຫ້ລະບົບຊ່ວຍແນະນຳຫຍັງຕື່ມອີກໃນອະນາຄົດ?
             </label>
             <textarea
-              className="w-full rounded-xl subtle-border bg-[#FAF9F6] p-3 text-xs sm:text-sm text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition min-h-[80px]"
+              className="input-calm w-full min-h-[7rem] resize-y text-sm"
               onChange={(e) => setNextInterest(e.target.value)}
               placeholder="ຕົວຢ່າງ: ຢາກຮູ້ວິທີຝຶກທັກສະເທັກໂນໂລຊີ ຫຼື ທຶນການສຶກສາ..."
               value={nextInterest}
