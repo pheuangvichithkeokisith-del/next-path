@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import List
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException, status
 
 from app.models.answer import AnswerModel
 from app.schemas.answer import AnswerCreate, AnswerResponse
@@ -16,6 +17,13 @@ async def save_session_answer(
 ) -> AnswerResponse:
     """Validate, sanitize, and save or update an answer for an anonymous session."""
     session_obj = await get_session_by_id(session_id, db)
+
+    # Guard: answers are immutable once the session is completed (report already generated)
+    if session_obj.status == "completed":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Session '{session_id}' is already completed; answers can no longer be modified.",
+        )
 
     # Validate against form definition and sanitize free-text (scrubbing PII & injection)
     sanitized_answer, _ = validate_and_sanitize_answer(answer_in)
