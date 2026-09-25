@@ -11,3 +11,7 @@ export class ApiError extends Error {
 export function isSessionNotFound(error: unknown): boolean {
   return error instanceof ApiError && error.status === 404;
 }
+
+export function isSessionIncomplete(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 409;
+}

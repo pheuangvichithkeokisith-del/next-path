@@ -230,6 +230,25 @@ async def test_e2e_report_for_unknown_session_is_404():
         assert res.status_code == 404
 
 
+@pytest.mark.asyncio
+async def test_e2e_report_requires_completed_session():
+    """Report and export are unavailable until the session is completed."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        session_id = await _create_session(client)
+
+        report_before_complete = await client.get(f"/api/v1/sessions/{session_id}/report")
+        assert report_before_complete.status_code == 409
+
+        export_before_complete = await client.get(
+            f"/api/v1/sessions/{session_id}/export?format=json"
+        )
+        assert export_before_complete.status_code == 409
+
+        await _complete_session(client, session_id)
+        report_after_complete = await client.get(f"/api/v1/sessions/{session_id}/report")
+        assert report_after_complete.status_code == 200
+
+
 # ─────────────────────────────────────────────────────
 # 5. EXPORT
 # ─────────────────────────────────────────────────────

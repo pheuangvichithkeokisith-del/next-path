@@ -18,6 +18,17 @@ def _questionnaire_path(version: str) -> Path:
 def load_questionnaire_form(version: Optional[str] = None) -> QuestionnaireForm:
     """Load and parse a versioned questionnaire JSON structure."""
     requested_version = version or settings.DEFAULT_FORM_VERSION
+
+    supported_versions = {settings.DEFAULT_FORM_VERSION, "v4.0.0"}
+    if requested_version not in supported_versions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Unsupported questionnaire form version '{requested_version}'. "
+                f"Supported versions: {', '.join(sorted(supported_versions))}."
+            ),
+        )
+
     if requested_version in _cached_forms:
         return _cached_forms[requested_version]
 

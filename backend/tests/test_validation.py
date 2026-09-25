@@ -82,8 +82,22 @@ async def test_form_version_tracking():
         status_res = await client.get(f"/api/v1/sessions/{session_id}/status")
         assert status_res.json()["form_version"] == "v0.9.1"
 
+        await client.post(f"/api/v1/sessions/{session_id}/complete")
         report_res = await client.get(f"/api/v1/sessions/{session_id}/report")
         assert report_res.json()["versions"]["form"] == "v0.9.1"
+
+
+@pytest.mark.asyncio
+async def test_unsupported_form_versions_are_rejected():
+    """Unknown form versions must not silently fall back to legacy questions."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        form_res = await client.get("/api/v1/form?version=not-a-version")
+        assert form_res.status_code == 400
+
+        session_res = await client.post(
+            "/api/v1/sessions?form_version=not-a-version"
+        )
+        assert session_res.status_code == 400
 
 
 @pytest.mark.asyncio

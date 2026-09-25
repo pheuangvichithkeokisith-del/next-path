@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,6 +27,15 @@ async def get_or_create_session_report(
 ) -> ReportResponse:
     """Retrieve existing stored report or generate and persist reflection report using deterministic DS Engine."""
     session_obj = await get_session_by_id(session_id, db)
+
+    if session_obj.status != "completed":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"Session '{session_id}' is not completed; "
+                "the reflection report is not available yet."
+            ),
+        )
 
     # Check if a report is already stored in the database
     query = select(ReportModel).where(ReportModel.session_id == session_id)

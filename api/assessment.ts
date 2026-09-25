@@ -1,6 +1,7 @@
 import type { QuestionnaireForm } from "@/types/form";
 import staticQuestions from "@/data/questions.json";
 import v4Questions from "@/v4.0/questions_full.json";
+import { ApiError } from "./errors";
 
 export const CURRENT_FORM_VERSION = "v4.0.0";
 
@@ -17,7 +18,11 @@ export async function getForm(version = CURRENT_FORM_VERSION): Promise<Questionn
     if (response.ok) {
       return (await response.json()) as QuestionnaireForm;
     }
-  } catch {
+    if (response.status === 400) {
+      throw new ApiError(response.status, `Questionnaire form request failed with ${response.status}`);
+    }
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
     // Fall back to bundled static questions in offline/standalone mode
   }
 

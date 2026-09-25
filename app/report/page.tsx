@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { downloadExport, getReport } from "@/api/report";
 import type { ReportResponse, ReportPattern, ReportPath } from "@/types/report";
-import { isSessionNotFound } from "@/api/errors";
+import { isSessionIncomplete, isSessionNotFound } from "@/api/errors";
 import ErrorBanner from "@/components/ErrorBanner";
 import Loading from "@/components/Loading";
 import { clearSessionId, useSessionId } from "@/hooks/useSession";
@@ -44,6 +44,7 @@ export default function ReportPage() {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [activeTab, setActiveTab] = useState<ReportTab>("all");
+  const [retryToken, setRetryToken] = useState(0);
   const [userDraft] = useState<DraftAnswers>(() => {
     if (typeof window === "undefined") return {};
     return restoreDraft(window.localStorage, sessionId);
@@ -68,6 +69,8 @@ export default function ReportPage() {
         if (isSessionNotFound(error)) {
           clearSessionId();
           router.replace("/");
+        } else if (isSessionIncomplete(error)) {
+          router.replace("/processing");
         } else {
           setHasError(true);
         }
@@ -76,7 +79,7 @@ export default function ReportPage() {
     return () => {
       active = false;
     };
-  }, [resolved, sessionId, router]);
+  }, [retryToken, resolved, sessionId, router]);
 
   // Generate a comprehensive, high-quality prompt containing transparent raw evidence + calculation results
   const aiPromptText = useMemo(() => {
@@ -237,7 +240,12 @@ ${unknownLines || "- ບໍ່ມີ"}
     return (
       <main className="flex-1 px-4 py-12 flex items-center justify-center">
         <div className="w-full max-w-lg">
-          <ErrorBanner onRetry={() => router.refresh()} />
+          <ErrorBanner
+            onRetry={() => {
+              setHasError(false);
+              setRetryToken((token) => token + 1);
+            }}
+          />
         </div>
       </main>
     );

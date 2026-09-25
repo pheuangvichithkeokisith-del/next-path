@@ -87,6 +87,39 @@ npm run build                                      # Production build verificati
 
 ## 6. 📅 Session Logs
 
+### Session 2026-09-25 — Integration Fail-Path Debug & Report Guard
+
+**✅ Reproduced and fixed:**
+- `GET /api/v1/sessions/{session_id}/report` returned `200` for a session still in `created`/`in_progress`, allowing an incomplete report before Processing was ready.
+- Processing's “Open Reflection” button could be clicked before the status poll reached `completed`.
+- Feedback could display success without saving when opened without a session ID.
+
+**Fixes:**
+- Report and export now return `409 Conflict` until the session is `completed`.
+- Processing disables the Report action until completion; premature Report navigation returns to Processing.
+- Feedback redirects session-less users home and never reports a false successful submission.
+- Added regression coverage for report/export readiness and aligned the legacy version test with the completed-session contract.
+
+### Session 2026-09-25 — Full Web Function Audit & Fail-Path Fixes
+
+- Reproduced and fixed unsupported questionnaire versions silently falling back to legacy data (`GET /api/v1/form` and session creation now return `400`).
+- Reproduced and fixed the v4 completion gate ignoring `meta.validation.required_questions`; the frontend now requires every required question, including Q28.
+- Fixed stale-session recovery and non-functional Retry buttons on Assessment and Report by clearing invalid sessions and rerunning the load path.
+- Fixed the frontend form client so a server-side `400` is not hidden by the offline bundled-form fallback.
+- Fixed pytest teardown hanging after successful async DB tests by disposing the shared SQLite engine in `backend/tests/conftest.py`.
+- Verification: backend suite **63 passed and exited 0**, fluctuation benchmark **5/5**, production build **9/9 routes**, route smoke **6/6 HTTP 200**, and clean-state lifecycle **3/3 rounds passed**.
+- Browser click-level automation was unavailable in this environment; API, production-route, source-path, and build verification were completed instead.
+
+### Session 2026-09-25 — Browser QA & Runtime Investigation
+
+- Installed the browser-testing stack: global `webapp-testing` and `playwright-best-practices` skills, Playwright Python `1.63.0` in `backend/.venv`, and Chromium.
+- Browser E2E passed: consent → Assessment → D1–D3 + Q1–Q28 → autosave → Processing → Report → all report tabs → JSON download → Feedback submission.
+- Browser smoke passed at 375px, 768px, and 1440px with no horizontal overflow, console errors, or page errors; direct-access guards for Processing, Report, and Feedback redirected correctly.
+- Reproduced the “checked consent but cannot continue” symptom on the existing port-3000 server: the checkbox DOM was checked but the button remained disabled.
+- Root cause was a stale `next-server` process (`PID 1112411`, started before the latest build). A fresh Next server passed the same click flow; the current source `ConsentCheckbox` and Introduction state wiring are correct.
+- Backend was started on port `8000`; `/health` and the v4 form endpoint returned `200`. Restart the old frontend after stopping the stale port-3000 process so it serves the latest build.
+- Test harness notes: D3 uses `select#province-select` (name `province`), not `name="D3"`; an earlier selector failure was test-code-only. Markdown content-type casing also caused one false positive; `curl` confirmed the response header is correct.
+
 ### Session 2026-09-25 — PATHAI v4.0 Web Integration & Entropy Regression Check
 
 **✅ Completed:**

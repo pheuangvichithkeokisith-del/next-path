@@ -69,6 +69,7 @@ interface SectionGroup {
 type FormValidationMeta = {
   min_total?: number;
   min_per_section?: boolean;
+  required_questions?: string[];
 };
 
 type FormSectionMeta = {
@@ -93,6 +94,7 @@ export default function AssessmentPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [retryToken, setRetryToken] = useState(0);
   const [submitError, setSubmitError] = useState(false);
   const [showValidationNotice, setShowValidationNotice] = useState(false);
   const [isSavedFlash, setIsSavedFlash] = useState(false);
@@ -112,7 +114,7 @@ export default function AssessmentPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [retryToken]);
 
   // Ensure clean, valid session exists
   useEffect(() => {
@@ -158,13 +160,22 @@ export default function AssessmentPage() {
             setDraft({});
           }
         })
-        .catch(() => {
+        .catch((error: unknown) => {
+          if (isSessionNotFound(error)) {
+            clearSessionId();
+            if (typeof window !== "undefined") {
+              clearDraft(window.localStorage);
+            }
+            setDraft({});
+            return;
+          }
+
           // Keep the failure visible instead of continuing with a session
           // whose status and answers cannot be verified or persisted.
           setHasError(true);
         });
     }
-  }, [sessionResolved, sessionId]);
+  }, [retryToken, sessionResolved, sessionId]);
 
   // Handle answers update
   const updateAnswer = (itemId: string, changes: Partial<DraftAnswer>) => {
@@ -311,6 +322,7 @@ export default function AssessmentPage() {
   const completionStatus = useMemo(() => {
     const meta = (form?.meta ?? {}) as FormMeta;
     const minimumTotal = meta.validation?.min_total ?? 20;
+    const requiredQuestions = meta.validation?.required_questions ?? [];
     const sectionMeta = meta.sections ?? {};
     const incompleteSections = Object.entries(sectionMeta)
       .map(([section, config]) => {
@@ -322,12 +334,20 @@ export default function AssessmentPage() {
         const required = config.min_required ?? 0;
         return { section, answered, required };
       })
-      .filter(({ answered, required }) => Boolean(meta.validation?.min_per_section) && answered < required);
+        .filter(({ answered, required }) => Boolean(meta.validation?.min_per_section) && answered < required);
+    const missingRequired = requiredQuestions.filter((questionId) => {
+      const item = form?.questions?.find((question) => question.id === questionId);
+      return !item || !isAnswered(item, draft[questionId]);
+    });
 
     return {
       minimumTotal,
       incompleteSections,
-      isReady: answeredQCount >= minimumTotal && incompleteSections.length === 0,
+      missingRequired,
+      isReady:
+        answeredQCount >= minimumTotal &&
+        incompleteSections.length === 0 &&
+        missingRequired.length === 0,
     };
   }, [answeredQCount, draft, form]);
 
@@ -368,7 +388,12 @@ export default function AssessmentPage() {
     return (
       <main className="flex-1 px-4 py-12 flex items-center justify-center">
         <div className="w-full max-w-lg">
-          <ErrorBanner onRetry={() => setHasError(false)} />
+          <ErrorBanner
+            onRetry={() => {
+              setHasError(false);
+              setRetryToken((token) => token + 1);
+            }}
+          />
         </div>
       </main>
     );

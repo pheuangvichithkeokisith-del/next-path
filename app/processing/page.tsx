@@ -187,6 +187,7 @@ export default function ProcessingPage() {
   }, [retryToken, router, resolved, sessionId]);
 
   const handleOpenReport = () => {
+    if (!readyToProceed) return;
     router.replace("/report");
   };
 
@@ -302,9 +303,19 @@ export default function ProcessingPage() {
 
         <button
           onClick={handleOpenReport}
-          className="px-6 py-3 rounded-xl bg-[#2D4C3E] hover:bg-[#21382E] text-white font-medium transition-all flex items-center space-x-2 shadow-xs cursor-pointer text-xs sm:text-sm"
+          disabled={!readyToProceed}
+          aria-disabled={!readyToProceed}
+          className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center space-x-2 shadow-xs text-xs sm:text-sm ${
+            readyToProceed
+              ? "bg-[#2D4C3E] hover:bg-[#21382E] text-white cursor-pointer"
+              : "bg-[#E5E1D8] text-[#8A8170] cursor-not-allowed"
+          }`}
         >
-          <span>ເປີດເບິ່ງບົດສະທ້ອນ (Open Reflection)</span>
+          <span>
+            {readyToProceed
+              ? "ເປີດເບິ່ງບົດສະທ້ອນ (Open Reflection)"
+              : "ກຳລັງກວດສອບຜົນ..."}
+          </span>
           <ArrowRight className="w-4 h-4" />
         </button>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitFeedback } from "@/api/feedback";
 import type { FeedbackAgreement, FeedbackPayload } from "@/types/feedback";
@@ -10,13 +10,19 @@ import { ArrowLeft, CheckCircle2, Send } from "lucide-react";
 
 export default function FeedbackPage() {
   const router = useRouter();
-  const { sessionId } = useSessionId();
+  const { sessionId, resolved } = useSessionId();
   const [agreement, setAgreement] = useState<FeedbackAgreement | null>(null);
   const [incorrectNote, setIncorrectNote] = useState("");
   const [nextInterest, setNextInterest] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (resolved && !sessionId) {
+      router.replace("/");
+    }
+  }, [resolved, router, sessionId]);
 
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
@@ -32,9 +38,12 @@ export default function FeedbackPage() {
     };
 
     try {
-      if (sessionId) {
-        await submitFeedback(sessionId, payload);
+      if (!sessionId) {
+        setHasError(true);
+        return;
       }
+
+      await submitFeedback(sessionId, payload);
       setSubmitted(true);
     } catch {
       setHasError(true);
