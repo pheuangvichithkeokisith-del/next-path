@@ -26,14 +26,13 @@ export default function LandingPage() {
   const { sessionId } = useSessionId();
   const [hasExistingDraft, setHasExistingDraft] = useState(() => {
     if (typeof window === "undefined") return false;
-    return Object.keys(restoreDraft(window.localStorage)).length > 0;
+    return Object.keys(restoreDraft(window.localStorage, sessionId)).length > 0;
   });
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const draft = restoreDraft(window.localStorage);
-      const hasAnswers = Object.keys(draft).length > 0;
+      const hasAnswers = Object.keys(restoreDraft(window.localStorage, sessionId)).length > 0;
       if (sessionId) {
         getSessionStatus(sessionId)
           .then(({ status }) => {

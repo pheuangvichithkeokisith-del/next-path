@@ -69,7 +69,7 @@ export default function OptionList({
 
       {/* Helper text for multi-select */}
       {item.type === "multi" ? (
-        <p className="text-xs text-[#7D7565] font-medium mb-2">
+        <p id={`${item.id}-selection-help`} className="text-xs text-[#7D7565] font-medium mb-2">
           {item.max_select
             ? `(ເລືອກໄດ້ສູງສຸດ ${item.max_select} ຂໍ້${
                 item.min_select ? `, ຢ່າງໜ້ອຍ ${item.min_select} ຂໍ້` : ""
@@ -91,18 +91,29 @@ export default function OptionList({
             selectedCodes.filter((c) => !options.find((o) => o.code === c)?.exclusive)
               .length >= item.max_select;
 
+          const inputId = `${item.id}-${option.code}`;
+
           return (
-            <div
+            <label
               key={option.code}
-              onClick={() => {
-                if (!disabled) toggle(option.code);
-              }}
-              className={`w-full text-left p-4 rounded-xl transition-all flex items-start justify-between cursor-pointer select-none ${
+              htmlFor={inputId}
+              className={`relative w-full text-left p-4 rounded-xl transition-all flex items-start justify-between cursor-pointer select-none ${
                 isSelected
                   ? "bg-[#F2ECE1] border-2 border-[#2D4C3E] text-[#171A1F] shadow-2xs"
                   : "bg-white subtle-border text-[#332E26] hover:bg-[#FAF9F5] hover:border-[#CCC6B7]"
               } ${disabled ? "opacity-45 cursor-not-allowed hover:bg-white hover:border-[#E5E1D8]" : ""}`}
             >
+              <input
+                id={inputId}
+                name={item.id}
+                type={item.type === "multi" ? "checkbox" : "radio"}
+                value={option.code}
+                checked={isSelected}
+                disabled={disabled}
+                onChange={() => toggle(option.code)}
+                className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2D4C3E] disabled:cursor-not-allowed"
+                aria-describedby={item.type === "multi" ? `${item.id}-selection-help` : undefined}
+              />
               <div className="pr-3 flex-1">
                 <span className="text-sm sm:text-base font-medium leading-relaxed block">
                   {option.text}
@@ -118,7 +129,7 @@ export default function OptionList({
               >
                 {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
               </div>
-            </div>
+            </label>
           );
         })}
       </div>

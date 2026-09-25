@@ -46,7 +46,7 @@ export default function ReportPage() {
   const [activeTab, setActiveTab] = useState<ReportTab>("all");
   const [userDraft] = useState<DraftAnswers>(() => {
     if (typeof window === "undefined") return {};
-    return restoreDraft(window.localStorage);
+    return restoreDraft(window.localStorage, sessionId);
   });
   const [showProof, setShowProof] = useState(false);
 
@@ -286,7 +286,9 @@ ${unknownLines || "- ບໍ່ມີ"}
           {REPORT_TABS.map((tab) => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id)}
+              aria-pressed={activeTab === tab.id}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === tab.id
                   ? "bg-[#1D2229] text-white shadow-2xs"
@@ -467,7 +469,7 @@ ${unknownLines || "- ບໍ່ມີ"}
               ນຳບົດສະທ້ອນ ແລະ ຫຼັກຖານຄຳຕອບ ໄປປຶກສາ AI ອື່ນ
             </h3>
             <p className="text-xs sm:text-sm text-[#BDB7A9] max-w-2xl leading-relaxed">
-              ລະບົບໄດ້ຮວບຮວມຄຳຕອບຕົວຈິງທີ່ທ່ານເລືອກ ພ້ອມຜົນວິເຄາະທາງສະຖິຕິຈາກ Signal Engine ຈັດເປັນ Master Prompt ທີ່ໂປ່ງໃສ ເພື່ອໃຫ້ນຳໄປຖາມ ChatGPT, Claude ຫຼື Gemini ຕໍ່ໄດ້ທັນທີ.
+              ລະບົບຮວບຮວມຄຳຕອບຕົວຈິງ, ຜົນສະທ້ອນ ແລະ ວິທີຄຳນວນ ເປັນ Prompt ທີ່ໂປ່ງໃສ ເພື່ອນຳໄປຖາມ ChatGPT, Claude ຫຼື Gemini ຕໍ່.
             </p>
           </div>
         </div>
@@ -475,6 +477,7 @@ ${unknownLines || "- ບໍ່ມີ"}
         {/* SINGLE MASTER CTA BUTTON */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-1">
           <button
+            type="button"
             onClick={handleCopyAiPrompt}
             className={`px-8 py-4 rounded-2xl font-bold text-sm sm:text-base transition-all flex items-center justify-center space-x-3 cursor-pointer shadow-lg active:scale-98 ${
               copiedPrompt
@@ -496,6 +499,7 @@ ${unknownLines || "- ບໍ່ມີ"}
           </button>
 
           <button
+            type="button"
             onClick={handleDownloadJson}
             disabled={downloading}
             className="px-5 py-4 rounded-2xl bg-[#2A3038] text-white border border-[#424A54] font-medium text-xs sm:text-sm hover:bg-[#343C46] transition-all flex items-center justify-center space-x-2 cursor-pointer"
@@ -537,10 +541,19 @@ ${unknownLines || "- ບໍ່ມີ"}
           </a>
         </div>
 
+        <div className="rounded-2xl border border-[#4A515B] bg-[#252B32] px-4 py-3 text-xs leading-relaxed text-[#D8D2C8]" role="note">
+          <p className="font-semibold text-white">ວິທີໃຊ້:</p>
+          <p className="mt-1">1) ກົດຄັດລອກ Prompt  2) ເປີດ AI ທີ່ຕ້ອງການ  3) ກົດວາງ  4) ອ່ານຄຳຕອບຢ່າງມີວິຈາລະນາ.</p>
+          <p className="mt-1 text-[#F0C98B]">Prompt ອາດມີຄຳຕອບ ແລະ ບໍລິບົດຂອງທ່ານ. ກວດເນື້ອຫາກ່ອນສົ່ງໃຫ້ AI ພາຍນອກ.</p>
+        </div>
+
         {/* TRANSPARENCY & CALCULATION PROOF ACCORDION */}
         <div className="pt-4 border-t border-[#313842]">
           <button
+            type="button"
             onClick={() => setShowProof(!showProof)}
+            aria-expanded={showProof}
+            aria-controls="ai-prompt-proof"
             className="inline-flex items-center space-x-2 text-xs text-[#D1CBC1] hover:text-white transition-colors cursor-pointer"
           >
             {showProof ? <ChevronUp className="w-4 h-4 text-[#8D5B28]" /> : <ChevronDown className="w-4 h-4 text-[#8D5B28]" />}
@@ -550,7 +563,7 @@ ${unknownLines || "- ບໍ່ມີ"}
           </button>
 
           {showProof && (
-            <div className="mt-3 p-4 sm:p-5 rounded-2xl bg-[#13171C] text-xs text-[#C8C2B5] space-y-2 max-h-80 overflow-y-auto border border-[#262D36]">
+            <div id="ai-prompt-proof" className="mt-3 p-4 sm:p-5 rounded-2xl bg-[#13171C] text-xs text-[#C8C2B5] space-y-2 max-h-80 overflow-y-auto border border-[#262D36]">
               <pre className="whitespace-pre-wrap font-sans leading-relaxed text-xs">
                 {aiPromptText}
               </pre>
@@ -562,6 +575,7 @@ ${unknownLines || "- ບໍ່ມີ"}
       {/* Action Footer: Start New Reflection & Voluntary Feedback */}
       <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#EAE6DC]">
         <button
+          type="button"
           onClick={handleStartNew}
           className="px-6 py-3 rounded-xl bg-[#2D4C3E] hover:bg-[#22392F] text-white font-medium text-xs sm:text-sm transition-all flex items-center space-x-2 cursor-pointer shadow-xs"
         >
@@ -570,6 +584,7 @@ ${unknownLines || "- ບໍ່ມີ"}
         </button>
 
         <button
+          type="button"
           onClick={() => router.push("/feedback")}
           className="text-xs text-[#7A7365] hover:text-[#1D2229] underline transition-colors cursor-pointer"
         >

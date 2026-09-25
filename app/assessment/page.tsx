@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { CURRENT_FORM_VERSION, getForm } from "@/api/assessment";
 import { completeSession, createSession, getSessionStatus, saveAnswer } from "@/api/session";
 import { isSessionNotFound } from "@/api/errors";
-import { clearSessionId, storeSessionId, useSessionId } from "@/hooks/useSession";
+import {
+  clearSessionId,
+  getStoredSessionRevision,
+  storeSessionId,
+  useSessionId,
+} from "@/hooks/useSession";
 import ErrorBanner from "@/components/ErrorBanner";
 import Loading from "@/components/Loading";
 import Question from "@/components/Question";
@@ -31,6 +36,7 @@ import type {
   FormItem,
   QuestionnaireForm,
 } from "@/types/form";
+import { CURRENT_FORM_REVISION } from "@/utils/formRevision";
 
 function emptyAnswer(): DraftAnswer {
   return {
@@ -60,21 +66,38 @@ interface SectionGroup {
   items: FormItem[];
 }
 
+type FormValidationMeta = {
+  min_total?: number;
+  min_per_section?: boolean;
+};
+
+type FormSectionMeta = {
+  questions?: string[];
+  min_required?: number;
+};
+
+type FormMeta = {
+  validation?: FormValidationMeta;
+  sections?: Record<string, FormSectionMeta>;
+};
+
 export default function AssessmentPage() {
   const router = useRouter();
   const { sessionId, resolved: sessionResolved } = useSessionId();
   const [form, setForm] = useState<QuestionnaireForm | null>(null);
   const [draft, setDraft] = useState<DraftAnswers>(() => {
     if (typeof window !== "undefined") {
-      return restoreDraft(window.localStorage);
+      return restoreDraft(window.localStorage, sessionId);
     }
     return {};
   });
   const [submitting, setSubmitting] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [submitError, setSubmitError] = useState(false);
+  const [showValidationNotice, setShowValidationNotice] = useState(false);
   const [isSavedFlash, setIsSavedFlash] = useState(false);
   const saveTimers = useRef<Record<string, number>>({});
+  const validationNoticeRef = useRef<HTMLDivElement>(null);
 
   // Load form definition
   useEffect(() => {
@@ -100,10 +123,30 @@ export default function AssessmentPage() {
           storeSessionId(session_id);
         })
         .catch(() => {
-          const fallbackId = `session-${Date.now()}`;
-          storeSessionId(fallbackId);
-        });
+          // Do not create a fake client-only session. Without the backend,
+          // answers cannot be persisted and Processing cannot reach Report.
+          setHasError(true);
+      });
     } else {
+      // Never reuse a session created before the current questionnaire revision.
+      // Its backend may still contain answers for questions that are no longer
+      // represented in the current draft.
+      if (getStoredSessionRevision() !== CURRENT_FORM_REVISION) {
+        if (typeof window !== "undefined") {
+          clearDraft(window.localStorage);
+        }
+        createSession(CURRENT_FORM_VERSION)
+          .then(({ session_id }) => {
+            setDraft({});
+            storeSessionId(session_id);
+          })
+          .catch(() => {
+            clearSessionId();
+            setHasError(true);
+          });
+        return;
+      }
+
       // If returning to assessment with an already completed session, start a fresh session
       getSessionStatus(sessionId)
         .then((sessionStatus) => {
@@ -113,13 +156,12 @@ export default function AssessmentPage() {
               clearDraft(window.localStorage);
             }
             setDraft({});
-            createSession(CURRENT_FORM_VERSION).then(({ session_id }) => {
-              storeSessionId(session_id);
-            });
           }
         })
         .catch(() => {
-          // Offline fallback
+          // Keep the failure visible instead of continuing with a session
+          // whose status and answers cannot be verified or persisted.
+          setHasError(true);
         });
     }
   }, [sessionResolved, sessionId]);
@@ -132,7 +174,7 @@ export default function AssessmentPage() {
 
     setDraft(nextDraft);
     if (typeof window !== "undefined") {
-      saveDraft(window.localStorage, nextDraft);
+      saveDraft(window.localStorage, nextDraft, sessionId);
     }
 
     // Auto-save flash feedback
@@ -182,7 +224,7 @@ export default function AssessmentPage() {
       },
       skills: {
         titleLo: "ໝວດ 2 — ທັກສະ (Skills)",
-        descLo: "ຈຸດແຂງທີ່ຄົນອື່ນຊົມเชย ແລະ ສິ່ງທີ່ເຄີຍເຮັດຈົນພູມໃຈ",
+        descLo: "ຈຸດແຂງທີ່ຄົນອື່ນຊົມເຊີຍ ແລະ ສິ່ງທີ່ເຄີຍເຮັດຈົນພູມໃຈ",
         icon: Sparkles,
       },
       values: {
@@ -266,7 +308,38 @@ export default function AssessmentPage() {
 
   const percentage = Math.min(100, Math.round((answeredQCount / totalQuestions) * 100));
 
+  const completionStatus = useMemo(() => {
+    const meta = (form?.meta ?? {}) as FormMeta;
+    const minimumTotal = meta.validation?.min_total ?? 20;
+    const sectionMeta = meta.sections ?? {};
+    const incompleteSections = Object.entries(sectionMeta)
+      .map(([section, config]) => {
+        const questionIds = config.questions ?? [];
+        const answered = questionIds.filter((questionId) => {
+          const item = form?.questions?.find((question) => question.id === questionId);
+          return item ? isAnswered(item, draft[questionId]) : false;
+        }).length;
+        const required = config.min_required ?? 0;
+        return { section, answered, required };
+      })
+      .filter(({ answered, required }) => Boolean(meta.validation?.min_per_section) && answered < required);
+
+    return {
+      minimumTotal,
+      incompleteSections,
+      isReady: answeredQCount >= minimumTotal && incompleteSections.length === 0,
+    };
+  }, [answeredQCount, draft, form]);
+
   const handleComplete = async () => {
+    if (!completionStatus.isReady) {
+      setShowValidationNotice(true);
+      requestAnimationFrame(() => {
+        validationNoticeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      return;
+    }
+
     setSubmitting(true);
     setSubmitError(false);
     try {
@@ -371,6 +444,20 @@ export default function AssessmentPage() {
           </p>
         </div>
 
+        {showValidationNotice ? (
+          <div
+            ref={validationNoticeRef}
+            role="alert"
+            aria-live="polite"
+            className="max-w-2xl mx-auto rounded-2xl border border-[#D7B97A] bg-[#FFF8E8] px-4 py-3 text-sm text-[#5B4525]"
+          >
+            <p className="font-semibold">ກ່ອນເປີດບົດສະທ້ອນ ກະລຸນາຕອບຄຳຖາມໃຫ້ຄົບກ່ອນ</p>
+            <p className="mt-1 text-xs leading-relaxed">
+              ຕອບແລ້ວ {answeredQCount}/{totalQuestions} ຂໍ້. ຕ້ອງຕອບຢ່າງໜ້ອຍ {completionStatus.minimumTotal} ຂໍ້ ແລະ ໃຫ້ຄົບຕາມຂັ້ນຕ່ຳຂອງແຕ່ລະໝວດ.
+            </p>
+          </div>
+        ) : null}
+
         {/* Section Groups */}
         {sections.map((sec) => {
           const IconComp = sec.icon;
@@ -432,7 +519,7 @@ export default function AssessmentPage() {
               disabled={submitting}
               className="w-full py-4 rounded-xl bg-[#2D4C3E] hover:bg-[#22392F] text-white font-medium transition-all flex items-center justify-center space-x-2 shadow-xs cursor-pointer text-sm sm:text-base"
             >
-              <span>{submitting ? "ກຳລັງສັງເຄາະຂໍ້ມູນ..." : "ສັງເຄາະບົດສະທ້ອນ (Open Reflection)"}</span>
+              <span>{submitting ? "ກຳລັງສັງເຄາະຂໍ້ມູນ..." : completionStatus.isReady ? "ສັງເຄາະບົດສະທ້ອນ (Open Reflection)" : "ກວດຄຳຕອບກ່ອນ"}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

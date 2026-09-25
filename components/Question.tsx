@@ -72,7 +72,12 @@ export default function Question({ item, answer, onChange }: QuestionProps) {
         </div>
       ) : item.type === "text" ? (
         <div className="mt-4">
+          <label htmlFor={`${item.id}-text`} className="block text-sm font-semibold text-[#4D4537] mb-2">
+            ຄຳຕອບຂອງທ່ານ
+          </label>
           <input
+            id={`${item.id}-text`}
+            name={item.id}
             className="min-h-[48px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm sm:text-base text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
             onChange={(event) => onChange({ text_value: event.target.value })}
             placeholder="ພິມຄຳຕອບຂອງທ່ານ..."

@@ -34,7 +34,7 @@ export default function Header() {
         <div className="flex items-center space-x-3 sm:space-x-4">
           <Link
             href="/"
-            className="group flex items-baseline space-x-2 focus:outline-none"
+            className="group flex items-baseline space-x-2"
           >
             <span className="text-xl sm:text-2xl font-bold tracking-tight text-[#1A1E24] group-hover:text-[#2D4C3E] transition-colors">
               Next-path
@@ -87,8 +87,9 @@ export default function Header() {
           {sessionId && (
             <button
               onClick={handleReset}
-              title="ເລີ່ມຕົ້ນໃໝ່ທັງໝົດ"
-              className="p-1.5 ml-1 text-[#888173] hover:text-[#1A1E24] rounded-lg hover:bg-[#EFECE4] transition-colors"
+              type="button"
+              aria-label="ເລີ່ມການສຳຫຼວດໃໝ່ ແລະ ລຶບຄຳຕອບເກົ່າ"
+              className="min-h-11 min-w-11 p-2 ml-1 text-[#888173] hover:text-[#1A1E24] rounded-lg hover:bg-[#EFECE4] transition-colors"
             >
               <RotateCcw className="w-4 h-4" />
             </button>

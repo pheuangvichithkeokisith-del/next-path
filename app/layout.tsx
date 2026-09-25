@@ -22,8 +22,11 @@ export default function RootLayout({
   return (
     <html lang="lo" className={`h-full ${notoSansLao.className}`}>
       <body className="min-h-full flex flex-col bg-[#F9F8F5] text-[#1A1E24] selection:bg-[#EAE6DC] selection:text-[#1D2229]">
+        <a className="skip-link" href="#main-content">
+          ໄປຫາເນື້ອຫາຫຼັກ
+        </a>
         <Header />
-        <div className="flex-1 flex flex-col">
+        <div id="main-content" tabIndex={-1} className="flex-1 flex flex-col">
           {children}
         </div>
         
@@ -37,7 +40,7 @@ export default function RootLayout({
             </div>
 
             <div className="text-[11px] text-[#938A7A]">
-              ບໍ່ມີການເກັບຂໍ້ມູນສ່ວນຕົວ • ຂໍ້ມູນທັງໝົດເປັນຂອງເຈົ້າ
+              ບໍ່ຮ້ອງຂໍຊື່ ຫຼື ອີເມວ • ໃຊ້ Session ແບບບໍ່ລະບຸຕົວຕົນ
             </div>
           </div>
         </footer>

@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-25 | Signal Engine v1.1.2 + PATHAI v4.0 web integration | v4 frontend/backend build verified
+**Updated:** 2026-09-25 | Signal Engine v1.1.2 + PATHAI v4.0 web integration + UX accessibility pass | v4 frontend/backend build verified
 
 ---
 
@@ -38,6 +38,8 @@
 * Autosave debouncing with instant storage draft purge on session completion.
 * Active web form is explicitly `v4.0.0`; the backend loads the versioned v4 form and validates its option codes.
 * D3 province selection uses a native searchable/type-ahead `<select>` with all 18 Lao provinces/capital options.
+* Option cards now use native radio/checkbox controls with keyboard focus support; D2 has an explicit label and the shared layout includes a skip link.
+* The assessment UI reads v4 validation metadata before opening a report (minimum total and minimum per section), without changing scoring or API contracts.
 
 ### 📊 Report Space & Transparent AI Prompt Export (`app/report/page.tsx`)
 * Tabbed sections adhering to the 6-Part Reflection Architecture.
@@ -45,6 +47,7 @@
 * **Calculation Proof Accordion:** Full transparency for users to inspect the exact answers and signals passed to the backend.
 * Quick launch links to ChatGPT, Claude, and Gemini.
 * For `v4.0.0`, the copied prompt includes translated option text, question stems, section mapping, normalization rules, Q17 penalty, profile correlation, and risk/safety metrics so external AI can audit the result.
+* The AI export panel explains the copy → open → paste flow and warns users to review answer/context data before sending it to an external AI.
 * v4 reports use `backend/app/services/v4_report_service.py`; legacy sessions continue using the legacy DS engine.
 
 ---
@@ -103,6 +106,58 @@ npm run build                                      # Production build verificati
 - 100%: `E_r=1.00` → Total Uncertainty
 
 **Important boundary:** v4.0 uses Pearson profile correlation, not entropy. The entropy benchmark remains a regression suite for the legacy Signal Engine.
+
+### Session 2026-09-25 — Frontend UX & Accessibility Pass
+
+**Completed:**
+- Replaced clickable option `<div>` elements with native controlled radio/checkbox inputs while preserving the existing card presentation and selection rules.
+- Added v4 minimum-answer feedback before completion, keyboard-visible focus states, a skip link, reduced-motion handling, D2 input labeling, and an accessible reset button.
+- Updated privacy wording to distinguish “no name/email requested” from anonymous session answer storage.
+- Clarified the external AI prompt flow, added a review-before-sharing notice, and exposed report tab/proof toggle states to assistive technology.
+
+**Verification:** `npm run lint` passed; `npm run build` passed (9/9 routes); production-style route checks returned `200` for `/`, `/introduction`, `/assessment`, `/processing`, `/report`, and `/feedback`. No questionnaire, API, database, or scoring source files were changed.
+
+### Session 2026-09-25 — End-to-End Report Access Diagnosis
+
+**✅ Verified full flow with services running:**
+- FastAPI backend on `127.0.0.1:8000` and production frontend on `127.0.0.1:3001`.
+- Loaded `v4.0.0` form: 3 demographics + 28 questions.
+- Created a v4 session, saved all 31 answers, completed the session, and retrieved the report successfully.
+- `GET /api/v1/sessions/{session_id}/report` returned `200`, report version `v4.0.0`, summary present, 1 pattern, and 3 possible paths.
+- Markdown export returned `200` with `Form Version: v4.0.0`.
+- Frontend routes `/`, `/introduction`, `/assessment`, `/processing`, `/report`, and `/feedback` returned `200`.
+- Backend regression tests for full flow, session lifecycle, and validation: **23 passed**.
+
+**🔴 Root cause when Report was unreachable:**
+- `npm start` starts only the Next.js frontend; it does **not** start FastAPI.
+- Without FastAPI on port `8000`, form/session/answer/report API calls fail even though frontend routes still return `200`.
+- `app/assessment/page.tsx` currently creates a fake `session-${Date.now()}` fallback when initial session creation fails. This can let the user continue temporarily, but Processing later cannot find that session and redirects to `/`, making the failure look like Report is inaccessible.
+
+**⚠️ Additional error-path findings (not fixed in this diagnostic pass):**
+- Direct navigation to `/report` without a valid session silently redirects to `/` instead of explaining that a completed session is required.
+- A missing/expired session on Report also redirects silently to `/`; the generic error banner is used only for non-404 report failures.
+- Running the frontend alone can still load bundled v4 questions, which may make the form appear functional while autosave and completion cannot persist.
+
+**Operational requirement:** start both services before testing the real flow:
+```bash
+PYTHONPATH=backend backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+npm start
+```
+
+**Boundary:** This was a diagnosis and memory update only. No questionnaire, algorithm, API contract, database, or frontend code was changed in this pass.
+
+### Session 2026-09-25 — Draft and Session Answer Isolation Fix
+
+**✅ Fixed:**
+- Draft storage moved from the unscoped `pathai.assessment.draft.v1` payload to a v2 envelope containing `form_revision`, `session_id`, and `answers`.
+- Drafts are restored only when both the questionnaire revision and session ID match; a new session cannot inherit answers from another session.
+- Legacy v1 drafts are ignored and removed when the user starts a fresh assessment.
+- Session storage now records the questionnaire revision separately from the API form version.
+- Assessment detects sessions created before the current questionnaire revision and creates a fresh v4 session before allowing submission.
+- Removed the fake `session-${Date.now()}` fallback. If the backend is unavailable, the assessment now shows an error instead of proceeding toward a guaranteed Report failure.
+- Completed sessions still remain resumable for their own Report/prompt flow, while “Start New” clears the session and draft explicitly.
+
+**Verification:** `npm run lint` passed; `npm run build` passed with all 9 routes generated; `git diff --check` passed. No questionnaire content, scoring rules, API contracts, or database schema were changed.
 
 ### Session 2026-09-24 (Thursday) — Signal Engine Math Overhaul & Full Verification
 
@@ -228,4 +283,3 @@ GET  /health                                  → Backend health check (NOT /api
 * **Regression Safety Diff:** $\le 15\%$ classification shift across 100+ synthetic snapshot profiles.
 * **Backward Compatibility:** All new fields optional with safe defaults for existing API clients.
 * **Lao-First UX:** All explainability reasons paired with friendly, supportive Lao descriptions.
-

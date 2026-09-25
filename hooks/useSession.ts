@@ -1,8 +1,10 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { CURRENT_FORM_REVISION } from "@/utils/formRevision";
 
 const SESSION_KEY = "pathai.session.id.v1";
+const SESSION_REVISION_KEY = "pathai.session.revision.v1";
 
 function subscribe(callback: () => void) {
   if (typeof window === "undefined") return () => {};
@@ -18,9 +20,13 @@ function getServerSnapshot(): string | null {
   return null;
 }
 
-export function storeSessionId(sessionId: string): void {
+export function storeSessionId(
+  sessionId: string,
+  revision = CURRENT_FORM_REVISION,
+): void {
   if (typeof window !== "undefined") {
     window.localStorage.setItem(SESSION_KEY, sessionId);
+    window.localStorage.setItem(SESSION_REVISION_KEY, revision);
     window.dispatchEvent(new Event("storage"));
   }
 }
@@ -28,8 +34,15 @@ export function storeSessionId(sessionId: string): void {
 export function clearSessionId(): void {
   if (typeof window !== "undefined") {
     window.localStorage.removeItem(SESSION_KEY);
+    window.localStorage.removeItem(SESSION_REVISION_KEY);
     window.dispatchEvent(new Event("storage"));
   }
+}
+
+export function getStoredSessionRevision(): string | null {
+  return typeof window !== "undefined"
+    ? window.localStorage.getItem(SESSION_REVISION_KEY)
+    : null;
 }
 
 export function useSessionId(): { sessionId: string | null; resolved: boolean } {

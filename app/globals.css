@@ -80,9 +80,31 @@
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+select:focus-visible {
   outline: 2px solid #2D4C3E;
   outline-offset: 2px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: 0.75rem;
+  background: #1D2229;
+  color: #FFFFFF;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: transform 0.15s ease-in-out;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 3px solid #8D5B28;
+  outline-offset: 3px;
 }
 
 /* Primary Button */
@@ -171,4 +193,15 @@ textarea:focus-visible {
 
 .animate-breathe {
   animation: gentle-breathe 3.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
