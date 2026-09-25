@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getForm } from "@/api/assessment";
 import { completeSession, createSession, getSessionStatus, saveAnswer } from "@/api/session";
@@ -24,6 +24,7 @@ import {
   Route,
   UserCheck
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type {
   DraftAnswer,
   DraftAnswers,
@@ -55,7 +56,7 @@ interface SectionGroup {
   id: string;
   titleLo: string;
   descLo: string;
-  icon: any;
+  icon: LucideIcon;
   items: FormItem[];
 }
 
@@ -71,7 +72,9 @@ export default function AssessmentPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
   const [isSavedFlash, setIsSavedFlash] = useState(false);
+  const saveTimers = useRef<Record<string, number>>({});
 
   // Load form definition
   useEffect(() => {
@@ -138,12 +141,18 @@ export default function AssessmentPage() {
 
     // Async autosave to backend if session exists
     if (sessionId) {
-      saveAnswer(sessionId, itemId, updated).catch((err) => {
-        if (isSessionNotFound(err)) {
-          clearSessionId();
-          createSession().then(({ session_id }) => storeSessionId(session_id));
-        }
-      });
+      const previousTimer = saveTimers.current[itemId];
+      if (previousTimer !== undefined) window.clearTimeout(previousTimer);
+      saveTimers.current[itemId] = window.setTimeout(() => {
+        saveAnswer(sessionId, itemId, updated).catch((err) => {
+          if (isSessionNotFound(err)) {
+            clearSessionId();
+            createSession()
+              .then(({ session_id }) => storeSessionId(session_id))
+              .catch(() => undefined);
+          }
+        });
+      }, 250);
     }
   };
 
@@ -165,7 +174,7 @@ export default function AssessmentPage() {
 
     // Group Q1-Q28 into the 8 actual modules
     const qList = form.questions || [];
-    const secMap: Record<string, { titleLo: string; descLo: string; icon: any }> = {
+    const secMap: Record<string, { titleLo: string; descLo: string; icon: LucideIcon }> = {
       interests: {
         titleLo: "ໝວດ 1 — ຄວາມສົນໃຈ (Interests)",
         descLo: "ສິ່ງທີ່ເຮັດແລ້ວມີຄວາມສຸກ ລືມເວລາ ແລະ ຢາກຮຽນຮູ້",
@@ -244,30 +253,24 @@ export default function AssessmentPage() {
 
   const handleComplete = async () => {
     setSubmitting(true);
+    setSubmitError(false);
     try {
       if (sessionId) {
         // Explicitly flush and save ALL answered items in draft to ensure 100% data persistence
-        const itemsToSave = Object.entries(draft).filter(([_, ans]) =>
+        const itemsToSave = Object.entries(draft).filter(([, ans]) =>
           (ans.option_codes && ans.option_codes.length > 0) ||
           ans.text_value ||
           ans.extra_text ||
           ans.other_text
         );
-        await Promise.allSettled(
+        await Promise.all(
           itemsToSave.map(([itemId, ans]) => saveAnswer(sessionId, itemId, ans))
         );
         await completeSession(sessionId);
       }
-      // Auto-clear draft in localStorage so next assessment starts clean
-      if (typeof window !== "undefined") {
-        clearDraft(window.localStorage);
-      }
       router.push("/processing");
     } catch {
-      if (typeof window !== "undefined") {
-        clearDraft(window.localStorage);
-      }
-      router.push("/processing");
+      setSubmitError(true);
     } finally {
       setSubmitting(false);
     }
@@ -338,6 +341,8 @@ export default function AssessmentPage() {
 
       {/* Main Continuous Form Content */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-12">
+        {submitError ? <ErrorBanner onRetry={handleComplete} /> : null}
+
         {/* Intro Banner */}
         <div className="text-center max-w-xl mx-auto pb-4">
           <span className="text-xs font-bold uppercase tracking-widest text-[#7D7565] block mb-1.5">
@@ -352,7 +357,7 @@ export default function AssessmentPage() {
         </div>
 
         {/* Section Groups */}
-        {sections.map((sec, secIdx) => {
+        {sections.map((sec) => {
           const IconComp = sec.icon;
           return (
             <section key={sec.id} className="space-y-6 pt-4">
@@ -375,13 +380,12 @@ export default function AssessmentPage() {
 
               {/* Questions in this Section */}
               <div className="space-y-4">
-                {sec.items.map((item, itemIdx) => {
+                {sec.items.map((item) => {
                   const currentAns = draft[item.id] ?? emptyAnswer();
                   return (
                     <Question
                       key={item.id}
                       item={item}
-                      index={itemIdx + 1}
                       answer={currentAns}
                       onChange={(changes) => updateAnswer(item.id, changes)}
                     />

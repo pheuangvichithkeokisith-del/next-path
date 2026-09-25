@@ -112,7 +112,7 @@ def test_engine_status_and_version():
         "Q6": ["Q6-O2"],  # Skills
         "Q14": ["Q14-O3"], # Learning
     })
-    assert res_normal.algorithm_version == "1.1.2"
+    assert res_normal.algorithm_version == "1.2.0"
     assert res_normal.status == "OK"
     assert res_normal.status_reason is None
 
@@ -148,7 +148,7 @@ def test_evaluate_signals_tech_profile():
         "Q23": ["Q23-O1"], # Ready to move
     }
     res = evaluate_signals(answers)
-    assert res.algorithm_version == "1.1.2"
+    assert res.algorithm_version == "1.2.0"
     assert res.status == "OK"
     assert res.cluster_evaluations["C2"].adjusted_fit >= 68
     assert res.cluster_evaluations["C2"].classification == "core"
@@ -179,5 +179,90 @@ def test_evaluate_signals_with_tension_and_soft_negative():
     assert res.cluster_evaluations["C2"].negative_factor > 0
     # Soft negative never eliminates path
     assert res.cluster_evaluations["C2"].adjusted_fit > 0
+
+
+def test_h1_entropy_cap_function_bands():
+    """H1: E_r thresholds map to exact confidence ceilings (roadmap spec)."""
+    from app.ds.signal_engine import compute_entropy_confidence_cap
+
+    assert compute_entropy_confidence_cap(0.10) == 100.0   # no cap below 0.30
+    assert compute_entropy_confidence_cap(0.29) == 100.0
+    assert compute_entropy_confidence_cap(0.30) == 80.0
+    assert compute_entropy_confidence_cap(0.44) == 80.0
+    assert compute_entropy_confidence_cap(0.45) == 70.0
+    assert compute_entropy_confidence_cap(0.59) == 70.0
+    assert compute_entropy_confidence_cap(0.60) == 55.0
+    assert compute_entropy_confidence_cap(0.74) == 55.0
+    assert compute_entropy_confidence_cap(0.75) == 40.0
+    assert compute_entropy_confidence_cap(1.00) == 40.0
+
+
+def test_h2_reasons_and_h1_cap_integration():
+    """H2: reason codes present when deductions apply; H1: cap is a binding ceiling."""
+    # Multi-scattered profile (E_r ~0.70) -> dispersion + weak leader reasons, conf well below cap
+    scattered = {
+        "Q1": ["Q1-O2", "Q1-O9", "Q1-O10"], "Q2": ["Q2-O4"], "Q3": ["Q3-O5"],
+        "Q4": ["Q4-O3", "Q4-O4"], "Q5": ["Q5-O4"], "Q6": ["Q6-O2", "Q6-O5", "Q6-O7"],
+        "Q7": ["Q7-O2"], "Q8": ["Q8-O4", "Q8-O1"], "Q9": ["Q9-O6"], "Q10": ["Q10-O5"],
+        "Q11": ["Q11-O5"], "Q12": ["Q12-O4"], "Q13": ["Q13-O2", "Q13-O5"],
+        "Q14": ["Q14-O3", "Q14-O7", "Q14-O6"], "Q15": ["Q15-O1", "Q15-O2"],
+        "Q16": ["Q16-O7"], "Q17": ["Q17-O3"], "Q18": ["Q18-O3"], "Q19": ["Q19-O6"],
+        "Q20": ["Q20-O5", "Q20-O7"], "Q21": ["Q21-O5"], "Q22": ["Q22-O1", "Q22-O2"],
+        "Q23": ["Q23-O3"], "Q24": ["Q24-O2"], "Q25": ["Q25-O3"], "Q26": ["Q26-O3"],
+        "Q27": ["Q27-O2"], "Q28": ["Q28-O2"]
+    }
+    res = evaluate_signals(scattered, {"province_code": "D3-O13"})
+    assert 0.65 <= res.entropy_ratio <= 0.84
+    assert "dispersion_penalty" in res.confidence_reasons
+    assert "weak_leader" in res.confidence_reasons
+    assert res.confidence_score <= 55.0, "Confidence must respect the E_r ceiling"
+    assert len(res.core_paths) == 0, "Scattered profile should not have core paths"
+
+    # Clear Direction + health tail (E_r ~0.51, cap 70) -> cap BINDS: conf clamped 85 -> 70
+    clear_direction = {
+        "Q1": ["Q1-O2", "Q1-O3"], "Q2": ["Q2-O1"], "Q3": ["Q3-O3"], "Q4": ["Q4-O1"],
+        "Q5": ["Q5-O2"], "Q6": ["Q6-O2", "Q6-O1"], "Q7": ["Q7-O7"],
+        "Q8": ["Q8-O1", "Q8-O5"], "Q9": ["Q9-O1"], "Q10": ["Q10-O4"], "Q11": ["Q11-O1"],
+        "Q12": ["Q12-O1"], "Q13": ["Q13-O4"], "Q14": ["Q14-O3", "Q14-O1", "Q14-O9"],
+        "Q15": ["Q15-O12"], "Q16": ["Q16-O2"], "Q17": ["Q17-O1"], "Q18": ["Q18-O1"],
+        "Q19": ["Q19-O1"], "Q20": ["Q20-O5"], "Q21": ["Q21-O1"], "Q22": ["Q22-O5"],
+        "Q23": ["Q23-O1"], "Q24": ["Q24-O1"], "Q25": ["Q25-O2"], "Q26": ["Q26-O1"],
+        "Q27": ["Q27-O1"], "Q28": ["Q28-O1"]
+    }
+    res2 = evaluate_signals(clear_direction, {"province_code": "D3-O01"})
+    assert 0.45 <= res2.entropy_ratio < 0.60, f"E_r {res2.entropy_ratio} should hit the 70% band"
+    assert res2.confidence_score == 70.0, "H1 cap should clamp 85 -> 70 for E_r >= 0.45"
+    assert "entropy_cap" in res2.confidence_reasons
+    assert len(res2.core_paths) == 1 and res2.core_paths[0].cluster_id == "C2", "Cap must not break core classification (70 >= 65)"
+
+    # Focused tech profile (E_r < 0.30) -> no entropy cap reason
+    focused = {
+        "Q1": ["Q1-O2"], "Q2": ["Q2-O1"], "Q3": ["Q3-O3"], "Q4": ["Q4-O1"],
+        "Q5": ["Q5-O2"], "Q6": ["Q6-O2"], "Q7": ["Q7-O7"], "Q8": ["Q8-O1", "Q8-O5"],
+        "Q9": ["Q9-O1"], "Q10": ["Q10-O4"], "Q11": ["Q11-O1"], "Q12": ["Q12-O1"],
+        "Q13": ["Q13-O4"], "Q14": ["Q14-O3"], "Q15": ["Q15-O7"], "Q16": ["Q16-O2"],
+        "Q19": ["Q19-O1"], "Q20": ["Q20-O5"], "Q22": ["Q22-O5"], "Q23": ["Q23-O1"]
+    }
+    res3 = evaluate_signals(focused, {"province_code": "D3-O01"})
+    assert res3.entropy_ratio < 0.30
+    assert "entropy_cap" not in res3.confidence_reasons
+    assert "unknown_penalty" not in res3.confidence_reasons  # Q15-O7 is a negative, not an unknown
+    assert res3.confidence_score >= 75.0
+
+
+def test_h2_tension_and_unknown_reasons_emitted():
+    """H2: unknown_penalty and tension_penalty reason codes appear when applicable."""
+    answers = {
+        "Q1": ["Q1-O2"], "Q2": ["Q2-O1"], "Q3": ["Q3-O3"], "Q4": ["Q4-O1"],
+        "Q5": ["Q5-O2"], "Q6": ["Q6-O9"], "Q7": ["Q7-O7"],
+        "Q8": ["Q8-O1", "Q8-O5"], "Q9": ["Q9-O1"], "Q10": ["Q10-O4"],
+        "Q11": ["Q11-O1"], "Q12": ["Q12-O1"], "Q13": ["Q13-O4"],
+        "Q14": ["Q14-O3", "Q14-O9"], "Q15": ["Q15-O7", "Q15-O9"], "Q16": ["Q16-O2"],
+        "Q19": ["Q19-O1"], "Q20": ["Q20-O5"], "Q22": ["Q22-O5"], "Q23": ["Q23-O1"]
+    }
+    res = evaluate_signals(answers, {"province_code": "D3-O01"})
+    assert "unknown_penalty" in res.confidence_reasons
+    assert "tension_penalty" in res.confidence_reasons  # T2: health interest (Q14-O9) + Q15-O9
+    assert res.confidence_score < 85.0
 
 

@@ -98,6 +98,7 @@ class DSEngineResult(BaseModel):
     experiments: List[DSExperiment] = Field(default_factory=list)
     summary_text: str
     confidence_score: float = 85.0
+    confidence_reasons: List[str] = Field(default_factory=list)
     disclaimer: str = "ລາຍງານນີ້ຊ່ວຍໃນການຄິດ ແລະ ສຳຫຼວດຕົນເອງ ບໍ່ແມ່ນຄຳຕັດສິນສຸດທ້າຍ"
     template_id: str
     versions: DSEngineVersions

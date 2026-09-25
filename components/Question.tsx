@@ -6,12 +6,11 @@ import type { DraftAnswer, FormItem } from "@/types/form";
 
 export type QuestionProps = {
   item: FormItem;
-  index: number;
   answer: DraftAnswer;
   onChange: (changes: Partial<DraftAnswer>) => void;
 };
 
-export default function Question({ item, index, answer, onChange }: QuestionProps) {
+export default function Question({ item, answer, onChange }: QuestionProps) {
   const isDemographic = item.id.startsWith("D");
 
   return (

@@ -119,6 +119,7 @@ class DSEngine:
             tensions=all_tensions,
             experiments=experiments,
             confidence_score=eval_res.confidence_score,
+            confidence_reasons=eval_res.confidence_reasons,
             disclaimer="ລາຍງານນີ້ຊ່ວຍໃນການຄິດ ແລະ ສຳຫຼວດຕົນເອງ ບໍ່ແມ່ນຄຳຕັດສິນສຸດທ້າຍ",
             summary_text=summary_text,
             template_id=template_id,

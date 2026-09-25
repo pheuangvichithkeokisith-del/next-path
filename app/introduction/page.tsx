@@ -23,10 +23,7 @@ export default function IntroductionPage() {
       storeSessionId(session_id);
       router.push("/assessment");
     } catch {
-      // Standalone / offline fallback session so UI is fully usable
-      const fallbackId = `session-${Date.now()}`;
-      storeSessionId(fallbackId);
-      router.push("/assessment");
+      setHasError(true);
     } finally {
       setBusy(false);
     }

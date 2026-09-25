@@ -1,14 +1,44 @@
-"""PathAI Signal Aggregation Engine (v1.0)
+"""PathAI Signal Aggregation Engine (v1.2.0)
 
 Implements deterministic signal weighting, multi-select normalization,
 soft negative reduction, feasibility penalties with province context,
 confidence calculation with fluctuation adjustments, expanded tension detection,
+entropy-confidence cross-check (H1), transparent confidence reasons (H2),
 and path classification for Lao youth career self-reflection.
 """
 
 import math
 from typing import Dict, List, Literal, Optional, Set, Tuple
 from pydantic import BaseModel, Field
+
+# Engine algorithm version — bump on any behavioral change to scoring/classification.
+ENGINE_ALGORITHM_VERSION = "1.2.0"
+
+# H1: Entropy-Confidence Cross-Check caps.
+# High dispersion (E_r) means interests are spread thin, so expressed confidence must
+# reflect that honest uncertainty instead of implying a firm direction.
+ENTROPY_CONFIDENCE_CAPS: List[Tuple[float, float]] = [
+    (0.75, 40.0),
+    (0.60, 55.0),
+    (0.45, 70.0),
+    (0.30, 80.0),
+]
+
+
+def compute_entropy_confidence_cap(entropy_ratio: float) -> float:
+    """Return the H1 confidence ceiling for a given entropy ratio E_r in [0, 1].
+
+    Bands (from Phase 2 roadmap H1):
+    - E_r >= 0.75 -> max 40.0
+    - E_r >= 0.60 -> max 55.0
+    - E_r >= 0.45 -> max 70.0
+    - E_r >= 0.30 -> max 80.0
+    - E_r <  0.30 -> no cap (100.0, later limited by self-report cap)
+    """
+    for threshold, cap in ENTROPY_CONFIDENCE_CAPS:
+        if entropy_ratio >= threshold:
+            return cap
+    return 100.0
 
 
 def clamp(val: float, low: float, high: float) -> float:
@@ -382,11 +412,12 @@ class ClusterEvaluation(BaseModel):
 
 
 class EngineEvaluationResult(BaseModel):
-    algorithm_version: str = "1.1.2"
+    algorithm_version: str = ENGINE_ALGORITHM_VERSION
     status: Literal["OK", "SUGGEST_EXPLORATION"] = "OK"
     status_reason: Optional[Literal["low_signal", "too_many_unknowns", "extreme_uncertainty"]] = None
     cluster_evaluations: Dict[str, ClusterEvaluation]
     confidence_score: float
+    confidence_reasons: List[str] = Field(default_factory=list)
     entropy_ratio: float = 0.0
     detected_tensions: List[Dict[str, str]]
     core_paths: List[ClusterEvaluation]
@@ -591,14 +622,19 @@ def evaluate_signals(
     )
 
     conf = 100.0
+    confidence_reasons: List[str] = []
 
     # A. Unknowns penalty — cap at 35 pts max so extreme unknowns don't dominate alone
     unknowns_deduct = min(35.0, 3.5 * unknown_count + 1.0 * prefer_not_count)
     conf -= unknowns_deduct
+    if unknowns_deduct > 0:
+        confidence_reasons.append("unknown_penalty")
 
     # B. Tensions compound penalty — per-tension + group multiplier, capped at 25 pts
     tension_deduct = min(25.0, 5.0 * len(detected_tensions) + (8.0 if len(detected_tensions) >= 2 else 0.0))
     conf -= tension_deduct
+    if tension_deduct > 0:
+        confidence_reasons.append("tension_penalty")
 
     # C. Multi-interest dispersion — pick the single strongest applicable deduction (no double-count)
     if dispersion_top3 <= 15 and top3 >= 25:
@@ -612,24 +648,41 @@ def evaluate_signals(
     else:
         dispersion_deduct = 0.0
     conf -= dispersion_deduct
+    if dispersion_deduct > 0:
+        confidence_reasons.append("dispersion_penalty")
 
     # D. Location constraint penalty for non-Vientiane youth with time/location constraints
     if d3 and d3 not in ["D3-O01", "D3-O1", "VTE"] and any(c in q22_opts for c in ["Q22-O1", "Q22-O2"]):
         conf -= 5.0
+        confidence_reasons.append("province_penalty")
 
     # E. Low signal penalty — weak top score means low overall certainty
     if top1 < 70:
         conf -= (70.0 - top1) * 0.5
+        confidence_reasons.append("weak_leader")
 
     # F. Structural clamps (override deduction total for extreme cases)
     if unknown_count >= 15 or top1 < 35:
         conf = min(conf, 30.0)
+        confidence_reasons.append("structural_clamp")
     if top2 > 0 and (top1 - top2) <= 10 and top1 < 70:
         conf = min(conf, 60.0)
+        confidence_reasons.append("structural_clamp")
     if unknown_count >= 3 and len(detected_tensions) >= 2 and top1 < 70:
         conf = min(conf, 45.0)
+        confidence_reasons.append("structural_clamp")
 
     conf = min(conf, 85.0)  # Self-report cap
+
+    # H1: Entropy-Confidence Cross-Check — high dispersion (E_r) caps expressed
+    # confidence so the score reflects honest uncertainty, not false clarity.
+    # Computed here from adjusted_fits (pure function; E_r value itself unchanged).
+    entropy_ratio = compute_shannon_entropy_ratio(adjusted_fits, unknown_count)
+    entropy_cap = compute_entropy_confidence_cap(entropy_ratio)
+    if entropy_cap < 100.0 and conf > entropy_cap:
+        conf = entropy_cap
+        confidence_reasons.append("entropy_cap")
+
     confidence_score = max(20.0, min(95.0, conf))
 
     # 7. Path Classification with Fluctuation Gate
@@ -708,8 +761,6 @@ def evaluate_signals(
         elif classification == "caution":
             caution_paths.append(evaluation)
 
-    entropy_ratio = compute_shannon_entropy_ratio(adjusted_fits, unknown_count)
-
     # 8. Status & Fallback Determination (Point 8)
     status: Literal["OK", "SUGGEST_EXPLORATION"] = "OK"
     status_reason: Optional[Literal["low_signal", "too_many_unknowns", "extreme_uncertainty"]] = None
@@ -725,11 +776,12 @@ def evaluate_signals(
         status_reason = "extreme_uncertainty"
 
     return EngineEvaluationResult(
-        algorithm_version="1.1.2",
+        algorithm_version=ENGINE_ALGORITHM_VERSION,
         status=status,
         status_reason=status_reason,
         cluster_evaluations=evaluations,
         confidence_score=round(confidence_score, 1),
+        confidence_reasons=confidence_reasons,
         entropy_ratio=entropy_ratio,
         detected_tensions=detected_tensions,
         core_paths=core_paths,

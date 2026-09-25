@@ -37,8 +37,7 @@ export default function FeedbackPage() {
       }
       setSubmitted(true);
     } catch {
-      // Standalone mode: mark submitted
-      setSubmitted(true);
+      setHasError(true);
     } finally {
       setSubmitting(false);
     }

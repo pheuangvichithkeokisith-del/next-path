@@ -6,7 +6,7 @@ import { isSessionNotFound } from "@/api/errors";
 import { getSessionStatus } from "@/api/session";
 import ErrorBanner from "@/components/ErrorBanner";
 import { clearSessionId, useSessionId } from "@/hooks/useSession";
-import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 
 interface SpatialNode {
   id: string;
@@ -21,7 +21,6 @@ export default function ProcessingPage() {
   const router = useRouter();
   const { sessionId, resolved } = useSessionId();
   const [hasError, setHasError] = useState(false);
-  const [failed, setFailed] = useState(false);
   const [retryToken, setRetryToken] = useState(0);
   const [phase, setPhase] = useState<number>(1);
   const [selectedNode, setSelectedNode] = useState<SpatialNode | null>(null);
@@ -163,7 +162,6 @@ export default function ProcessingPage() {
               if (active) router.replace("/report");
             }, 3000);
           } else if (status === "failed") {
-            setFailed(true);
             setHasError(true);
           } else {
             timer = window.setTimeout(poll, 2000);
@@ -175,11 +173,7 @@ export default function ProcessingPage() {
             clearSessionId();
             router.replace("/");
           } else {
-            // Standalone fallback: mark ready and transition smoothly
-            setReadyToProceed(true);
-            timer = window.setTimeout(() => {
-              if (active) router.replace("/report");
-            }, 3500);
+            setHasError(true);
           }
         });
     };

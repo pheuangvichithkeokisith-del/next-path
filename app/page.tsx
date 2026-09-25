@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createSession, getSessionStatus } from "@/api/session";
-import { clearSessionId, storeSessionId, useSessionId } from "@/hooks/useSession";
+import { getSessionStatus } from "@/api/session";
+import { clearSessionId, useSessionId } from "@/hooks/useSession";
 import { clearDraft, restoreDraft } from "@/utils/draft";
 import {
   ArrowRight,
@@ -25,7 +24,10 @@ import {
 export default function LandingPage() {
   const router = useRouter();
   const { sessionId } = useSessionId();
-  const [hasExistingDraft, setHasExistingDraft] = useState(false);
+  const [hasExistingDraft, setHasExistingDraft] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return Object.keys(restoreDraft(window.localStorage)).length > 0;
+  });
   const [starting, setStarting] = useState(false);
 
   useEffect(() => {
@@ -46,8 +48,6 @@ export default function LandingPage() {
           .catch(() => {
             setHasExistingDraft(hasAnswers);
           });
-      } else {
-        setHasExistingDraft(hasAnswers);
       }
     }
   }, [sessionId]);
@@ -63,23 +63,19 @@ export default function LandingPage() {
             if (typeof window !== "undefined") {
               clearDraft(window.localStorage);
             }
-            const { session_id } = await createSession();
-            storeSessionId(session_id);
-            router.push("/assessment");
+            router.push("/introduction");
             return;
           }
         } catch {
           // Fallback if status check fails
         }
       } else {
-        const { session_id } = await createSession();
-        storeSessionId(session_id);
+        router.push("/introduction");
+        return;
       }
       router.push("/assessment");
     } catch {
-      const fallbackId = `session-${Date.now()}`;
-      storeSessionId(fallbackId);
-      router.push("/assessment");
+      router.push("/introduction");
     } finally {
       setStarting(false);
     }
@@ -95,13 +91,9 @@ export default function LandingPage() {
       if (typeof window !== "undefined") {
         clearDraft(window.localStorage);
       }
-      const { session_id } = await createSession();
-      storeSessionId(session_id);
-      router.push("/assessment");
+      router.push("/introduction");
     } catch {
-      const fallbackId = `session-${Date.now()}`;
-      storeSessionId(fallbackId);
-      router.push("/assessment");
+      router.push("/introduction");
     } finally {
       setStarting(false);
     }
@@ -249,7 +241,7 @@ export default function LandingPage() {
               <span>ຄວາມເປັນສ່ວນຕົວ 100%</span>
             </div>
             <p className="text-xs text-[#6A6357] leading-relaxed">
-              ຄຳຕອບທັງໝົດເກັບໄວ້ໃນອຸປະກອນຂອງເຈົ້າ ບໍ່ມີການເກັບຊື່ຈິງ ຫຼື ເບີໂທລະສັບ.
+              ຄຳຕອບຈະຖືກໃຊ້ສ້າງບົດສະທ້ອນແບບບໍ່ລະບຸຕົວຕົນ. ລະບົບບໍ່ຂໍຊື່ຈິງ, ເບີໂທລະສັບ ຫຼື ອີເມວ.
             </p>
           </div>
 

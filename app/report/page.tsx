@@ -7,8 +7,7 @@ import type { ReportResponse, ReportPattern, ReportPath } from "@/types/report";
 import { isSessionNotFound } from "@/api/errors";
 import ErrorBanner from "@/components/ErrorBanner";
 import Loading from "@/components/Loading";
-import { createSession } from "@/api/session";
-import { clearSessionId, storeSessionId, useSessionId } from "@/hooks/useSession";
+import { clearSessionId, useSessionId } from "@/hooks/useSession";
 import { clearDraft, restoreDraft } from "@/utils/draft";
 import type { DraftAnswers } from "@/types/form";
 import staticQuestions from "@/data/questions.json";
@@ -16,22 +15,25 @@ import {
   Compass,
   Layers,
   HelpCircle,
-  Lightbulb,
   Sparkles,
-  ArrowRight,
-  Copy,
   Check,
   Download,
-  Share2,
   Bot,
-  MessageSquare,
-  Quote,
-  HeartHandshake,
   RotateCcw,
   ExternalLink,
   ChevronDown,
   ChevronUp
 } from "lucide-react";
+
+type ReportTab = "all" | "patterns" | "paths" | "unknowns" | "experiments";
+
+const REPORT_TABS: Array<{ id: ReportTab; labelLo: string }> = [
+  { id: "all", labelLo: "ພາບລວມທັງໝົດ" },
+  { id: "patterns", labelLo: "ຮູບແບບທີ່ພົບ (Patterns)" },
+  { id: "paths", labelLo: "ທິດທາງສຳຫຼວດ (Possible Paths)" },
+  { id: "unknowns", labelLo: "ສິ່ງທີ່ຍັງເປີດກວ້າງ (Unknowns)" },
+  { id: "experiments", labelLo: "ການທົດລອງນ້ອຍໆ (Experiments)" },
+];
 
 export default function ReportPage() {
   const router = useRouter();
@@ -40,15 +42,12 @@ export default function ReportPage() {
   const [hasError, setHasError] = useState(false);
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"all" | "patterns" | "paths" | "unknowns" | "experiments">("all");
-  const [userDraft, setUserDraft] = useState<DraftAnswers>({});
+  const [activeTab, setActiveTab] = useState<ReportTab>("all");
+  const [userDraft] = useState<DraftAnswers>(() => {
+    if (typeof window === "undefined") return {};
+    return restoreDraft(window.localStorage);
+  });
   const [showProof, setShowProof] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setUserDraft(restoreDraft(window.localStorage));
-    }
-  }, []);
 
   useEffect(() => {
     if (!resolved) return;
@@ -84,10 +83,7 @@ export default function ReportPage() {
 
     // 1. Lookup dictionary for options and questions
     const optionsMap: Record<string, string> = {};
-    const questionsMap: Record<string, string> = {};
-
     for (const d of (staticQuestions.demographics || [])) {
-      questionsMap[d.id] = d.stem;
       if (d.options) {
         for (const opt of d.options) {
           optionsMap[opt.code] = opt.text;
@@ -95,7 +91,6 @@ export default function ReportPage() {
       }
     }
     for (const q of (staticQuestions.questions || [])) {
-      questionsMap[q.id] = q.stem;
       if (q.options) {
         for (const opt of q.options) {
           optionsMap[opt.code] = opt.text;
@@ -160,7 +155,7 @@ export default function ReportPage() {
     }
 
     const answersSummary = Object.entries(answersBySection)
-      .filter(([_, lines]) => lines.length > 0)
+      .filter(([, lines]) => lines.length > 0)
       .map(([sec, lines]) => `### ${sec}\n${lines.join("\n")}`)
       .join("\n\n");
 
@@ -219,7 +214,7 @@ ${unknownLines || "- ບໍ່ມີ"}
       setCopiedPrompt(true);
       setTimeout(() => setCopiedPrompt(false), 2500);
     } catch {
-      // Fallback
+      setHasError(true);
     }
   };
 
@@ -234,24 +229,20 @@ ${unknownLines || "- ບໍ່ມີ"}
       a.download = `nextpath-reflection-${sessionId}.json`;
       a.click();
       URL.revokeObjectURL(url);
+    } catch {
+      setHasError(true);
     } finally {
       setDownloading(false);
     }
   };
 
-  const handleStartNew = async () => {
+  const handleStartNew = () => {
     if (window.confirm("ເລີ່ມຕົ້ນການສຳຫຼວດຮອບໃໝ່? ຂໍ້ມູນເກົ່າຈະຖືກລຶບ ແລະ ສ້າງ Session ໃໝ່.")) {
       clearSessionId();
       if (typeof window !== "undefined") {
         clearDraft(window.localStorage);
       }
-      try {
-        const { session_id } = await createSession();
-        storeSessionId(session_id);
-      } catch {
-        storeSessionId(`session-${Date.now()}`);
-      }
-      router.push("/assessment");
+      router.push("/introduction");
     }
   };
 
@@ -305,16 +296,10 @@ ${unknownLines || "- ບໍ່ມີ"}
 
         {/* Filter Tab Bar */}
         <div className="flex flex-wrap gap-2 pt-6">
-          {[
-            { id: "all", labelLo: "ພາບລວມທັງໝົດ" },
-            { id: "patterns", labelLo: "ຮູບແບບທີ່ພົບ (Patterns)" },
-            { id: "paths", labelLo: "ທິດທາງສຳຫຼວດ (Possible Paths)" },
-            { id: "unknowns", labelLo: "ສິ່ງທີ່ຍັງເປີດກວ້າງ (Unknowns)" },
-            { id: "experiments", labelLo: "ການທົດລອງນ້ອຍໆ (Experiments)" },
-          ].map((tab) => (
+          {REPORT_TABS.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === tab.id
                   ? "bg-[#1D2229] text-white shadow-2xs"
