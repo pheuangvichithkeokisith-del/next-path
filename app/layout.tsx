@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Noto_Sans_Lao } from "next/font/google";
+import { Noto_Sans_Lao, Noto_Sans_Lao_Looped } from "next/font/google";
 import Header from "@/components/Header";
 import "./globals.css";
 
@@ -7,6 +7,13 @@ const notoSansLao = Noto_Sans_Lao({
   subsets: ["lao"],
   weight: ["300", "400", "500", "600", "700"],
   display: "swap",
+});
+
+const notoSansLaoLooped = Noto_Sans_Lao_Looped({
+  subsets: ["lao"],
+  weight: ["400", "500"],
+  display: "swap",
+  variable: "--font-lao-province",
 });
 
 export const metadata: Metadata = {
@@ -20,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="lo" className={`h-full ${notoSansLao.className}`}>
+    <html lang="lo" className={`h-full ${notoSansLao.className} ${notoSansLaoLooped.variable}`}>
       <body className="min-h-full flex flex-col bg-[#F9F8F5] text-[#1A1E24] selection:bg-[#EAE6DC] selection:text-[#1D2229]">
         <a className="skip-link" href="#main-content">
           ໄປຫາເນື້ອຫາຫຼັກ

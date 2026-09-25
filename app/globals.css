@@ -32,7 +32,7 @@
 /* Keep Lao province names readable inside the native select/dropdown. */
 .province-select,
 .province-select option {
-  font-family: var(--font-lao);
+  font-family: var(--font-lao-province), var(--font-lao);
 }
 
 /* Subtle architectural borders */
