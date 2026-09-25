@@ -14,6 +14,7 @@ from app.schemas.report import (
     ReportPattern,
     ReportResponse,
     ReportVersions,
+    V4ContextFactors,
 )
 from app.services.session_service import get_session_by_id
 from app.validation.ds_contract import extract_ds_assessment_payload
@@ -47,7 +48,8 @@ async def get_or_create_session_report(
     ans_result = await db.execute(ans_query)
     answers: List[AnswerModel] = list(ans_result.scalars().all())
 
-    if session_obj.form_version == "v4.0.0":
+    is_v4 = session_obj.form_version == "v4.0.0"
+    if is_v4:
         # v4.0 has a new question map and scoring contract. Keep it out of the
         # legacy option-code engine so the report cannot silently misinterpret it.
         report_data = build_v4_report(session_obj, answers)
@@ -74,6 +76,9 @@ async def get_or_create_session_report(
             "template_id": ds_result.template_id,
             "ai_version": "deterministic-0",
         }
+
+    context_model = V4ContextFactors(**report_data["context_factors"]) if is_v4 else ContextFactors(**report_data["context_factors"])
+    report_data["context_factors"] = context_model.model_dump(mode="json")
 
     if not report_model:
         report_model = ReportModel(
@@ -104,10 +109,12 @@ async def get_or_create_session_report(
     await db.commit()
     await db.refresh(report_model)
 
+    persisted_context = V4ContextFactors(**report_model.context_factors) if is_v4 else ContextFactors(**report_model.context_factors)
+
     return ReportResponse(
         response_pattern=[ReportPattern(**p) for p in report_model.response_pattern],
         possible_paths=[ReportPath(**p) for p in report_model.possible_paths],
-        context_factors=ContextFactors(**report_model.context_factors),
+        context_factors=persisted_context,
         unknowns=report_model.unknowns,
         versions=ReportVersions(**report_model.versions),
         summary_text=report_model.summary_text,

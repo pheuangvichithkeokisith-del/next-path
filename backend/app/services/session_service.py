@@ -5,9 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 
 from app.config import settings
+from app.models.answer import AnswerModel
 from app.models.session import SessionModel
 from app.schemas.session import SessionResponse, SessionStatus
 from app.services.form_service import load_questionnaire_form
+from app.services.v4_report_service import validate_v4_answers
 
 
 async def create_anonymous_session(
@@ -61,6 +63,22 @@ async def get_session_status_info(session_id: str, db: AsyncSession) -> SessionS
 async def mark_session_completed(session_id: str, db: AsyncSession) -> str:
     """Mark session as completed."""
     session_obj = await get_session_by_id(session_id, db)
+
+    if session_obj.form_version == "v4.0.0":
+        answer_query = select(AnswerModel).where(AnswerModel.session_id == session_id)
+        answer_result = await db.execute(answer_query)
+        answers = list(answer_result.scalars().all())
+        validation = validate_v4_answers(answers)
+        if not validation["is_valid"]:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail={
+                    "message": "v4 answers are incomplete or invalid",
+                    "errors": validation["errors"],
+                    "warnings": validation["warnings"],
+                },
+            )
+
     session_obj.status = "completed"
     session_obj.completed_at = datetime.now(timezone.utc)
     session_obj.updated_at = datetime.now(timezone.utc)

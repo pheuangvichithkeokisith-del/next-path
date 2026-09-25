@@ -15,7 +15,7 @@ from typing import Any, Dict, List
 
 from app.models.answer import AnswerModel
 from app.models.session import SessionModel
-from app.schemas.report import ContextFactors, ReportPath, ReportPattern, ReportVersions
+from app.schemas.report import V4ContextFactors, ReportPath, ReportPattern, ReportVersions
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -68,6 +68,13 @@ def _answer_map(answers: List[AnswerModel]) -> Dict[str, Dict[str, Any]]:
     }
 
 
+def validate_v4_answers(answers: List[AnswerModel]) -> Dict[str, Any]:
+    """Validate persisted answers before a v4 session can be completed."""
+    scoring = _load_v4_scoring()
+    spec = _load_v4_spec()
+    return scoring.validate_answers(_answer_map(answers), spec)
+
+
 def _context_factors(
     spec: Dict[str, Any],
     answers: Dict[str, Dict[str, Any]],
@@ -101,7 +108,12 @@ def build_v4_report(
     spec = _load_v4_spec()
     answer_map = _answer_map(answers)
     result = scoring.score_assessment(answer_map, spec)
-    context = _context_factors(spec, answer_map)
+    context = {
+        **_context_factors(spec, answer_map),
+        **scoring.calculate_context(answer_map, spec),
+    }
+    v4_context = V4ContextFactors(**context)
+    context_payload = v4_context.model_dump(mode="json")
 
     if result.get("status") != "valid":
         validation = result.get("validation", {})
@@ -113,7 +125,7 @@ def build_v4_report(
         return {
             "response_pattern": [],
             "possible_paths": [],
-            "context_factors": context,
+            "context_factors": context_payload,
             "unknowns": unknowns,
             "versions": {"ds": "v4-profile-correlation-0.1", "enc": "enc-0", "form": session.form_version},
             "summary_text": summary,
@@ -160,7 +172,7 @@ def build_v4_report(
     return {
         "response_pattern": patterns,
         "possible_paths": possible_paths,
-        "context_factors": context,
+        "context_factors": context_payload,
         "unknowns": [],
         "versions": {"ds": "v4-profile-correlation-0.1", "enc": "enc-0", "form": session.form_version},
         "summary_text": summary,

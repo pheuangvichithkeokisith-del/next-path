@@ -169,6 +169,40 @@ async def test_e2e_complete_session_transitions_to_completed():
 
 
 @pytest.mark.asyncio
+async def test_e2e_v4_partial_multi_select_cannot_complete():
+    """v4 completion rejects a question that has fewer options than min_select."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        created = await client.post("/api/v1/sessions?form_version=v4.0.0")
+        assert created.status_code == 201
+        session_id = created.json()["session_id"]
+
+        form = await client.get("/api/v1/form?version=v4.0.0")
+        assert form.status_code == 200
+        for question in form.json()["questions"]:
+            options = [option["code"] for option in question.get("options", []) if not option.get("exclusive")]
+            min_select = question.get("min_select") or 0
+            count = 1 if question["id"] == "Q9" else max(1, min_select)
+            answer = await client.post(
+                f"/api/v1/sessions/{session_id}/answers",
+                json={
+                    "question_id": question["id"],
+                    "option_codes": options[:count],
+                    "other_text": None,
+                    "extra_text": None,
+                    "text_value": None,
+                },
+            )
+            assert answer.status_code == 200, answer.text
+
+        completed = await client.post(f"/api/v1/sessions/{session_id}/complete")
+        assert completed.status_code == 409
+        assert "Q9: at least 2 options are required" in completed.json()["detail"]["errors"]
+
+        session_status = await client.get(f"/api/v1/sessions/{session_id}/status")
+        assert session_status.json()["status"] == "in_progress"
+
+
+@pytest.mark.asyncio
 async def test_e2e_double_complete_is_idempotent_or_409():
     """Calling complete twice on same session returns 409 or 200 (idempotent)."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:

@@ -339,15 +339,24 @@ export default function AssessmentPage() {
       const item = form?.questions?.find((question) => question.id === questionId);
       return !item || !isAnswered(item, draft[questionId]);
     });
+    const incompleteSelections = (form?.questions ?? [])
+      .filter((item) => {
+        const minSelect = item.min_select ?? 0;
+        const selectedCount = draft[item.id]?.option_codes?.length ?? 0;
+        return minSelect > 0 && selectedCount > 0 && selectedCount < minSelect;
+      })
+      .map((item) => item.id);
 
     return {
       minimumTotal,
       incompleteSections,
       missingRequired,
+      incompleteSelections,
       isReady:
         answeredQCount >= minimumTotal &&
         incompleteSections.length === 0 &&
-        missingRequired.length === 0,
+        missingRequired.length === 0 &&
+        incompleteSelections.length === 0,
     };
   }, [answeredQCount, draft, form]);
 
@@ -480,6 +489,11 @@ export default function AssessmentPage() {
             <p className="mt-1 text-xs leading-relaxed">
               ຕອບແລ້ວ {answeredQCount}/{totalQuestions} ຂໍ້. ຕ້ອງຕອບຢ່າງໜ້ອຍ {completionStatus.minimumTotal} ຂໍ້ ແລະ ໃຫ້ຄົບຕາມຂັ້ນຕ່ຳຂອງແຕ່ລະໝວດ.
             </p>
+            {completionStatus.incompleteSelections.length > 0 ? (
+              <p className="mt-1 text-xs leading-relaxed text-[#7A3E2D]">
+                ຂໍ້ທີ່ເລືອກຍັງບໍ່ຄົບ: {completionStatus.incompleteSelections.join(", ")}.
+              </p>
+            ) : null}
           </div>
         ) : null}
 

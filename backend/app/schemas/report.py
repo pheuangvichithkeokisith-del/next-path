@@ -1,5 +1,5 @@
-from typing import List, Optional
-from pydantic import BaseModel, ConfigDict
+from typing import List, Optional, Union
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReportPattern(BaseModel):
@@ -27,6 +27,14 @@ class ContextFactors(BaseModel):
     has_constraints: bool = False
 
 
+class V4ContextFactors(ContextFactors):
+    constraints: List[str] = Field(default_factory=list)
+    mobility: List[str] = Field(default_factory=list)
+    family_context: List[str] = Field(default_factory=list)
+    risk_willingness: Optional[float] = None
+    safety_readiness: Optional[int] = None
+
+
 class ReportVersions(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -40,7 +48,7 @@ class ReportResponse(BaseModel):
 
     response_pattern: List[ReportPattern]
     possible_paths: List[ReportPath]
-    context_factors: ContextFactors
+    context_factors: Union[V4ContextFactors, ContextFactors]
     unknowns: List[str]
     versions: ReportVersions
     summary_text: str

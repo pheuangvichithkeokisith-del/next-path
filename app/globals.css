@@ -29,6 +29,12 @@
   font-family: var(--font-lao);
 }
 
+/* Keep Lao province names readable inside the native select/dropdown. */
+.province-select,
+.province-select option {
+  font-family: var(--font-lao);
+}
+
 /* Subtle architectural borders */
 .subtle-border {
   border: 1px solid #E5E1D8;

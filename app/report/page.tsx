@@ -262,6 +262,37 @@ ${unknownLines || "- ບໍ່ມີ"}
     );
   }
 
+  const isIncompleteV4Report =
+    report.versions.form === "v4.0.0" &&
+    report.unknowns.some((unknown) => unknown.startsWith("v4.0 validation:"));
+
+  if (isIncompleteV4Report) {
+    return (
+      <main className="flex-1 px-4 py-16 flex items-center justify-center">
+        <div className="w-full max-w-xl rounded-3xl border border-[#D7B97A] bg-[#FFF8E8] p-6 sm:p-8 text-center space-y-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#5B4525]">
+            ຍັງສ້າງບົດສະທ້ອນບໍ່ໄດ້
+          </h1>
+          <p className="text-sm leading-relaxed text-[#6A5535]">
+            ຄຳຕອບບາງຂໍ້ຍັງບໍ່ຄົບຕາມເກນ. ກະລຸນາເລີ່ມການສຳຫຼວດຮອບໃໝ່ ແລະ ກວດຄຳຕອບກ່ອນສົ່ງ.
+          </p>
+          <ul className="text-left text-sm leading-relaxed text-[#5B4525] list-disc list-inside">
+            {report.unknowns.map((unknown) => (
+              <li key={unknown}>{unknown.replace("v4.0 validation: ", "")}</li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={handleStartNew}
+            className="btn-primary justify-center"
+          >
+            ເລີ່ມການສຳຫຼວດຮອບໃໝ່
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14 space-y-10">
       {/* Header of the Reflection Space */}

@@ -52,6 +52,22 @@ def _options_by_code(question: Mapping[str, Any]) -> dict[str, Mapping[str, Any]
     return {option["code"]: option for option in question.get("options", [])}
 
 
+def _is_active_signal(question: Mapping[str, Any], answer: Any) -> bool:
+    """Return whether an answer contributes a non-zero signal to any cluster."""
+    if not _is_answered(answer):
+        return False
+
+    options = _options_by_code(question)
+    for code in _selected_codes(answer):
+        option = options.get(code)
+        if not option:
+            continue
+        weights = option.get("weights", {})
+        if any(abs(float(weights.get(cluster, 0))) > EPSILON for cluster in CLUSTERS):
+            return True
+    return False
+
+
 def validate_answers(answers: Mapping[str, Any], spec: Mapping[str, Any]) -> dict[str, Any]:
     """Validate IDs, selection cardinality, exclusives, and section minimums."""
     questions = _question_map(spec)
@@ -129,7 +145,6 @@ def question_score(question: Mapping[str, Any], answer: Any, cluster: str) -> fl
 
 def calculate_positive_scores(answers: Mapping[str, Any], spec: Mapping[str, Any]) -> tuple[dict[str, float], dict[str, dict[str, float]]]:
     """Calculate six equally weighted scoring sections, excluding Q17/context."""
-    questions = _question_map(spec)
     section_scores = {section: {cluster: 0.0 for cluster in CLUSTERS} for section in SCORING_SECTIONS}
     section_counts = {section: 0 for section in SCORING_SECTIONS}
 
@@ -138,7 +153,7 @@ def calculate_positive_scores(answers: Mapping[str, Any], spec: Mapping[str, Any
         qid = question["id"]
         if section not in SCORING_SECTIONS or question.get("is_negative_signal"):
             continue
-        if not _is_answered(answers.get(qid)):
+        if not _is_active_signal(question, answers.get(qid)):
             continue
         section_counts[section] += 1
         for cluster in CLUSTERS:
@@ -154,6 +169,32 @@ def calculate_positive_scores(answers: Mapping[str, Any], spec: Mapping[str, Any
         for cluster in CLUSTERS:
             final[cluster] += SECTION_WEIGHTS[section] * section_scores[section][cluster]
     return final, section_scores
+
+
+def calculate_section_coverage(
+    answers: Mapping[str, Any],
+    spec: Mapping[str, Any],
+) -> dict[str, float]:
+    """Measure active-signal coverage independently for each scoring section."""
+    eligible_counts = {section: 0 for section in SCORING_SECTIONS}
+    active_counts = {section: 0 for section in SCORING_SECTIONS}
+
+    for question in spec["questions"]:
+        section = question["section"]
+        if section not in SCORING_SECTIONS or question.get("is_negative_signal"):
+            continue
+        eligible_counts[section] += 1
+        if _is_active_signal(question, answers.get(question["id"])):
+            active_counts[section] += 1
+
+    return {
+        section: (
+            active_counts[section] / eligible_counts[section]
+            if eligible_counts[section]
+            else 0.0
+        )
+        for section in SCORING_SECTIONS
+    }
 
 
 def calculate_negative_penalty(answers: Mapping[str, Any], spec: Mapping[str, Any]) -> dict[str, float]:
@@ -222,12 +263,22 @@ def calculate_context(answers: Mapping[str, Any], spec: Mapping[str, Any]) -> di
     risk_map = {**questions["Q26"].get("risk_willingness_score", {}), **questions["Q27"].get("risk_willingness_score", {})}
     safety_map = questions["Q28"].get("safety_readiness_score", {})
     risk_values = [risk_map[code] for code in q26 + q27 if code in risk_map]
+
+    def selected_context(question_id: str) -> list[str]:
+        question = questions[question_id]
+        options = _options_by_code(question)
+        return [
+            str(options[code]["context"])
+            for code in _selected_codes(answers.get(question_id))
+            if code in options and options[code].get("context")
+        ]
+
     return {
         "risk_willingness": sum(risk_values) / len(risk_values) if risk_values else None,
         "safety_readiness": sum(safety_map.get(code, 0) for code in q28),
-        "constraints": [code for code in _selected_codes(answers.get("Q23"))],
-        "mobility": _selected_codes(answers.get("Q24")),
-        "family_context": _selected_codes(answers.get("Q25")),
+        "constraints": selected_context("Q23"),
+        "mobility": selected_context("Q24"),
+        "family_context": selected_context("Q25"),
     }
 
 
@@ -238,10 +289,11 @@ def score_assessment(answers: Mapping[str, Any], spec: Mapping[str, Any] | None 
         return {"status": "invalid", "validation": validation}
     templates = json.loads((ROOT / "templates.json").read_text(encoding="utf-8"))["templates"]
     positive, sections = calculate_positive_scores(answers, spec)
+    section_coverage = calculate_section_coverage(answers, spec)
     penalties = calculate_negative_penalty(answers, spec)
     final = apply_negative_penalty(positive, penalties)
     result = calculate_profile_correlation(final, templates)
-    result.update({"status": "valid", "scores": final, "positive_scores": positive, "negative_penalty": penalties, "section_scores": sections, "context": calculate_context(answers, spec), "validation": validation, "version": "4.0.0"})
+    result.update({"status": "valid", "scores": final, "positive_scores": positive, "negative_penalty": penalties, "section_scores": sections, "section_coverage": section_coverage, "context": calculate_context(answers, spec), "validation": validation, "version": "4.0.0"})
     return result
 
 
