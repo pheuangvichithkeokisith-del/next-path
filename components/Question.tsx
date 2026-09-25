@@ -43,8 +43,34 @@ export default function Question({ item, answer, onChange }: QuestionProps) {
         </p>
       ) : null}
 
-      {/* Interaction input */}
-      {item.type === "text" ? (
+      {/* Province is intentionally a native select: it supports scrolling and keyboard type-ahead. */}
+      {item.id === "D3" ? (
+        <div className="mt-4 space-y-2">
+          <label htmlFor="province-select" className="block text-sm font-semibold text-[#4D4537]">
+            ເລືອກແຂວງ ຫຼື ນະຄອນຫຼວງ
+          </label>
+          <select
+            id="province-select"
+            name="province"
+            aria-describedby="province-help"
+            className="min-h-[50px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm sm:text-base text-[#1A1E24] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition cursor-pointer"
+            onChange={(event) => onChange({ option_codes: event.target.value ? [event.target.value] : [] })}
+            value={answer.option_codes[0] ?? ""}
+          >
+            <option value="" disabled>
+              — ເລືອກແຂວງ —
+            </option>
+            {(item.options ?? []).map((option) => (
+              <option key={option.code} value={option.code}>
+                {option.text}
+              </option>
+            ))}
+          </select>
+          <p id="province-help" className="text-xs text-[#7D7565]">
+            ເລື່ອນເບິ່ງລາຍຊື່ ຫຼື ພິມຕົວອັກສອນເພື່ອຄົ້ນຫາໄວຂຶ້ນ.
+          </p>
+        </div>
+      ) : item.type === "text" ? (
         <div className="mt-4">
           <input
             className="min-h-[48px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm sm:text-base text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"

@@ -17,6 +17,7 @@ from app.schemas.report import (
 from app.services.session_service import get_session_by_id
 from app.validation.ds_contract import extract_ds_assessment_payload
 from app.validation.sanitizer import sanitize_for_export
+from app.services.v4_report_service import build_v4_report
 
 
 async def get_or_create_session_report(
@@ -36,44 +37,58 @@ async def get_or_create_session_report(
     ans_result = await db.execute(ans_query)
     answers: List[AnswerModel] = list(ans_result.scalars().all())
 
-    # Extract structured DSAssessmentPayload and evaluate with deterministic DS Engine
-    payload = extract_ds_assessment_payload(session_obj, answers)
-    ds_result = evaluate_ds_assessment(payload)
-
-    if not report_model:
-        report_model = ReportModel(
-            session_id=session_id,
-            response_pattern=[p.model_dump() for p in ds_result.response_patterns],
-            possible_paths=[p.model_dump() for p in ds_result.possible_paths],
-            context_factors={
+    if session_obj.form_version == "v4.0.0":
+        # v4.0 has a new question map and scoring contract. Keep it out of the
+        # legacy option-code engine so the report cannot silently misinterpret it.
+        report_data = build_v4_report(session_obj, answers)
+    else:
+        # Extract structured DSAssessmentPayload and evaluate with the legacy
+        # deterministic DS Engine for v0.9.x sessions.
+        payload = extract_ds_assessment_payload(session_obj, answers)
+        ds_result = evaluate_ds_assessment(payload)
+        report_data = {
+            "response_pattern": [p.model_dump() for p in ds_result.response_patterns],
+            "possible_paths": [p.model_dump() for p in ds_result.possible_paths],
+            "context_factors": {
                 "age_band": ds_result.context_factors.age_band,
                 "province_code": ds_result.context_factors.province_code or ds_result.context_factors.province_name,
                 "has_constraints": ds_result.context_factors.has_constraints,
             },
-            unknowns=ds_result.unknowns,
-            versions={
+            "unknowns": ds_result.unknowns,
+            "versions": {
                 "ds": ds_result.versions.ds,
                 "enc": ds_result.versions.enc,
                 "form": ds_result.versions.form,
             },
-            summary_text=ds_result.summary_text,
-            template_id=ds_result.template_id,
-            ai_version="deterministic-0",
+            "summary_text": ds_result.summary_text,
+            "template_id": ds_result.template_id,
+            "ai_version": "deterministic-0",
+        }
+
+    if not report_model:
+        report_model = ReportModel(
+            session_id=session_id,
+            response_pattern=report_data["response_pattern"],
+            possible_paths=report_data["possible_paths"],
+            context_factors=report_data["context_factors"],
+            unknowns=report_data["unknowns"],
+            versions=report_data["versions"],
+            summary_text=report_data["summary_text"],
+            template_id=report_data["template_id"],
+            ai_version=report_data["ai_version"],
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
         db.add(report_model)
     else:
-        report_model.response_pattern = [p.model_dump() for p in ds_result.response_patterns]
-        report_model.possible_paths = [p.model_dump() for p in ds_result.possible_paths]
-        report_model.context_factors = {
-            "age_band": ds_result.context_factors.age_band,
-            "province_code": ds_result.context_factors.province_code or ds_result.context_factors.province_name,
-            "has_constraints": ds_result.context_factors.has_constraints,
-        }
-        report_model.unknowns = ds_result.unknowns
-        report_model.summary_text = ds_result.summary_text
-        report_model.template_id = ds_result.template_id
+        report_model.response_pattern = report_data["response_pattern"]
+        report_model.possible_paths = report_data["possible_paths"]
+        report_model.context_factors = report_data["context_factors"]
+        report_model.unknowns = report_data["unknowns"]
+        report_model.versions = report_data["versions"]
+        report_model.summary_text = report_data["summary_text"]
+        report_model.template_id = report_data["template_id"]
+        report_model.ai_version = report_data["ai_version"]
         report_model.updated_at = datetime.now(timezone.utc)
 
     await db.commit()

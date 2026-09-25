@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getForm } from "@/api/assessment";
+import { CURRENT_FORM_VERSION, getForm } from "@/api/assessment";
 import { completeSession, createSession, getSessionStatus, saveAnswer } from "@/api/session";
 import { isSessionNotFound } from "@/api/errors";
 import { clearSessionId, storeSessionId, useSessionId } from "@/hooks/useSession";
@@ -79,7 +79,7 @@ export default function AssessmentPage() {
   // Load form definition
   useEffect(() => {
     let active = true;
-    getForm()
+    getForm(CURRENT_FORM_VERSION)
       .then((data) => {
         if (active) setForm(data);
       })
@@ -95,7 +95,7 @@ export default function AssessmentPage() {
   useEffect(() => {
     if (!sessionResolved) return;
     if (!sessionId) {
-      createSession()
+      createSession(CURRENT_FORM_VERSION)
         .then(({ session_id }) => {
           storeSessionId(session_id);
         })
@@ -106,14 +106,14 @@ export default function AssessmentPage() {
     } else {
       // If returning to assessment with an already completed session, start a fresh session
       getSessionStatus(sessionId)
-        .then(({ status }) => {
-          if (status === "completed") {
+        .then((sessionStatus) => {
+          if (sessionStatus.status === "completed" || sessionStatus.form_version !== CURRENT_FORM_VERSION) {
             clearSessionId();
             if (typeof window !== "undefined") {
               clearDraft(window.localStorage);
             }
             setDraft({});
-            createSession().then(({ session_id }) => {
+            createSession(CURRENT_FORM_VERSION).then(({ session_id }) => {
               storeSessionId(session_id);
             });
           }
@@ -147,7 +147,7 @@ export default function AssessmentPage() {
         saveAnswer(sessionId, itemId, updated).catch((err) => {
           if (isSessionNotFound(err)) {
             clearSessionId();
-            createSession()
+            createSession(CURRENT_FORM_VERSION)
               .then(({ session_id }) => storeSessionId(session_id))
               .catch(() => undefined);
           }
@@ -200,6 +200,11 @@ export default function AssessmentPage() {
         descLo: "ດ້ານທີ່ຢາກຮຽນຮູ້ເພີ່ມ ແລະ ວິທີຮຽນທີ່ເຂົ້າໃຈດີທີ່ສຸດ",
         icon: Lightbulb,
       },
+      academic: {
+        titleLo: "ໝວດ 5 — ການຮຽນ ແລະ ວິຊາການ (Academic)",
+        descLo: "ວິຊາທີ່ຖະໜັດ, ດ້ານທີ່ຍາກ ແລະ ທິດທາງການຮຽນຮູ້",
+        icon: Lightbulb,
+      },
       goals: {
         titleLo: "ໝວດ 6 — ເປົ້າໝາຍ (Goals)",
         descLo: "ພາບຕົນເອງໃນອີກ 5 ປີ ແລະ ຜົນດີທີ່ຢາກສ້າງໃຫ້ສັງຄົມ",
@@ -210,9 +215,19 @@ export default function AssessmentPage() {
         descLo: "ຂໍ້ຈຳກັດດ້ານເວລາ ສະຖານທີ່ ແລະ ຄວາມພ້ອມໃນການຍ້າຍພື້ນທີ່",
         icon: HelpCircle,
       },
+      constraints: {
+        titleLo: "ໝວດ 7 — ຂໍ້ຈຳກັດ ແລະ ບໍລິບົດ (Constraints)",
+        descLo: "ເວລາ, ສະຖານທີ່, ການເດີນທາງ ແລະ ບໍລິບົດຄອບຄົວ",
+        icon: HelpCircle,
+      },
       journey: {
         titleLo: "ໝວດ 8 — ເສັ້ນທາງການເດີນຕໍ່ (Journey)",
         descLo: "ວິທີປັບຕົວເມື່ອບໍ່ເປັນໄປຕາມແຜນ ແລະ ຄວາມຍືດຢຸ່ນໃນອະນາຄົດ",
+        icon: Route,
+      },
+      flexibility: {
+        titleLo: "ໝວດ 8 — ຄວາມຍືດຢຸ່ນ ແລະ ຄວາມພ້ອມ (Flexibility)",
+        descLo: "ຄວາມພ້ອມປ່ຽນທາງ, ຄວາມສ່ຽງ ແລະ ຕົວຊ່ວຍຄວາມປອດໄພ",
         icon: Route,
       },
     };

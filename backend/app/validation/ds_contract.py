@@ -59,7 +59,7 @@ def extract_ds_assessment_payload(
     """Extract and standardize session answers into a DS-compatible feature representation."""
     if form is None:
         from app.services.form_service import load_questionnaire_form
-        form = load_questionnaire_form()
+        form = load_questionnaire_form(session.form_version)
 
     items_map = get_form_items_map(form)
     answers_by_qid: Dict[str, AnswerModel] = {a.question_id: a for a in answers}

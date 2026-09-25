@@ -8,6 +8,7 @@ from app.models.answer import AnswerModel
 from app.schemas.answer import AnswerCreate, AnswerResponse
 from app.services.session_service import get_session_by_id
 from app.validation.answer_validator import validate_and_sanitize_answer
+from app.services.form_service import load_questionnaire_form
 
 
 async def save_session_answer(
@@ -26,7 +27,8 @@ async def save_session_answer(
         )
 
     # Validate against form definition and sanitize free-text (scrubbing PII & injection)
-    sanitized_answer, _ = validate_and_sanitize_answer(answer_in)
+    form = load_questionnaire_form(session_obj.form_version)
+    sanitized_answer, _ = validate_and_sanitize_answer(answer_in, form)
 
     # If session is still in 'created' state, advance to 'in_progress'
     if session_obj.status == "created":

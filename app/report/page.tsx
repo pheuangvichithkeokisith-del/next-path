@@ -11,6 +11,7 @@ import { clearSessionId, useSessionId } from "@/hooks/useSession";
 import { clearDraft, restoreDraft } from "@/utils/draft";
 import type { DraftAnswers } from "@/types/form";
 import staticQuestions from "@/data/questions.json";
+import v4Questions from "@/v4.0/questions_full.json";
 import {
   Compass,
   Layers,
@@ -81,71 +82,50 @@ export default function ReportPage() {
   const aiPromptText = useMemo(() => {
     if (!report) return "";
 
-    // 1. Lookup dictionary for options and questions
+    type PromptItem = {
+      id: string;
+      stem: string;
+      section?: string;
+      options?: Array<{ code: string; text: string }>;
+    };
+
+    const source = (report.versions.form === "v4.0.0" ? v4Questions : staticQuestions) as {
+      demographics: PromptItem[];
+      questions: PromptItem[];
+    };
+    const sourceItems = [...(source.demographics || []), ...(source.questions || [])];
+    const itemMap = Object.fromEntries(sourceItems.map((item) => [item.id, item]));
+
+    // 1. Lookup the selected questionnaire version's Lao option text.
     const optionsMap: Record<string, string> = {};
-    for (const d of (staticQuestions.demographics || [])) {
-      if (d.options) {
-        for (const opt of d.options) {
-          optionsMap[opt.code] = opt.text;
-        }
-      }
-    }
-    for (const q of (staticQuestions.questions || [])) {
-      if (q.options) {
-        for (const opt of q.options) {
-          optionsMap[opt.code] = opt.text;
-        }
+    for (const item of sourceItems) {
+      for (const option of item.options || []) {
+        optionsMap[option.code] = option.text;
       }
     }
 
-    // 2. Format Raw Answers grouped by section
-    const answersBySection: Record<string, string[]> = {
-      "ຄວາມສົນໃຈ (Interests - Q1–Q4)": [],
-      "ທັກສະ & ຫຼັກຖານຜົນງານ (Skills & Evidence - Q5–Q7)": [],
-      "ຄ່ານິຍົມ (Values - Q8–Q9)": [],
-      "ຮູບແບບການເຮັດວຽກ (Work Style - Q10–Q13)": [],
-      "ການຮຽນ & ສິ່ງທີ່ຍັງຍາກ (Learning & Challenges - Q14–Q18)": [],
-      "ເປົ້າໝາຍ (Goals - Q19–Q21)": [],
-      "ຄວາມເປັນໄປໄດ້ & ຂໍ້ຈຳກັດ (Feasibility & Constraints - Q22–Q23)": [],
-      "ເສັ້ນທາງການເດີນຕໍ່ (Journey & Flexibility - Q24–Q28)": [],
+    // 2. Format translated answers grouped by the actual section in the selected form.
+    const sectionLabels: Record<string, string> = {
+      interests: "ຄວາມສົນໃຈ (Interests)",
+      skills: "ທັກສະ (Skills)",
+      values: "ຄ່ານິຍົມ (Values)",
+      work_style: "ຮູບແບບການເຮັດວຽກ (Work Style)",
+      academic: "ການຮຽນ/ວິຊາການ (Academic)",
+      learning: "ການຮຽນ ແລະ ການຮຽນຮູ້ (Learning)",
+      goals: "ເປົ້າໝາຍ (Goals)",
+      constraints: "ຂໍ້ຈຳກັດ ແລະ ບໍລິບົດ (Constraints)",
+      feasibility: "ຄວາມເປັນໄປໄດ້ (Feasibility)",
+      flexibility: "ຄວາມຍືດຢຸ່ນ (Flexibility)",
+      journey: "ເສັ້ນທາງການເດີນຕໍ່ (Journey)",
     };
-
-    const secMapping: Record<string, string> = {
-      Q1: "ຄວາມສົນໃຈ (Interests - Q1–Q4)",
-      Q2: "ຄວາມສົນໃຈ (Interests - Q1–Q4)",
-      Q3: "ຄວາມສົນໃຈ (Interests - Q1–Q4)",
-      Q4: "ຄວາມສົນໃຈ (Interests - Q1–Q4)",
-      Q5: "ທັກສະ & ຫຼັກຖານຜົນງານ (Skills & Evidence - Q5–Q7)",
-      Q6: "ທັກສະ & ຫຼັກຖານຜົນງານ (Skills & Evidence - Q5–Q7)",
-      Q7: "ທັກສະ & ຫຼັກຖານຜົນງານ (Skills & Evidence - Q5–Q7)",
-      Q8: "ຄ່ານິຍົມ (Values - Q8–Q9)",
-      Q9: "ຄ່ານິຍົມ (Values - Q8–Q9)",
-      Q10: "ຮູບແບບການເຮັດວຽກ (Work Style - Q10–Q13)",
-      Q11: "ຮູບແບບການເຮັດວຽກ (Work Style - Q10–Q13)",
-      Q12: "ຮູບແບບການເຮັດວຽກ (Work Style - Q10–Q13)",
-      Q13: "ຮູບແບບການເຮັດວຽກ (Work Style - Q10–Q13)",
-      Q14: "ການຮຽນ & ສິ່ງທີ່ຍັງຍາກ (Learning & Challenges - Q14–Q18)",
-      Q15: "ການຮຽນ & ສິ່ງທີ່ຍັງຍາກ (Learning & Challenges - Q14–Q18)",
-      Q16: "ການຮຽນ & ສິ່ງທີ່ຍັງຍາກ (Learning & Challenges - Q14–Q18)",
-      Q17: "ການຮຽນ & ສິ່ງທີ່ຍັງຍາກ (Learning & Challenges - Q14–Q18)",
-      Q18: "ການຮຽນ & ສິ່ງທີ່ຍັງຍາກ (Learning & Challenges - Q14–Q18)",
-      Q19: "ເປົ້າໝາຍ (Goals - Q19–Q21)",
-      Q20: "ເປົ້າໝາຍ (Goals - Q19–Q21)",
-      Q21: "ເປົ້າໝາຍ (Goals - Q19–Q21)",
-      Q22: "ຄວາມເປັນໄປໄດ້ & ຂໍ້ຈຳກັດ (Feasibility & Constraints - Q22–Q23)",
-      Q23: "ຄວາມເປັນໄປໄດ້ & ຂໍ້ຈຳກັດ (Feasibility & Constraints - Q22–Q23)",
-      Q24: "ເສັ້ນທາງການເດີນຕໍ່ (Journey & Flexibility - Q24–Q28)",
-      Q25: "ເສັ້ນທາງການເດີນຕໍ່ (Journey & Flexibility - Q24–Q28)",
-      Q26: "ເສັ້ນທາງການເດີນຕໍ່ (Journey & Flexibility - Q24–Q28)",
-      Q27: "ເສັ້ນທາງການເດີນຕໍ່ (Journey & Flexibility - Q24–Q28)",
-      Q28: "ເສັ້ນທາງການເດີນຕໍ່ (Journey & Flexibility - Q24–Q28)",
-    };
+    const answersBySection: Record<string, string[]> = {};
 
     for (const [qid, ans] of Object.entries(userDraft)) {
-      const sec = secMapping[qid];
-      if (!sec) continue;
+      const item = itemMap[qid];
+      const sec = item?.section ? (sectionLabels[item.section] || item.section) : "ຂໍ້ມູນເບື້ອງຕົ້ນ (Demographics)";
+      if (!answersBySection[sec]) answersBySection[sec] = [];
       const optTexts = (ans.option_codes || []).map((code) => optionsMap[code] || code);
-      let desc = optTexts.join(", ");
+      let desc = `ຄຳຖາມ: ${item?.stem || qid}\n  ຄຳຕອບ: ${optTexts.join(", ") || "ບໍ່ໄດ້ເລືອກ"}`;
       if (ans.extra_text) desc += ` (ລາຍລະອຽດເພີ່ມເຕີມ: "${ans.extra_text}")`;
       if (ans.other_text) desc += ` (ອື່ນໆ: "${ans.other_text}")`;
       if (ans.text_value) desc += ` ("${ans.text_value}")`;
@@ -174,6 +154,9 @@ export default function ReportPage() {
     const ageText = userDraft["D1"]?.option_codes?.[0] ? optionsMap[userDraft["D1"].option_codes[0]] || userDraft["D1"].option_codes[0] : (report.context_factors.age_band || "ບໍ່ໄດ້ລະບຸ");
     const eduText = userDraft["D2"]?.text_value || "ບໍ່ໄດ້ລະບຸ";
     const provText = userDraft["D3"]?.option_codes?.[0] ? optionsMap[userDraft["D3"].option_codes[0]] || userDraft["D3"].option_codes[0] : (report.context_factors.province_code || "ບໍ່ໄດ້ລະບຸ");
+    const methodText = report.versions.form === "v4.0.0"
+      ? `- ເວີຊັນແບບຄຳຖາມ: v4.0.0 (D1–D3 + Q1–Q28)\n- ຄະແນນ C1–C7: normalize ລາຍຂໍ້ເປັນ 0–1 ຕາມ max_select ແລ້ວສະເລ່ຍ 6 ໝວດດ້ວຍນ້ຳໜັກເທົ່າກັນ\n- Q17: ແຍກ negative penalty ແລະ clamp ຄະແນນ 0–1\n- Q26–Q27: risk willingness; Q28: safety readiness`
+      : `- ເວີຊັນແບບຄຳຖາມ: ${report.versions.form}\n- ຜົນແມ່ນ deterministic Signal Engine ຂອງ PATHAI`;
 
     return `# 🧭 ໂປຣໄຟລ໌ສຳຫຼວດຕົນເອງຈາກ PATHAI (Self-Reflection & Pure Evidence Profile)
 
@@ -186,6 +169,9 @@ export default function ReportPage() {
 ${answersSummary || "- ບໍ່ມີຂໍ້ມູນຄຳຕອບລະອຽດ"}
 
 ## 🧠 3. ຜົນການວິເຄາະທາງສະຖິຕິຈາກລະບົບ (Signal Engine Diagnostics)
+**ວິທີການທີ່ລະບົບລະບຸໄວ້ (Method Used):**
+${methodText}
+
 **ບົດສະຫຼຸບພາບລວມ (Summary):**
 ${report.summary_text}
 
@@ -201,9 +187,10 @@ ${unknownLines || "- ບໍ່ມີ"}
 ---
 ## 🤖 4. ຄຳຖາມເຈາະເລິກສຳລັບ AI ພາຍນອກ (Prompt for ChatGPT / Claude / Gemini)
 ຂ້າພະເຈົ້າເປັນໄວໜຸ່ມໃນປະເທດລາວ. ຈາກຂໍ້ມູນຄຳຕອບຕົວຈິງ ແລະ ຜົນວິເຄາະທາງສະຖິຕິຈາກລະບົບ PATHAI ຂ້າງເທິງນີ້, ກະລຸນາຊ່ວຍ:
-1. ວິເຄາະຈຸດເຊື່ອມໂຍງລະຫວ່າງ "ທັກສະ/ປະສົບການຕົວຈິງ" ກັບ "ທິດທາງເສັ້ນທາງທີ່ລະບົບແນະນຳ" ໃນບໍລິບົດຂອງປະເທດລາວ?
-2. ແນະນຳ **Micro-Experiments (ການທົດລອງນ້ອຍໆ 1-2 ຢ່າງ)** ທີ່ຂ້າພະເຈົ້າສາມາດເລີ່ມລົງມືເຮັດໄດ້ໃນໄລຍະ 1-2 ອາທິດນີ້ ໂດຍໃຊ້ຕົ້ນທຶນຕ່ຳ ແລະ ບໍ່ມີຄວາມກົດດັນ?
-3. ຕັ້ງຄຳຖາມສຳຄັນ 3 ຂໍ້ ເພື່ອໃຫ້ຂ້າພະເຈົ້ານຳໄປຄິດທົບທວນຕົນເອງ ແລະ ປຶກສາກັບຄອບຄົວ/ອາຈານຕື່ມ?
+1. ກວດວ່າການແປຄຳຕອບ, ການແບ່ງໝວດ, ນ້ຳໜັກ ແລະ normalize ສອດຄ່ອງກັບຄຳຖາມຈິງຫຼືບໍ່; ຊີ້ຈຸດທີ່ອາດຄຳນວນຜິດ.
+2. ວິເຄາະຈຸດເຊື່ອມໂຍງລະຫວ່າງຄຳຕອບຕົວຈິງກັບທິດທາງທີ່ລະບົບແນະນຳໃນບໍລິບົດລາວ.
+3. ແນະນຳ Micro-Experiments 1–2 ຢ່າງ ແລະ ຄຳຖາມທົບທວນ 3 ຂໍ້ ທີ່ເຮັດໄດ້ໃນ 1–2 ອາທິດ ດ້ວຍຕົ້ນທຶນຕ່ຳ.
+4. ຖ້າພົບບັນຫາ ໃຫ້ແຍກເປັນ: ຜິດດ້ານຂໍ້ມູນ, ຜິດດ້ານສູດ, ຫຼື ຂໍ້ຈຳກັດທີ່ຕ້ອງທົດສອບເພີ່ມ.
 `;
   }, [report, userDraft]);
 

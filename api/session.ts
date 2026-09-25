@@ -1,6 +1,7 @@
 import type { DraftAnswer } from "@/types/form";
 import type { SessionResponse, SessionStatus } from "@/types/session";
 import { ApiError } from "./errors";
+import { CURRENT_FORM_VERSION } from "./assessment";
 
 const apiBaseUrl = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -13,8 +14,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
-export function createSession(): Promise<SessionResponse> {
-  return request<SessionResponse>("/sessions", { method: "POST" });
+export function createSession(formVersion = CURRENT_FORM_VERSION): Promise<SessionResponse> {
+  return request<SessionResponse>(`/sessions?form_version=${encodeURIComponent(formVersion)}`, { method: "POST" });
 }
 
 export function saveAnswer(sessionId: string, questionId: string, answer: DraftAnswer): Promise<unknown> {

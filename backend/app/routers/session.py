@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, status
+from typing import Optional
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -24,9 +25,10 @@ router = APIRouter(prefix="/sessions", tags=["Sessions"])
     description="Initialize a new anonymous session with UUID identifier and form version.",
 )
 async def create_session(
+    form_version: Optional[str] = Query(default=None),
     db: AsyncSession = Depends(get_db),
 ) -> SessionResponse:
-    return await create_anonymous_session(db)
+    return await create_anonymous_session(db, form_version)
 
 
 @router.get(

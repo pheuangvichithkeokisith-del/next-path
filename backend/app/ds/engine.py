@@ -16,7 +16,7 @@ from app.ds.rules import (
 )
 
 # Supported questionnaire form versions
-SUPPORTED_FORM_VERSIONS = {"v0.9.1", "v0.9.0"}
+SUPPORTED_FORM_VERSIONS = {"v0.9.1", "v0.9.0", "v4.0.0"}
 CURRENT_DS_ENGINE_VERSION = "v1.0.0"
 
 

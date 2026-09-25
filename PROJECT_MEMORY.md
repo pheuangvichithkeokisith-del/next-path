@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-24 (Late Night Session) | Signal Engine v1.1.2 Production Ready (41/41 Pytest ✅ & 9/9 Next.js Build ✅) | Phase 2 Roadmap Integrated
+**Updated:** 2026-09-25 | Signal Engine v1.1.2 + PATHAI v4.0 web integration | v4 frontend/backend build verified
 
 ---
 
@@ -36,12 +36,16 @@
 * **Google Forms Continuous Scroll Style**: All questions rendered on one page with smooth vertical scrolling.
 * Grouped by 8 modules (D1–D3 Demographics, Q1–Q28 Modules).
 * Autosave debouncing with instant storage draft purge on session completion.
+* Active web form is explicitly `v4.0.0`; the backend loads the versioned v4 form and validates its option codes.
+* D3 province selection uses a native searchable/type-ahead `<select>` with all 18 Lao provinces/capital options.
 
 ### 📊 Report Space & Transparent AI Prompt Export (`app/report/page.tsx`)
 * Tabbed sections adhering to the 6-Part Reflection Architecture.
 * **1-Click Master AI Prompt Export Button:** Generates structured Lao markdown containing raw user answers, Signal Engine statistics, and thought-provoking AI questions.
 * **Calculation Proof Accordion:** Full transparency for users to inspect the exact answers and signals passed to the backend.
 * Quick launch links to ChatGPT, Claude, and Gemini.
+* For `v4.0.0`, the copied prompt includes translated option text, question stems, section mapping, normalization rules, Q17 penalty, profile correlation, and risk/safety metrics so external AI can audit the result.
+* v4 reports use `backend/app/services/v4_report_service.py`; legacy sessions continue using the legacy DS engine.
 
 ---
 
@@ -51,10 +55,10 @@
 
 | # | Case | Profile | $E_r$ Target | Actual $E_r$ | Strategy | Core Paths | Confidence |
 |---|------|---------|--------------|--------------|----------|------------|------------|
-| 0 | 0% Laser Focus | ນ້ອງເຊັນ 19, ມ.ລ ປີ 2, ວຽງຈັນ | `< 0.15` | `0.08` | Straight Path | `C2 ONLY` | 85.0% |
-| 1 | 25% Clear Direction | ນ້ອງນ້ຳ 18, ປ.ຕີ ປີ 1, ວຽງຈັນ | `0.15–0.39` | `0.35` | Core + Exploratory | `C2 (Expl: C1)` | 85.0% |
-| 2 | 50% Dual Interest | ນ້ອງເມກ 17, ມ.6, ຫຼວງພະບາງ | `0.40–0.64` | `0.55` | Dual Secondary | `C3 + C6` | 63.0% |
-| 3 | 75% Multi-Scattered | ນ້ອງມົນ 19, ປ.ຕີ ປີ 2, ສະຫວັນ | `0.65–0.84` | `0.83` | Exploratory | `C3 (Expl: C2, C6)` | 45.0% |
+| 0 | 0% Laser Focus | ນ້ອງເຊັນ 19, ມ.ລ ປີ 2, ວຽງຈັນ | `< 0.15` | `0.13` | Straight Path | `C2 ONLY` | 85.0% |
+| 1 | 25% Clear Direction | ນ້ອງນ້ຳ 18, ປ.ຕີ ປີ 1, ວຽງຈັນ | `0.15–0.39` | `0.28` | Core + Exploratory | `C2 (Expl: C1)` | 85.0% |
+| 2 | 50% Dual Interest | ນ້ອງເມກ 17, ມ.6, ຫຼວງພະບາງ | `0.40–0.64` | `0.49` | Dual Secondary | `C3 + C6` | 63.0% |
+| 3 | 75% Multi-Scattered | ນ້ອງມົນ 19, ປ.ຕີ ປີ 2, ສະຫວັນ | `0.65–0.84` | `0.70` | Exploratory | `C3 (Expl: C2, C6)` | 45.0% |
 | 4 | 100% Total Uncertainty | ນ້ອງຟ້າ 16, ມ.5, ຊຽງຂວາງ | `≥ 0.85` | `1.00` | Need Support | `[ ]` | 30.0% |
 
 ---
@@ -64,13 +68,41 @@
 # In /home/pheuang01/Projects/nextpath01/nextpath01
 node scripts/test_3_rounds_lifecycle.mjs            # Run 3-Round Clean Lifecycle Test
 backend/.venv/bin/python backend/benchmark_5_fluctuations.py # Run 5 Fluctuation Archetypes Benchmark
+PYTHONPATH=backend backend/.venv/bin/pytest backend/tests/test_4_fluctuation_cases.py -q # Verify entropy 0/25/50/75/100% (5 passed)
 backend/.venv/bin/pytest backend/tests -v          # Run ALL backend pytest tests (41/41 ✅)
 npm run build                                      # Production build verification (9/9 routes ✅)
 ```
 
+### PATHAI v4.0 Scoring Contract
+* Source files: `v4.0/questions_full.json`, `v4.0/scoring.py`, and `backend/app/services/v4_report_service.py`.
+* Web sessions request `form_version=v4.0.0`; legacy `v0.9.1` remains available as a fallback/default API form for backward compatibility.
+* v4 scoring: question-level normalization to 0–1 using the legal maximum for `max_select`, equal averaging over six scoring sections, Q17 negative penalty subtraction with clamp, then Pearson profile correlation against seven templates.
+* v4 context: Q26–Q27 produce `risk_willingness` (1–4); Q28 produces separate `safety_readiness` (0–5). Family/constraint context does not alter career scores.
+* v4 is not entropy-based. The entropy benchmarks remain part of the legacy Signal Engine regression suite.
+
 ---
 
 ## 6. 📅 Session Logs
+
+### Session 2026-09-25 — PATHAI v4.0 Web Integration & Entropy Regression Check
+
+**✅ Completed:**
+- Committed checkpoint before implementation: `ac867bf chore: checkpoint PATHAI v4.0 assessment draft`.
+- Added versioned v4 form loading for frontend/backend; the active web form requests `v4.0.0` while legacy forms remain supported.
+- Added native province dropdown for D3 with 18 options and keyboard/type-ahead behavior.
+- Added v4 scoring path: normalized question scores, equal six-section weighting, Q17 negative penalty, Pearson template correlation, and separate Q26–Q28 context metrics.
+- Added v4 report adapter so new option codes do not pass through legacy DS rules.
+- Report AI prompt now includes translated/extracted answers, question stems, calculation method, and audit questions for ChatGPT/Claude/Gemini.
+- Verification: `npm run lint` passed; `npm run build` passed (9/9 routes); v4 scoring/report smoke tests passed; entropy regression test passed **5/5**.
+
+**Entropy benchmark results (legacy Signal Engine):**
+- 0%: `E_r=0.13` → Laser Focus
+- 25%: `E_r=0.28` → Clear Direction
+- 50%: `E_r=0.49` → Dual Interest
+- 75%: `E_r=0.70` → Multi-Scattered
+- 100%: `E_r=1.00` → Total Uncertainty
+
+**Important boundary:** v4.0 uses Pearson profile correlation, not entropy. The entropy benchmark remains a regression suite for the legacy Signal Engine.
 
 ### Session 2026-09-24 (Thursday) — Signal Engine Math Overhaul & Full Verification
 
@@ -196,8 +228,4 @@ GET  /health                                  → Backend health check (NOT /api
 * **Regression Safety Diff:** $\le 15\%$ classification shift across 100+ synthetic snapshot profiles.
 * **Backward Compatibility:** All new fields optional with safe defaults for existing API clients.
 * **Lao-First UX:** All explainability reasons paired with friendly, supportive Lao descriptions.
-
-
-
-
 

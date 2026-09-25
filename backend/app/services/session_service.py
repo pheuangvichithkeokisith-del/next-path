@@ -7,14 +7,20 @@ from fastapi import HTTPException, status
 from app.config import settings
 from app.models.session import SessionModel
 from app.schemas.session import SessionResponse, SessionStatus
+from app.services.form_service import load_questionnaire_form
 
 
-async def create_anonymous_session(db: AsyncSession) -> SessionResponse:
-    """Create a new anonymous session with standard form version."""
+async def create_anonymous_session(
+    db: AsyncSession,
+    form_version: str | None = None,
+) -> SessionResponse:
+    """Create an anonymous session after validating the requested form version."""
+    requested_version = form_version or settings.DEFAULT_FORM_VERSION
+    load_questionnaire_form(requested_version)
     session_id = str(uuid.uuid4())
     new_session = SessionModel(
         id=session_id,
-        form_version=settings.DEFAULT_FORM_VERSION,
+        form_version=requested_version,
         status="created",
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
