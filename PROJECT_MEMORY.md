@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-25 | Signal Engine v1.1.2 + PATHAI v4.0 web integration + UX accessibility pass | v4 frontend/backend build verified
+**Updated:** 2026-09-25 | PATHAI v4.0 validation hardening + Lao-first province typography + full browser QA | commit `a08b176` pushed to `origin/main`
 
 ---
 
@@ -37,9 +37,9 @@
 * Grouped by 8 modules (D1–D3 Demographics, Q1–Q28 Modules).
 * Autosave debouncing with instant storage draft purge on session completion.
 * Active web form is explicitly `v4.0.0`; the backend loads the versioned v4 form and validates its option codes.
-* D3 province selection uses a native searchable/type-ahead `<select>` with all 18 Lao provinces/capital options.
+* D3 province selection uses a native searchable/type-ahead `<select>` with all 18 Lao provinces/capital options and explicitly applies `Noto Sans Lao` to the select and its options for readable Lao rendering.
 * Option cards now use native radio/checkbox controls with keyboard focus support; D2 has an explicit label and the shared layout includes a skip link.
-* The assessment UI reads v4 validation metadata before opening a report (minimum total and minimum per section), without changing scoring or API contracts.
+* The assessment UI reads v4 validation metadata before opening a report (minimum total, minimum per section, required questions, and partial multi-select detection), without changing scoring or API contracts.
 
 ### 📊 Report Space & Transparent AI Prompt Export (`app/report/page.tsx`)
 * Tabbed sections adhering to the 6-Part Reflection Architecture.
@@ -72,8 +72,9 @@
 node scripts/test_3_rounds_lifecycle.mjs            # Run 3-Round Clean Lifecycle Test
 backend/.venv/bin/python backend/benchmark_5_fluctuations.py # Run 5 Fluctuation Archetypes Benchmark
 PYTHONPATH=backend backend/.venv/bin/pytest backend/tests/test_4_fluctuation_cases.py -q # Verify entropy 0/25/50/75/100% (5 passed)
-backend/.venv/bin/pytest backend/tests -v          # Run ALL backend pytest tests (41/41 ✅)
+DATABASE_URL=sqlite+aiosqlite:////tmp/pathai-test.db backend/.venv/bin/pytest -q backend/tests # Run ALL backend pytest tests (71 passed ✅)
 npm run build                                      # Production build verification (9/9 routes ✅)
+./node_modules/.bin/eslint app                     # Frontend lint verification
 ```
 
 ### PATHAI v4.0 Scoring Contract
@@ -86,6 +87,20 @@ npm run build                                      # Production build verificati
 ---
 
 ## 6. 📅 Session Logs
+
+### Session 2026-09-25 — v4 Completion Guard, Report Recovery & Lao Province Font
+
+**✅ Completed and verified:**
+- Reproduced the Q9 partial-selection defect: selecting 1 of the required 2 options could mark a v4 session completed and produce an empty invalid report.
+- Added frontend detection for incomplete multi-select answers; the assessment now identifies the affected question (for example, `Q9`) before submission.
+- Added backend v4 validation at the completion boundary. Invalid v4 sessions return `409 Conflict` and remain `in_progress`; legacy session behavior is unchanged.
+- Added a stale-invalid-v4 report guard so previously persisted invalid reports show a clear recovery state with a Start New action instead of a blank report.
+- Completed the v4 scoring/report hardening: active-signal denominators, per-section coverage metadata, semantic context normalization, v4 context serialization, and legacy context isolation.
+- Applied `Noto Sans Lao` explicitly to the D3 province `<select>` and `<option>` elements while preserving the native accessible/type-ahead control.
+
+**Verification:** backend suite **71 passed**, focused v4/session tests **26 passed**, browser E2E passed for both complete and invalid-Q9 flows, production build and TypeScript passed, frontend ESLint passed, and `git diff --check` passed.
+
+**Release:** implementation committed as `a08b176` (`fix: validate v4 completion and improve Lao province font`) and pushed to `origin/main`.
 
 ### Session 2026-09-25 — Integration Fail-Path Debug & Report Guard
 
@@ -316,3 +331,46 @@ GET  /health                                  → Backend health check (NOT /api
 * **Regression Safety Diff:** $\le 15\%$ classification shift across 100+ synthetic snapshot profiles.
 * **Backward Compatibility:** All new fields optional with safe defaults for existing API clients.
 * **Lao-First UX:** All explainability reasons paired with friendly, supportive Lao descriptions.
+
+### 🔍 Phase 2 Intake — Senior Code Review (2026-09-25)
+
+> **Status:** รับทราบและบันทึกไว้เป็น backlog เท่านั้น — ยังไม่เริ่ม implementation
+> **Review verdict:** Conditional Pass; ต้องปิดประเด็นสำคัญก่อน Production / Pilot Validation
+
+รายงาน review ล่าสุดยืนยันว่า architecture, versioned questionnaire, documentation และ backend separation อยู่ในทิศทางที่ดี แต่พบช่องว่างที่ต้องจัดลำดับไว้ใน Phase 2 ดังนี้:
+
+| ID | Priority | Phase 2 Work Item | Acceptance Direction | Status |
+|---|---|---|---|---|
+| D-001 | Critical | Frontend unit/integration tests (Vitest + React Testing Library) | ครอบคลุม components, hooks และ validation states สำคัญ | Not Started |
+| D-002 | Critical | Critical-flow E2E test (Playwright) | ครอบคลุม questionnaire → save → complete → report/export/feedback | Not Started |
+| D-003 | High | Comprehensive v4.0 scoring tests | ครอบคลุม normalization, section weighting, Q17 penalty, Pearson correlation และ Q26–Q28 context | Not Started |
+| D-004 | High | Anonymous API abuse protection | กำหนดแนวทาง rate limiting และทดสอบผลกระทบต่อ anonymous session | Not Started |
+| D-005 | Medium | CORS/security configuration review | ตรวจ production origins, headers และ API exposure | Not Started |
+| D-006 | Medium | Frontend accessibility regression tests | ตรวจ keyboard, focus, screen reader semantics และ responsive states | Not Started |
+| D-007 | Medium | CI/CD quality gate | รัน lint, typecheck, backend/frontend tests และ production build อัตโนมัติ | Not Started |
+| D-008 | Low | Dependency/version audit | ตรวจ dependency versions, CVEs และความถูกต้องของ lucide-react version | Not Started |
+
+**Scope boundary:** รายการนี้เป็นการบันทึกข้อค้นพบและ acceptance direction เท่านั้น ยังไม่มีการเพิ่ม test framework, security controls, CI workflow หรือแก้โค้ดใด ๆ จาก review ฉบับนี้
+
+### 🔍 Phase 2 Intake — Independent QA & Architecture Review (2026-09-25)
+
+> **Status:** รับทราบและบันทึกไว้เป็น backlog เท่านั้น — ยังไม่เริ่ม implementation
+> **Review assessment:** Mature MVP / 8.5 out of 10; เหมาะสมสำหรับ pilot หลังปิดความเสี่ยงสำคัญ
+
+รายงาน Independent Review ฉบับที่สองยืนยันจุดแข็งของระบบ ได้แก่ การแยก Legacy `v0.9.1` กับ active `v4.0.0`, regression snapshot จำนวน 103 synthetic profiles, fluctuation archetypes 0–100%, draft/session isolation, fail-loudly behavior และ accessibility baseline จาก native controls/skip link/focus states
+
+ประเด็นต่อไปนี้ให้ถือเป็น Phase 2 backlog เพิ่มเติม โดยยังไม่มีการยืนยันว่าเป็น defect จนกว่าจะมีการตรวจสอบหรือทดสอบเฉพาะด้าน:
+
+| ID | Priority | Phase 2 Work Item | Acceptance Direction | Status |
+|---|---|---|---|---|
+| IR-001 | High | CI/CD pipeline automation | ทุก PR รัน lint, typecheck, backend/frontend tests และ production build | Not Started |
+| IR-002 | Medium | Visual regression testing | ตรวจ screenshot/layout ของ continuous scroll และ Lao-first responsive UX | Not Started |
+| IR-003 | High | PostgreSQL load/concurrency testing | ทดสอบ answer writes และ report flow ที่ 500+ concurrent users พร้อมตรวจ deadlock/timeout | Not Started |
+| IR-004 | High | API rate limiting | ออกแบบและทดสอบ per-IP/per-session limits สำหรับ session, answers และ feedback | Not Started |
+| IR-005 | High | Pearson zero-variance audit | ตรวจ `scoring.py` สำหรับ zero variance/division-by-zero และกำหนด deterministic fallback | Not Started |
+| IR-006 | Medium | Network-chaos/offline draft testing | ทดสอบ offline ระหว่าง Q15–Q20 และการกลับมา online โดยไม่ทำให้ draft สูญหายหรือชนกัน | Not Started |
+| IR-007 | Medium | External AI context disclaimer review | ตรวจข้อความเตือนเรื่อง hallucination, local context และการใช้ผลลัพธ์เพื่อ reflection เท่านั้น | Not Started |
+| IR-008 | Medium | Data retention and purge policy | กำหนด retention สำหรับ abandoned sessions และ completed sessions พร้อมตรวจผลกระทบต่อผู้ใช้ | Not Started |
+| IR-009 | Low | Stale development process mitigation | ประเมินแนวทางป้องกัน stale Next server โดยไม่ kill process ของผู้ใช้อื่นหรือ production | Not Started |
+
+**Review boundary:** ข้อเสนอเรื่อง rate limiting, PostgreSQL concurrency, Pearson edge case, retention และ stale process เป็น risk hypotheses ที่ต้องตรวจสอบด้วยหลักฐานก่อนเปลี่ยน architecture หรือ production behavior
