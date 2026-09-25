@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-25 | PATHAI v4.0 validation hardening + Lao-first province typography + full browser QA | commits `a08b176`, `fb11975` pushed to `origin/main`
+**Updated:** 2026-09-26 | Next-path UI refresh committed and product rename audit recorded | commit `8afc8a4` pushed to `origin/main`
 
 ---
 
@@ -374,3 +374,28 @@ GET  /health                                  → Backend health check (NOT /api
 | IR-009 | Low | Stale development process mitigation | ประเมินแนวทางป้องกัน stale Next server โดยไม่ kill process ของผู้ใช้อื่นหรือ production | Not Started |
 
 **Review boundary:** ข้อเสนอเรื่อง rate limiting, PostgreSQL concurrency, Pearson edge case, retention และ stale process เป็น risk hypotheses ที่ต้องตรวจสอบด้วยหลักฐานก่อนเปลี่ยน architecture หรือ production behavior
+
+### 🔍 Next Task — Product Naming Cleanup: PATHAI → Next-path (2026-09-26)
+
+> **Status:** Backlog / Not Started
+> **Scope:** ตรวจและเปลี่ยนเฉพาะชื่อแบรนด์ที่ยังปรากฏอยู่ โดยไม่เปลี่ยน questionnaire logic, API behavior หรือ scoring identifiers โดยไม่ได้วาง migration
+
+ผลการค้นหาใน tracked repository:
+
+- พบ `PATHAI/pathai` ทั้งหมด **144 จุด ใน 63 ไฟล์**
+- จุดที่เกี่ยวกับ UI/data หรือ output ที่ผู้ใช้อาจเห็นมีประมาณ **6 จุด**:
+  - `app/report/page.tsx` — ชื่อใน AI Prompt export 3 จุด
+  - `content/copy.ts` — landing copy เก่า 1 จุด
+  - `data/questions.json` และ `backend/app/data/questions.json` — ข้อความใน legacy questionnaire อย่างละ 1 จุด
+- Backend/runtime identifiers มี 37 จุด
+- Session/draft storage keys มี 5 จุด เช่น `pathai.session.id.v1` และ `pathai.assessment.draft.v2`
+- Documentation, memory และ historical reports มี 95 จุด
+
+แนวทางถัดไป:
+
+1. เปลี่ยน user-facing brand/output ที่ยังแสดงเป็น `Next-path` ก่อน
+2. คง storage keys เดิมไว้ชั่วคราว หรือทำ backward-compatible migration ก่อนเปลี่ยน
+3. ประเมิน backend export filenames และ API metadata แยกเป็นงาน migration ไม่เปลี่ยนแบบ bulk replace
+4. ปรับเอกสารปัจจุบันเฉพาะส่วนที่ต้องใช้ชื่อใหม่ และคงเอกสาร historical/versioned ที่อ้างอิงชื่อเดิมไว้เป็นหลักฐาน
+
+**Acceptance:** UI, AI Prompt export และ user-facing report ไม่แสดง `PATHAI` โดยไม่ตั้งใจ; existing sessions/drafts, API contracts และ legacy questionnaire behavior ต้องไม่เสียหาย
