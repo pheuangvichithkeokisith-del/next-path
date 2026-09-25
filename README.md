@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PATHAI
 
-## Getting Started
+PATHAI is a Lao-first self-reflection and career-exploration app for youth. It helps users understand their interests, skills, values, work style, constraints, and possible directions without making automated career decisions for them.
 
-First, run the development server:
+## Current runtime
+
+- Frontend: Next.js 16 App Router, TypeScript, Tailwind CSS v4
+- Backend: FastAPI, SQLAlchemy async, SQLite for local development
+- Active web questionnaire: `v4.0.0` (`D1–D3 + Q1–Q28`)
+- Legacy compatibility: `v0.9.1` remains available as the default fallback API form
+- v4 scoring: normalized section scores, Q17 negative penalty, Pearson profile correlation, risk/safety context
+- Legacy entropy benchmarks: retained for regression testing of the legacy Signal Engine
+
+## Repository map
+
+```text
+app/                 Next.js pages and routes
+components/          Reusable UI components
+api/                 Frontend API clients
+types/               Frontend contract types
+hooks/               Session and polling hooks
+utils/               Browser draft persistence helpers
+content/              Shared Lao UI copy
+
+backend/app/         FastAPI application
+backend/tests/       Backend and regression tests
+v4.0/                Versioned v4 form, templates, scoring, and report draft
+data/                 Legacy frontend questionnaire source
+backend/app/data/     Legacy backend questionnaire source
+docs/                 Architecture, version, UX, and DS documentation
+scripts/              Snapshot and matrix-audit tooling
+snapshots/            Versioned regression snapshots
+PROJECT_MEMORY.md     Working project memory and session decisions
+```
+
+## Local development
+
+Install frontend dependencies:
+
+```bash
+npm install
+```
+
+Start the backend in one terminal:
+
+```bash
+PYTHONPATH=backend backend/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Start the frontend in another terminal:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open <http://localhost:3000>.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For a production-style local run:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm start
+```
 
-## Learn More
+`npm start` serves the last successful Next.js build. It does not start the FastAPI backend.
 
-To learn more about Next.js, take a look at the following resources:
+## Verification
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+npm run build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+PYTHONPATH=backend backend/.venv/bin/pytest backend/tests/test_4_fluctuation_cases.py -q
+PYTHONPATH=backend backend/.venv/bin/pytest backend/tests/test_ds_engine.py backend/tests/test_signal_engine.py backend/tests/test_ds_audit.py -q
+```
 
-## Deploy on Vercel
+The five fluctuation regression cases cover entropy targets of 0%, 25%, 50%, 75%, and 100%. They belong to the legacy Signal Engine; v4.0 uses Pearson profile correlation instead.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Documentation entry points
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md) — current architecture and session decisions
+- [`docs/README.md`](./docs/README.md) — documentation index
+- [`docs/versions/README.md`](./docs/versions/README.md) — questionnaire and algorithm versions
+- [`v4.0/README.md`](./v4.0/README.md) — v4 form and scoring contract
+- [`backend/README.md`](./backend/README.md) — backend setup and API overview
+
+## Product boundary
+
+PATHAI provides reflection patterns and exploration opportunities. It does not diagnose users, predict a guaranteed career outcome, or replace a qualified teacher, counselor, or professional adviser.

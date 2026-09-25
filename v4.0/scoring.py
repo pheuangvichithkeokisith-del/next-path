@@ -1,7 +1,7 @@
-"""PATHAI Career Assessment Instrument v4.0.
+"""PATHAI Career Assessment Instrument v4.0 scoring contract.
 
-This module is intentionally standalone. It does not import or modify the
-production v0.9.1 questionnaire or the production DS engine.
+This module remains deliberately separate from the legacy v0.9.1 questionnaire
+and DS engine. The production backend calls it through the v4 report adapter.
 """
 
 from __future__ import annotations

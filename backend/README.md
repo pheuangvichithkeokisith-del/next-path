@@ -18,7 +18,9 @@ A FastAPI backend foundation for the PATHAI career exploration and self-reflecti
 - **API Contracts Matching Frontend**: Endpoints and payloads 100% matched with Next.js frontend client (`/api/v1/form`, `/api/v1/sessions`, `/api/v1/sessions/{id}/answers`, `/api/v1/sessions/{id}/complete`, `/api/v1/sessions/{id}/status`, `/api/v1/sessions/{id}/report`, `/api/v1/sessions/{id}/export`, `/api/v1/sessions/{id}/feedback`).
 - **Anonymous Sessions**: UUIDv4-based anonymous session handling.
 - **Answer Upserting**: Stores user question answers with option codes, custom text, and other reasons.
-- **Report Placeholder & Reflection**: Stores report placeholder structure and supports formatted JSON / Markdown export.
+- **Versioned Forms**: Supports the legacy `v0.9.1` form and the active `v4.0.0` form without mixing option codes or scoring rules.
+- **Deterministic Reports**: Routes v4 sessions through `v4_report_service.py` and legacy sessions through the existing DS engine.
+- **Reflection Export**: Stores report structure and supports formatted JSON / Markdown export.
 
 ---
 
@@ -38,7 +40,7 @@ backend/
 │   ├── config.py                 # Pydantic Settings & environment config
 │   ├── database.py               # Async SQLAlchemy engine & get_db dependency
 │   ├── data/
-│   │   └── questions.json        # Bundled questionnaire definitions
+│   │   └── questions.json        # Legacy v0.9.1 questionnaire definitions
 │   ├── models/                   # SQLAlchemy ORM Models
 │   │   ├── __init__.py
 │   │   ├── session.py            # SessionModel (anonymous sessions)
@@ -57,7 +59,8 @@ backend/
 │   │   ├── form_service.py       # Questionnaire loader & cache
 │   │   ├── session_service.py    # Session creation and status transitions
 │   │   ├── answer_service.py     # Answer saving and upserting
-│   │   ├── report_service.py     # Report placeholder generation & markdown export
+│   │   ├── report_service.py     # Version-aware report generation & markdown export
+│   │   ├── v4_report_service.py  # v4.0 scoring/report adapter
 │   │   └── feedback_service.py   # User feedback recording
 │   └── routers/                  # API Endpoint definitions
 │       ├── __init__.py           # Consolidates /api/v1 router

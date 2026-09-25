@@ -46,4 +46,4 @@
 
 ## 4. วิธีสร้างรุ่นใหม่อย่างปลอดภัย
 
-ให้สร้าง form/data/algorithm version ใหม่แยกจากชุดนี้ เช่น `v4.0.0` แล้วทำ compatibility adapter, fixture, snapshot, regression test และ migration note ก่อนเปิดใช้งานจริง ผู้ใช้ที่เริ่มด้วย `v0.9.1` ต้องยังอ่านผลเดิมได้เหมือนเดิม
+ข้อกำหนดนี้ถูกดำเนินการแล้วสำหรับ v4.0.0 ผ่านไฟล์ versioned form, scoring contract, compatibility adapter และ regression checks ที่แยกจากชุดเดิม ผู้ใช้ที่เริ่มด้วย `v0.9.1` ต้องยังอ่านผลเดิมได้เหมือนเดิม และห้ามนำ option code หรือสูตรของ v4 มาปะปนกับ legacy runtime

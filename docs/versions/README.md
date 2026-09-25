@@ -1,6 +1,6 @@
 # PATHAI Version Archive
 
-เอกสารในโฟลเดอร์นี้แยก “ของเดิมที่ระบบใช้งานจริง” ออกจาก “ข้อเสนอรุ่นใหม่” เพื่อป้องกันการเปลี่ยนคำถามหรือ algorithm โดยไม่ตั้งใจ
+เอกสารในโฟลเดอร์นี้แยก “ของเดิมที่ระบบใช้งานจริง” ออกจาก “รุ่น v4.0 ที่เปิดใช้งานแบบ versioned” เพื่อป้องกันการเปลี่ยนคำถามหรือ algorithm โดยไม่ตั้งใจ
 
 ## เอกสารหลัก
 
@@ -9,7 +9,8 @@
 
 ## กติกาการใช้งาน
 
-1. ระบบปัจจุบันยังใช้ `D1–D3` และ `Q1–Q28` จาก `data/questions.json` และ `backend/app/data/questions.json` (`form_version: v0.9.1`)
-2. ห้ามนำคำถาม น้ำหนัก หรือสูตรจาก v4.0 ไปแทน runtime จนกว่าจะผ่านการตรวจเนื้อหาและการทดสอบความเข้ากันได้
-3. การเปลี่ยน algorithm ต้องเพิ่ม version, snapshot, test และ release note ของตัวเอง
-4. ถ้าเอกสารกับ source code ขัดกัน ให้ source code และ test ที่ผ่านใน release นั้นเป็นหลัก
+1. เว็บหลักสร้าง session ด้วย `form_version: v4.0.0` และโหลด `v4.0/questions_full.json` ผ่าน backend version loader
+2. `v0.9.1` ยังเก็บไว้เป็น legacy/default API fallback เพื่อรองรับ session และข้อมูลเดิม
+3. v4 มี scoring และ report adapter แยกจาก legacy DS engine; ห้ามนำ option codes หรือสูตรข้ามเวอร์ชันโดยตรง
+4. การเปลี่ยน algorithm ต้องเพิ่ม version, snapshot, test และ release note ของตัวเอง
+5. ถ้าเอกสารกับ source code ขัดกัน ให้ source code และ test ที่ผ่านใน release นั้นเป็นหลัก แล้วแก้เอกสารให้ตรงใน commit เดียวกัน
