@@ -412,3 +412,15 @@ GET  /health                                  → Backend health check (NOT /api
 4. ปรับเอกสารปัจจุบันเฉพาะส่วนที่ต้องใช้ชื่อใหม่ และคงเอกสาร historical/versioned ที่อ้างอิงชื่อเดิมไว้เป็นหลักฐาน
 
 **Acceptance:** UI, AI Prompt export และ user-facing report ไม่แสดง `PATHAI` โดยไม่ตั้งใจ; existing sessions/drafts, API contracts และ legacy questionnaire behavior ต้องไม่เสียหาย
+
+#### Impact Assessment — Product Naming Cleanup (2026-09-26)
+
+ตรวจซ้ำใน working tree ปัจจุบันด้วย case-insensitive search: พบ `PATHAI/pathai` **155 occurrences ใน 65 files** (ตัวเลขเดิม 144 จุด/63 ไฟล์มาจากการค้น tracked repository ในรอบก่อน; ขอบเขตการค้นต่างกันและไม่ควรนำมาเทียบเป็นจำนวนที่เพิ่มจากโค้ดโดยตรง)
+
+- **Low-risk, user-facing brand pass:** เปลี่ยนประมาณ 6 occurrences ใน landing copy, AI Prompt/report และ legacy Q28 (อยู่ใน JSON สองสำเนา) เพื่อให้ชื่อที่ผู้ใช้เห็นเป็น `Next-path`; logic, scoring, questionnaire structure และ API contracts ไม่จำเป็นต้องเปลี่ยน
+- **AI/report output:** `app/report/page.tsx` มีชื่อเดิมใน prompt 3 จุด; backend Markdown report header อยู่ใน `backend/app/services/report_service.py` และ export filename อยู่ใน `backend/app/routers/report.py` การแก้ header/filename อาจต้องปรับ tests ที่ assert ค่าเดิม แต่ไม่เปลี่ยนรูปแบบ payload/API route
+- **Browser persistence — migration-sensitive:** `hooks/useSession.ts` ใช้ `pathai.session.id.v1` และ `pathai.session.revision.v1`; `utils/draft.ts` ใช้ `pathai.assessment.draft.v2` พร้อมอ่าน legacy v1 key. เปลี่ยนคีย์ทันทีทำให้ browser ไม่พบ session/draft เดิม จึงควรคง key เดิม หรือเพิ่มอ่าน key เก่าและย้ายข้อมูลแบบ backward-compatible
+- **Backend/deployment identifiers — separate migration:** พบชื่อฐานข้อมูล, DB user, container, project metadata, welcome message และ default SQLite URL เช่น `pathai_db`, `pathai_user`, `pathai-backend`, `PROJECT_NAME`, `pathai.db`. การเปลี่ยน DB/container identifiers อาจชี้ไปยังฐานข้อมูล/volume ใหม่หรือทำให้ config เดิมใช้ไม่ได้; ต้องตรวจ volume และ deployment config ก่อนเปลี่ยน
+- **Tests/docs/history:** มี test assertions ที่คาดหวัง `PATHAI Reflection Report`, module/import labels และเอกสารสเปก/รีวิวย้อนหลัง. ปรับ tests ตามเมื่อ output ตั้งใจเปลี่ยน; คงชื่อเดิมในเอกสาร historical/versioned ที่บันทึกบริบทของช่วงเวลานั้น
+
+**Recommended rollout:** เริ่มจาก user-facing strings และ report branding โดยคง storage keys, backend/database identifiers, API metadata และ scoring/import identifiers เดิมไว้ก่อน; แยกงาน migration สำหรับ identifiers ที่เชื่อมกับข้อมูลหรือ deployment. ความเสี่ยงหลักของ brand-only pass ต่ำ; ความเสี่ยงต่อข้อมูลเกิดเมื่อเปลี่ยน localStorage keys หรือ database identifiers โดยไม่มี compatibility/migration.
