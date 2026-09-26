@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-26 | Assessment completion issue visibility improved; pending release
+**Updated:** 2026-09-26 | Assessment completion issue visibility fix committed as `bf1c55b` and pushed to `origin/main`
 
 ---
 
@@ -99,7 +99,7 @@ npm run build                                      # Production build verificati
 
 **Verification:** browser QA reproduced Q9 `1/2` and confirmed it appears in the issue summary and on the question card; complete `28/28` scenario passed. `npm run build` passed (9/9 routes), focused ESLint passed, and `git diff --check` passed.
 
-**Release:** frontend fix is pending commit and push.
+**Release:** frontend fix committed as `bf1c55b` (`fix: make incomplete assessment answers discoverable`) and pushed to `origin/main`.
 
 ### Session 2026-09-25 — v4 Completion Guard, Report Recovery & Lao Province Font
 
