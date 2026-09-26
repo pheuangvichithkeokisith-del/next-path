@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-26 | Next-path UI refresh committed and product rename audit recorded | commit `8afc8a4` pushed to `origin/main`
+**Updated:** 2026-09-26 | Assessment completion issue visibility improved; pending release
 
 ---
 
@@ -40,6 +40,7 @@
 * D3 province selection uses a native searchable/type-ahead `<select>` with all 18 Lao provinces/capital options and explicitly applies the distinct `Noto Sans Lao Looped` font to the select and its options for readable Lao rendering.
 * Option cards now use native radio/checkbox controls with keyboard focus support; D2 has an explicit label and the shared layout includes a skip link.
 * The assessment UI reads v4 validation metadata before opening a report (minimum total, minimum per section, required questions, and partial multi-select detection), without changing scoring or API contracts.
+* When completion validation fails, the UI now lists every unanswered/incomplete question with its reason; selecting a list item scrolls to and focuses the question, and the question card displays an inline warning/highlight.
 
 ### 📊 Report Space & Transparent AI Prompt Export (`app/report/page.tsx`)
 * Tabbed sections adhering to the 6-Part Reflection Architecture.
@@ -87,6 +88,18 @@ npm run build                                      # Production build verificati
 ---
 
 ## 6. 📅 Session Logs
+
+### Session 2026-09-26 — Assessment Completion Error Discovery
+
+**✅ Reproduced and improved:**
+- Browser reproduction confirmed a Q9 answer with 1 of 2 required selections shows progress as `27/28`; the previous notice showed the partial-selection ID but gave no direct navigation and did not mark the question card, making it easy to miss in the continuous-scroll form.
+- Completion validation now provides a clickable issue list with the question ID and reason, scrolls to/focuses the question, and marks the affected card inline.
+- Empty required questions are included in the same list; partial multi-select messages show the required and selected counts.
+- Full answers (including D1–D3) still pass and reach the existing complete flow. No questionnaire data, scoring, backend, or API contract changes.
+
+**Verification:** browser QA reproduced Q9 `1/2` and confirmed it appears in the issue summary and on the question card; complete `28/28` scenario passed. `npm run build` passed (9/9 routes), focused ESLint passed, and `git diff --check` passed.
+
+**Release:** frontend fix is pending commit and push.
 
 ### Session 2026-09-25 — v4 Completion Guard, Report Recovery & Lao Province Font
 

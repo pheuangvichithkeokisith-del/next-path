@@ -8,15 +8,19 @@ export type QuestionProps = {
   item: FormItem;
   answer: DraftAnswer;
   onChange: (changes: Partial<DraftAnswer>) => void;
+  validationMessage?: string;
 };
 
-export default function Question({ item, answer, onChange }: QuestionProps) {
+export default function Question({ item, answer, onChange, validationMessage }: QuestionProps) {
   const isDemographic = item.id.startsWith("D");
 
   return (
     <div
       id={`question-${item.id}`}
-      className="scroll-mt-32 p-5 sm:p-7 rounded-2xl bg-white subtle-border transition-shadow duration-200 hover:shadow-2xs"
+      tabIndex={validationMessage ? -1 : undefined}
+      className={validationMessage
+        ? "scroll-mt-32 p-5 sm:p-7 rounded-2xl bg-white border-2 border-[#C7836F] shadow-[0_0_0_4px_rgba(199,131,111,0.12)]"
+        : "scroll-mt-32 p-5 sm:p-7 rounded-2xl bg-white subtle-border transition-shadow duration-200 hover:shadow-2xs"}
     >
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex items-center space-x-2">
@@ -35,6 +39,16 @@ export default function Question({ item, answer, onChange }: QuestionProps) {
       <h3 className="text-base sm:text-lg font-bold leading-snug text-[#171A1F] mt-1">
         {item.stem}
       </h3>
+
+      {validationMessage ? (
+        <p
+          id={item.id + "-validation"}
+          role="alert"
+          className="mt-3 rounded-lg bg-[#FFF1ED] px-3 py-2 text-xs font-semibold leading-relaxed text-[#7A3E2D]"
+        >
+          {validationMessage}
+        </p>
+      ) : null}
 
       {/* Note / Context hint if available */}
       {item.note ? (

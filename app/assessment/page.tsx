@@ -82,6 +82,11 @@ type FormMeta = {
   sections?: Record<string, FormSectionMeta>;
 };
 
+type ValidationIssue = {
+  questionId: string;
+  message: string;
+};
+
 export default function AssessmentPage() {
   const router = useRouter();
   const { sessionId, resolved: sessionResolved } = useSessionId();
@@ -346,12 +351,26 @@ export default function AssessmentPage() {
         return minSelect > 0 && selectedCount > 0 && selectedCount < minSelect;
       })
       .map((item) => item.id);
+    const issuesByQuestion = new Map<string, ValidationIssue>();
+
+    (form?.questions ?? [])
+      .filter((item) => !isAnswered(item, draft[item.id]))
+      .forEach((item) => {
+        const minSelect = item.min_select ?? 0;
+        const selectedCount = draft[item.id]?.option_codes?.length ?? 0;
+        const message =
+          minSelect > 0 && selectedCount > 0
+            ? "ເລືອກຢ່າງໜ້ອຍ " + minSelect + " ຂໍ້ (ຕອນນີ້ເລືອກແລ້ວ " + selectedCount + " ຂໍ້)"
+            : "ຍັງບໍ່ມີຄຳຕອບ";
+        issuesByQuestion.set(item.id, { questionId: item.id, message });
+      });
 
     return {
       minimumTotal,
       incompleteSections,
       missingRequired,
       incompleteSelections,
+      issues: Array.from(issuesByQuestion.values()),
       isReady:
         answeredQCount >= minimumTotal &&
         incompleteSections.length === 0 &&
@@ -359,6 +378,12 @@ export default function AssessmentPage() {
         incompleteSelections.length === 0,
     };
   }, [answeredQCount, draft, form]);
+
+  const scrollToQuestion = (questionId: string) => {
+    const question = document.getElementById("question-" + questionId);
+    question?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => question?.focus({ preventScroll: true }), 350);
+  };
 
   const handleComplete = async () => {
     if (!completionStatus.isReady) {
@@ -489,10 +514,25 @@ export default function AssessmentPage() {
             <p className="mt-1 text-xs leading-relaxed">
               ຕອບແລ້ວ {answeredQCount}/{totalQuestions} ຂໍ້. ຕ້ອງຕອບຢ່າງໜ້ອຍ {completionStatus.minimumTotal} ຂໍ້ ແລະ ໃຫ້ຄົບຕາມຂັ້ນຕ່ຳຂອງແຕ່ລະໝວດ.
             </p>
-            {completionStatus.incompleteSelections.length > 0 ? (
-              <p className="mt-1 text-xs leading-relaxed text-[#7A3E2D]">
-                ຂໍ້ທີ່ເລືອກຍັງບໍ່ຄົບ: {completionStatus.incompleteSelections.join(", ")}.
-              </p>
+            {completionStatus.issues.length > 0 ? (
+              <div className="mt-3 border-t border-[#E7D5AA] pt-3">
+                <p className="text-xs font-semibold text-[#5B4525]">
+                  ຈຸດທີ່ຕ້ອງແກ້ ({completionStatus.issues.length})
+                </p>
+                <ul className="mt-1.5 space-y-1">
+                  {completionStatus.issues.map((issue) => (
+                    <li key={issue.questionId}>
+                      <button
+                        type="button"
+                        onClick={() => scrollToQuestion(issue.questionId)}
+                        className="text-left text-xs text-[#7A3E2D] underline underline-offset-2 hover:text-[#5B2F24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7A3E2D]"
+                      >
+                        {issue.questionId}: {issue.message} ↗
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
           </div>
         ) : null}
@@ -528,6 +568,11 @@ export default function AssessmentPage() {
                       key={item.id}
                       item={item}
                       answer={currentAns}
+                      validationMessage={
+                        showValidationNotice
+                          ? completionStatus.issues.find((issue) => issue.questionId === item.id)?.message
+                          : undefined
+                      }
                       onChange={(changes) => updateAnswer(item.id, changes)}
                     />
                   );
