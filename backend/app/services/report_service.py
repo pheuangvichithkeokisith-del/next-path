@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, status
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -106,8 +107,18 @@ async def get_or_create_session_report(
         report_model.ai_version = report_data["ai_version"]
         report_model.updated_at = datetime.now(timezone.utc)
 
-    await db.commit()
-    await db.refresh(report_model)
+    try:
+        await db.commit()
+        await db.refresh(report_model)
+    except IntegrityError:
+        # Another request may have inserted the unique session report after
+        # both requests passed the initial lookup. Reuse that committed row
+        # instead of surfacing a duplicate-report error to the client.
+        await db.rollback()
+        existing_result = await db.execute(query)
+        report_model = existing_result.scalar_one_or_none()
+        if report_model is None:
+            raise
 
     persisted_context = V4ContextFactors(**report_model.context_factors) if is_v4 else ContextFactors(**report_model.context_factors)
 

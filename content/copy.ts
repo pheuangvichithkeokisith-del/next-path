@@ -1,6 +1,6 @@
 export const UI_COPY = {
   landing: {
-    h1: "PATHAI",
+    h1: "Next-path",
     sub: "ພື້ນທີ່ຊ່ວຍໃຫ້ທ່ານເຂົ້າໃຈຕົນເອງ ແລະ ຄິດຫາເສັ້ນທາງການຮຽນ ຫຼື ການເຮັດວຽກ",
     not: "ບໍ່ແມ່ນການທຳນາຍ ບໍ່ມີຄະແນນ ບໍ່ຕັດສິນແທນທ່ານ",
     how: [
@@ -52,7 +52,7 @@ export const UI_COPY = {
     export: "ສົ່ງອອກຂໍ້ມູນເພື່ອຖາມ AI ອື່ນ (ທາງເລືອກ)",
     copyMarkdown: "ຄັດລອກ Markdown",
     copyMarkdownSuccess: "ຄັດລອກແລ້ວ!",
-    downloadJson: "ດາວໂຫຼດ JSON",
+    downloadJson: "ດາວໂຫຼດຂໍ້ມູນບົດສະທ້ອນ",
     sample: "ຕົວຢ່າງ",
     ageBand: "ຊ່ວງອາຍຸ",
     province: "ແຂວງ",

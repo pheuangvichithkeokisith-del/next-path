@@ -20,6 +20,14 @@ function getServerSnapshot(): string | null {
   return null;
 }
 
+function getResolvedSnapshot(): boolean {
+  return true;
+}
+
+function getServerResolvedSnapshot(): boolean {
+  return false;
+}
+
 export function storeSessionId(
   sessionId: string,
   revision = CURRENT_FORM_REVISION,
@@ -47,7 +55,7 @@ export function getStoredSessionRevision(): string | null {
 
 export function useSessionId(): { sessionId: string | null; resolved: boolean } {
   const sessionId = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const resolved = typeof window !== "undefined";
+  const resolved = useSyncExternalStore(subscribe, getResolvedSnapshot, getServerResolvedSnapshot);
 
   return { sessionId, resolved };
 }

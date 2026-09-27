@@ -23,17 +23,17 @@ import {
   RotateCcw,
   ExternalLink,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
 } from "lucide-react";
 
 type ReportTab = "all" | "patterns" | "paths" | "unknowns" | "experiments";
 
 const REPORT_TABS: Array<{ id: ReportTab; labelLo: string }> = [
   { id: "all", labelLo: "ພາບລວມທັງໝົດ" },
-  { id: "patterns", labelLo: "ຮູບແບບທີ່ພົບ (Patterns)" },
-  { id: "paths", labelLo: "ທິດທາງສຳຫຼວດ (Possible Paths)" },
-  { id: "unknowns", labelLo: "ສິ່ງທີ່ຍັງເປີດກວ້າງ (Unknowns)" },
-  { id: "experiments", labelLo: "ການທົດລອງນ້ອຍໆ (Experiments)" },
+  { id: "patterns", labelLo: "ຮູບແບບທີ່ພົບ" },
+  { id: "paths", labelLo: "ທິດທາງສຳຫຼວດ" },
+  { id: "unknowns", labelLo: "ສິ່ງທີ່ຍັງເປີດກວ້າງ" },
+  { id: "experiments", labelLo: "ການທົດລອງນ້ອຍໆ" },
 ];
 
 export default function ReportPage() {
@@ -50,6 +50,7 @@ export default function ReportPage() {
     return restoreDraft(window.localStorage, sessionId);
   });
   const [showProof, setShowProof] = useState(false);
+  const activeTabLabel = REPORT_TABS.find((tab) => tab.id === activeTab)?.labelLo ?? REPORT_TABS[0].labelLo;
 
   useEffect(() => {
     if (!resolved) return;
@@ -159,19 +160,19 @@ export default function ReportPage() {
     const provText = userDraft["D3"]?.option_codes?.[0] ? optionsMap[userDraft["D3"].option_codes[0]] || userDraft["D3"].option_codes[0] : (report.context_factors.province_code || "ບໍ່ໄດ້ລະບຸ");
     const methodText = report.versions.form === "v4.0.0"
       ? `- ເວີຊັນແບບຄຳຖາມ: v4.0.0 (D1–D3 + Q1–Q28)\n- ຄະແນນ C1–C7: normalize ລາຍຂໍ້ເປັນ 0–1 ຕາມ max_select ແລ້ວສະເລ່ຍ 6 ໝວດດ້ວຍນ້ຳໜັກເທົ່າກັນ\n- Q17: ແຍກ negative penalty ແລະ clamp ຄະແນນ 0–1\n- Q26–Q27: risk willingness; Q28: safety readiness`
-      : `- ເວີຊັນແບບຄຳຖາມ: ${report.versions.form}\n- ຜົນແມ່ນ deterministic Signal Engine ຂອງ PATHAI`;
+      : `- ເວີຊັນແບບຄຳຖາມ: ${report.versions.form}\n- ຜົນແມ່ນການສະທ້ອນຈາກຄຳຕອບຂອງ Next-path`;
 
-    return `# 🧭 ໂປຣໄຟລ໌ສຳຫຼວດຕົນເອງຈາກ PATHAI (Self-Reflection & Pure Evidence Profile)
+    return `# 🧭 ໂປຣໄຟລ໌ສຳຫຼວດຕົນເອງຈາກ Next-path (Self-Reflection & Pure Evidence Profile)
 
 ## 👤 1. ຂໍ້ມູນບໍລິບົດຂອງຜູ້ຕອບ (Context Factors)
 - ອາຍຸ: ${ageText}
 - ລະດັບການສຶກສາ: ${eduText}
 - ແຂວງ: ${provText}
 
-## 📊 2. ຫຼັກຖານຄຳຕອບຕົວຈິງທີ່ສົ່ງເຂົ້າລະບົບຄຳນວນ (Raw Answers Submitted to Backend)
+## 📊 2. ຫຼັກຖານຄຳຕອບຕົວຈິງສຳລັບການສະທ້ອນ
 ${answersSummary || "- ບໍ່ມີຂໍ້ມູນຄຳຕອບລະອຽດ"}
 
-## 🧠 3. ຜົນການວິເຄາະທາງສະຖິຕິຈາກລະບົບ (Signal Engine Diagnostics)
+## 🧠 3. ຜົນການສະທ້ອນຈາກຄຳຕອບ
 **ວິທີການທີ່ລະບົບລະບຸໄວ້ (Method Used):**
 ${methodText}
 
@@ -189,7 +190,7 @@ ${unknownLines || "- ບໍ່ມີ"}
 
 ---
 ## 🤖 4. ຄຳຖາມເຈາະເລິກສຳລັບ AI ພາຍນອກ (Prompt for ChatGPT / Claude / Gemini)
-ຂ້າພະເຈົ້າເປັນໄວໜຸ່ມໃນປະເທດລາວ. ຈາກຂໍ້ມູນຄຳຕອບຕົວຈິງ ແລະ ຜົນວິເຄາະທາງສະຖິຕິຈາກລະບົບ PATHAI ຂ້າງເທິງນີ້, ກະລຸນາຊ່ວຍ:
+ຂ້າພະເຈົ້າເປັນໄວໜຸ່ມໃນປະເທດລາວ. ຈາກຂໍ້ມູນຄຳຕອບຕົວຈິງ ແລະ ຜົນສະທ້ອນຈາກ Next-path ຂ້າງເທິງນີ້, ກະລຸນາຊ່ວຍ:
 1. ກວດວ່າການແປຄຳຕອບ, ການແບ່ງໝວດ, ນ້ຳໜັກ ແລະ normalize ສອດຄ່ອງກັບຄຳຖາມຈິງຫຼືບໍ່; ຊີ້ຈຸດທີ່ອາດຄຳນວນຜິດ.
 2. ວິເຄາະຈຸດເຊື່ອມໂຍງລະຫວ່າງຄຳຕອບຕົວຈິງກັບທິດທາງທີ່ລະບົບແນະນຳໃນບໍລິບົດລາວ.
 3. ແນະນຳ Micro-Experiments 1–2 ຢ່າງ ແລະ ຄຳຖາມທົບທວນ 3 ຂໍ້ ທີ່ເຮັດໄດ້ໃນ 1–2 ອາທິດ ດ້ວຍຕົ້ນທຶນຕ່ຳ.
@@ -227,7 +228,7 @@ ${unknownLines || "- ບໍ່ມີ"}
   };
 
   const handleStartNew = () => {
-    if (window.confirm("ເລີ່ມຕົ້ນການສຳຫຼວດຮອບໃໝ່? ຂໍ້ມູນເກົ່າຈະຖືກລຶບ ແລະ ສ້າງ Session ໃໝ່.")) {
+    if (window.confirm("ເລີ່ມຕົ້ນການສຳຫຼວດຮອບໃໝ່? ຂໍ້ມູນເກົ່າຈະຖືກລຶບ ແລະ ສ້າງການສຳຫຼວດໃໝ່.")) {
       clearSessionId();
       if (typeof window !== "undefined") {
         clearDraft(window.localStorage);
@@ -256,7 +257,7 @@ ${unknownLines || "- ບໍ່ມີ"}
       <main className="flex-1 px-4 py-16 flex items-center justify-center">
         <div className="w-full max-w-xl text-center space-y-4">
           <Loading className="h-48" />
-          <p className="text-sm text-[#7D7565]">ກຳລັງສ້າງບົດສະທ້ອນຄວາມຄິດ...</p>
+          <p className="text-sm text-[#746C5F]">ກຳລັງສ້າງບົດສະທ້ອນຄວາມຄິດ...</p>
         </div>
       </main>
     );
@@ -313,7 +314,7 @@ ${unknownLines || "- ບໍ່ມີ"}
         {/* Narrative Summary Box */}
         <div className="p-6 sm:p-7 rounded-3xl bg-white subtle-border shadow-2xs mt-6">
           <span className="text-xs font-bold uppercase tracking-wider text-[#2D4C3E] block mb-2">
-            ບົດສະຫຼຸບພາບລວມ (Reflection Summary)
+            ບົດສະຫຼຸບພາບລວມ
           </span>
           <p className="text-base sm:text-lg font-medium text-[#1A1E24] leading-relaxed">
             {report.summary_text}
@@ -321,7 +322,7 @@ ${unknownLines || "- ບໍ່ມີ"}
         </div>
 
         {/* Filter Tab Bar */}
-        <div aria-label="ພາກສ່ວນຂອງບົດສະທ້ອນ" className="flex max-w-full gap-2 overflow-x-auto pt-6 pb-1 scrollbar-none">
+        <div role="group" aria-label="ພາກສ່ວນຂອງບົດສະທ້ອນ" className="flex max-w-full gap-2 overflow-x-auto pt-6 pb-1 scrollbar-none">
           {REPORT_TABS.map((tab) => (
             <button
               key={tab.id}
@@ -338,6 +339,9 @@ ${unknownLines || "- ບໍ່ມີ"}
             </button>
           ))}
         </div>
+        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+          ກຳລັງສະແດງ: {activeTabLabel}
+        </p>
       </div>
 
       {/* SECTION 1: OBSERVED PATTERNS */}
@@ -345,7 +349,7 @@ ${unknownLines || "- ບໍ່ມີ"}
         <section className="space-y-4">
           <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#2D4C3E]">
             <Layers className="w-4 h-4" />
-            <span>1. ຮູບແບບຄວາມຄິດ ແລະ ທັກສະທີ່ສັງເກດເຫັນ (Observed Patterns)</span>
+            <span>1. ຮູບແບບຄວາມຄິດ ແລະ ທັກສະທີ່ສັງເກດເຫັນ</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[#171A1F]">
             ຈຸດເຊື່ອມໂຍງລະຫວ່າງ ສິ່ງທີ່ເຈົ້າສົນໃຈ, ວິທີຄິດ ແລະ ສະພາບແວດລ້ອມ
@@ -382,7 +386,7 @@ ${unknownLines || "- ບໍ່ມີ"}
         <section className="space-y-4 pt-4">
           <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#8D5B28]">
             <Compass className="w-4 h-4" />
-            <span>2. ທິດທາງ ແລະ ໂອກາດສຳຫຼວດ (Possible Paths in Laos)</span>
+            <span>2. ທິດທາງ ແລະ ໂອກາດສຳຫຼວດ</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[#171A1F]">
             ທາງເລືອກທີ່ສອດຄ່ອງກັບຈຸດພິເສດຂອງເຈົ້າ
@@ -422,7 +426,7 @@ ${unknownLines || "- ບໍ່ມີ"}
         <section className="space-y-4 pt-4">
           <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#7A3E2D]">
             <HelpCircle className="w-4 h-4" />
-            <span>3. ສິ່ງທີ່ຍັງເປີດກວ້າງ ແລະ ຄຳຖາມປາຍເປີດ (Uncharted Territory)</span>
+            <span>3. ສິ່ງທີ່ຍັງເປີດກວ້າງ ແລະ ຄຳຖາມປາຍເປີດ</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[#171A1F]">
             ສິ່ງທີ່ຍັງບໍ່ຈຳເປັນຕ້ອງມີຄຳຕອບໃນຕອນນີ້
@@ -443,7 +447,7 @@ ${unknownLines || "- ບໍ່ມີ"}
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-[#7D7565]">
+              <p className="text-xs text-[#746C5F]">
                 ບໍ່ມີສິ່ງທີ່ຍັງບໍ່ແນ່ໃຈສະເພາະ
               </p>
             )}
@@ -456,7 +460,7 @@ ${unknownLines || "- ບໍ່ມີ"}
         <section className="space-y-4 pt-4">
           <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#8D5B28]">
             <Sparkles className="w-4 h-4" />
-            <span>4. ການທົດລອງນ້ອຍໆສຳລັບອາທິດນີ້ (Low-Stakes Micro-Experiments)</span>
+            <span>4. ການທົດລອງນ້ອຍໆສຳລັບອາທິດນີ້</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-[#171A1F]">
             ລອງເຮັດສິ່ງເຫຼົ່ານີ້ ໂດຍບໍ່ມີຄວາມກົດດັນ
@@ -502,13 +506,13 @@ ${unknownLines || "- ບໍ່ມີ"}
           <div className="space-y-2">
             <div className="inline-flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#B5AEA0]">
               <Bot className="w-4 h-4 text-[#8D5B28]" />
-              <span>1-Click AI Prompt Export (ພ້ອມຫຼັກຖານຕົວຈິງ)</span>
+              <span>ນຳບົດສະທ້ອນໄປປຶກສາ AI (ພ້ອມຫຼັກຖານຕົວຈິງ)</span>
             </div>
             <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
               ນຳບົດສະທ້ອນ ແລະ ຫຼັກຖານຄຳຕອບ ໄປປຶກສາ AI ອື່ນ
             </h3>
             <p className="text-xs sm:text-sm text-[#BDB7A9] max-w-2xl leading-relaxed">
-              ລະບົບຮວບຮວມຄຳຕອບຕົວຈິງ, ຜົນສະທ້ອນ ແລະ ວິທີຄຳນວນ ເປັນ Prompt ທີ່ໂປ່ງໃສ ເພື່ອນຳໄປຖາມ ChatGPT, Claude ຫຼື Gemini ຕໍ່.
+              ລະບົບຮວບຮວມຄຳຕອບຕົວຈິງ ແລະ ຜົນສະທ້ອນ ເປັນຂໍ້ຄວາມສຳລັບນຳໄປປຶກສາ ChatGPT, Claude ຫຼື Gemini ຕໍ່.
             </p>
           </div>
         </div>
@@ -527,12 +531,12 @@ ${unknownLines || "- ບໍ່ມີ"}
             {copiedPrompt ? (
               <>
                 <Check className="w-5 h-5 text-[#85E3B3]" />
-                <span>ຄັດລອກ Master Prompt ສຳເລັດແລ້ວ! ✓ (Paste ຖາມ AI ໄດ້ເລີຍ)</span>
+              <span>ຄັດລອກຂໍ້ຄວາມສຳເລັດແລ້ວ! (ນຳໄປວາງຖາມ AI ໄດ້ເລີຍ)</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-5 h-5 text-[#8D5B28]" />
-                <span>ຄັດລອກ Prompt ພ້ອມຫຼັກຖານ ໄປຖາມ AI ຕໍ່</span>
+                <span>ຄັດລອກຂໍ້ຄວາມພ້ອມຫຼັກຖານ ໄປຖາມ AI ຕໍ່</span>
               </>
             )}
           </button>
@@ -544,7 +548,7 @@ ${unknownLines || "- ບໍ່ມີ"}
             className="px-5 py-4 rounded-2xl bg-[#2A3038] text-white border border-[#424A54] font-medium text-xs sm:text-sm hover:bg-[#343C46] transition-all flex items-center justify-center space-x-2 cursor-pointer"
           >
             <Download className="w-4 h-4 text-[#B5AEA0]" />
-            <span>{downloading ? "ກຳລັງດາວໂຫຼດ..." : "ດາວໂຫຼດ JSON"}</span>
+            <span>{downloading ? "ກຳລັງດາວໂຫຼດ..." : "ດາວໂຫຼດຂໍ້ມູນບົດສະທ້ອນ"}</span>
           </button>
         </div>
 
@@ -582,11 +586,11 @@ ${unknownLines || "- ບໍ່ມີ"}
 
         <div className="rounded-2xl border border-[#4A515B] bg-[#252B32] px-4 py-3 text-xs leading-relaxed text-[#D8D2C8]" role="note">
           <p className="font-semibold text-white">ວິທີໃຊ້:</p>
-          <p className="mt-1">1) ກົດຄັດລອກ Prompt  2) ເປີດ AI ທີ່ຕ້ອງການ  3) ກົດວາງ  4) ອ່ານຄຳຕອບຢ່າງມີວິຈາລະນາ.</p>
-          <p className="mt-1 text-[#F0C98B]">Prompt ອາດມີຄຳຕອບ ແລະ ບໍລິບົດຂອງທ່ານ. ກວດເນື້ອຫາກ່ອນສົ່ງໃຫ້ AI ພາຍນອກ.</p>
+          <p className="mt-1">1) ກົດຄັດລອກຂໍ້ຄວາມ  2) ເປີດ AI ທີ່ຕ້ອງການ  3) ກົດວາງ  4) ອ່ານຄຳຕອບຢ່າງມີວິຈາລະນາ.</p>
+          <p className="mt-1 text-[#F0C98B]">ຂໍ້ຄວາມອາດມີຄຳຕອບ ແລະ ບໍລິບົດຂອງທ່ານ. ກວດເນື້ອຫາກ່ອນສົ່ງໃຫ້ AI ພາຍນອກ.</p>
         </div>
 
-        {/* TRANSPARENCY & CALCULATION PROOF ACCORDION */}
+        {/* Optional supporting information accordion */}
         <div className="pt-4 border-t border-[#313842]">
           <button
             type="button"
@@ -597,7 +601,7 @@ ${unknownLines || "- ບໍ່ມີ"}
           >
             {showProof ? <ChevronUp className="w-4 h-4 text-[#8D5B28]" /> : <ChevronDown className="w-4 h-4 text-[#8D5B28]" />}
             <span className="font-semibold">
-              {showProof ? "ເຊື່ອງຫຼັກຖານຄຳຕອບທີ່ນຳໄປຄຳນວນ" : "🔍 ກວດເບິ່ງຫຼັກຖານຄຳຕອບທີ່ສົ່ງເຂົ້າຄຳນວນຕົວຈິງ (Calculation Proof & Raw Data)"}
+              {showProof ? "ເຊື່ອງຂໍ້ມູນປະກອບ" : "ເບິ່ງຂໍ້ມູນປະກອບທີ່ນຳໄປສະທ້ອນ"}
             </span>
           </button>
 
@@ -619,7 +623,7 @@ ${unknownLines || "- ບໍ່ມີ"}
           className="px-6 py-3 rounded-xl bg-[#2D4C3E] hover:bg-[#22392F] text-white font-medium text-xs sm:text-sm transition-all flex items-center space-x-2 cursor-pointer shadow-xs"
         >
           <RotateCcw className="w-4 h-4" />
-          <span>ເລີ່ມຕົ້ນການສຳຫຼວດຮອບໃໝ່ (Start New)</span>
+          <span>ເລີ່ມຕົ້ນການສຳຫຼວດຮອບໃໝ່</span>
         </button>
 
         <button
@@ -627,7 +631,7 @@ ${unknownLines || "- ບໍ່ມີ"}
           onClick={() => router.push("/feedback")}
           className="text-xs text-[#7A7365] hover:text-[#1D2229] underline transition-colors cursor-pointer"
         >
-          ຕ້ອງການໃຫ້ຄຳເຫັນກ່ຽວກັບລະບົບ Next-path (Feedback)
+          ຕ້ອງການໃຫ້ຄຳເຫັນກ່ຽວກັບລະບົບ Next-path
         </button>
       </div>
     </div>

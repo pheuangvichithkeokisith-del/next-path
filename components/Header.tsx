@@ -36,7 +36,7 @@ export default function Header() {
             <span className="truncate text-lg sm:text-2xl font-bold tracking-tight text-[#1A1E24] group-hover:text-[#2D4C3E] transition-colors">
               Next-path
             </span>
-            <span className="hidden sm:inline-block text-xs uppercase tracking-widest text-[#7D7565] font-medium pl-2 border-l border-[#DCD7CB]">
+            <span className="hidden sm:inline-block text-xs uppercase tracking-widest text-[#746C5F] font-medium pl-2 border-l border-[#DCD7CB]">
               ພື້ນທີ່ສຳຫຼວດຕົນເອງ
             </span>
           </Link>

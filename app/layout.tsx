@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="lo" className={`h-full ${notoSansLao.className} ${notoSansLaoLooped.variable}`}>
+    <html lang="lo" data-scroll-behavior="smooth" className={`h-full ${notoSansLao.className} ${notoSansLaoLooped.variable}`}>
       <body className="min-h-full flex flex-col bg-[#F9F8F5] text-[#1A1E24] selection:bg-[#EAE6DC] selection:text-[#1D2229]">
         <a className="skip-link" href="#main-content">
           ໄປຫາເນື້ອຫາຫຼັກ
@@ -47,7 +47,7 @@ export default function RootLayout({
             </div>
 
             <div className="text-[11px] text-[#938A7A]">
-              ບໍ່ຮ້ອງຂໍຊື່ ຫຼື ອີເມວ • ໃຊ້ Session ແບບບໍ່ລະບຸຕົວຕົນ
+              ບໍ່ຮ້ອງຂໍຊື່ ຫຼື ອີເມວ • ໃຊ້ການເຂົ້າໃຊ້ງານແບບບໍ່ລະບຸຕົວຕົນ
             </div>
           </div>
         </footer>

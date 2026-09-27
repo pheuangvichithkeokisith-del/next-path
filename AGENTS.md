@@ -16,6 +16,18 @@
 4. **AI Prompt Integration:** Generate clean markdown prompt exports for youth to consult external AI (ChatGPT, Claude, Gemini).
 5. **Never break:** Q1–Q28 questionnaire data, D1–D3 demographics, backend API endpoints, or DS engine logic.
 
+## Frontend Brand Boundary (2026-09-26)
+- User-facing frontend wording uses `Next-path`; remove old brand and developer-facing labels from visible UI where appropriate.
+- Keep the frontend AI prompt flow and report behavior working, but use plain Lao labels for buttons and sections instead of terms such as JSON, Backend, Signal Engine, or Calculation Proof.
+- This pass is frontend-only. Do not change backend endpoints, backend export headers/filenames, storage keys, form versions, scoring identifiers, or legacy questionnaire data without a separate migration decision.
+- Backend technical routes (`/docs`, `/redoc`, and OpenAPI) and backend `PATHAI` identifiers remain unchanged and are documented as internal/backend scope.
+
+## QA and Build Boundary (2026-09-26)
+- Frontend report deduplication is implemented in `api/report.ts` and `app/processing/page.tsx`; it prevents duplicate report requests caused by repeated React effects or competing navigation paths in one browser tab.
+- The standard frontend build command is `npm run build` → `next build --webpack` because Turbopack process/port creation is restricted in the current test environment.
+- Backend pytest uses an isolated temporary SQLite database and initializes tables before each test; the full suite passed 71 tests when run outside the sandbox.
+- Backend report creation now handles the independent-tab/client race: a concurrent unique collision is rolled back and the already-committed report is reused. Regression coverage lives in `backend/tests/test_report_concurrency.py`. Do not change questionnaire data, scoring, API contracts, or session behavior while maintaining this path.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

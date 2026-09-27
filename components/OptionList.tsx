@@ -10,6 +10,7 @@ export type OptionListProps = {
   otherText: string | null;
   onCodesChange: (codes: string[]) => void;
   onOtherTextChange: (value: string | null) => void;
+  validationMessage?: string;
 };
 
 export function nextSelection(
@@ -56,20 +57,29 @@ export default function OptionList({
   otherText,
   onCodesChange,
   onOtherTextChange,
+  validationMessage,
 }: OptionListProps) {
   const options = item.options ?? [];
+  const describedBy = [
+    item.type === "multi" ? `${item.id}-selection-help` : null,
+    validationMessage ? `${item.id}-validation` : null,
+  ].filter(Boolean).join(" ") || undefined;
 
   function toggle(code: string): void {
     onCodesChange(nextSelection(item, selectedCodes, code));
   }
 
   return (
-    <fieldset className="mt-4 space-y-2.5">
+    <fieldset
+      aria-labelledby={`${item.id}-heading`}
+      aria-describedby={describedBy}
+      className="mt-4 space-y-2.5"
+    >
       <legend className="sr-only">{item.stem}</legend>
 
       {/* Helper text for multi-select */}
       {item.type === "multi" ? (
-        <p id={`${item.id}-selection-help`} className="text-xs text-[#7D7565] font-medium mb-2">
+        <p id={`${item.id}-selection-help`} className="text-xs text-[#746C5F] font-medium mb-2">
           {item.max_select
             ? `(ເລືອກໄດ້ສູງສຸດ ${item.max_select} ຂໍ້${
                 item.min_select ? `, ຢ່າງໜ້ອຍ ${item.min_select} ຂໍ້` : ""
@@ -112,7 +122,8 @@ export default function OptionList({
                 disabled={disabled}
                 onChange={() => toggle(option.code)}
                 className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2D4C3E] disabled:cursor-not-allowed"
-                aria-describedby={item.type === "multi" ? `${item.id}-selection-help` : undefined}
+                aria-describedby={describedBy}
+                aria-invalid={validationMessage ? true : undefined}
               />
               <div className="pr-3 flex-1">
                 <span className="text-sm sm:text-base font-medium leading-relaxed block">
@@ -139,11 +150,14 @@ export default function OptionList({
         .filter((option) => option.has_other && selectedCodes.includes(option.code))
         .map((option) => (
           <div key={`${option.code}-other`} className="pt-2">
-            <label className="block text-xs font-semibold text-[#6D6353] mb-1.5">
+            <label htmlFor={`${item.id}-${option.code}-other`} className="block text-xs font-semibold text-[#6D6353] mb-1.5">
               ກະລຸນາລະບຸເພີ່ມເຕີມ:
             </label>
             <input
-              className="min-h-[46px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
+              id={`${item.id}-${option.code}-other`}
+              aria-describedby={validationMessage ? `${item.id}-validation` : undefined}
+              aria-invalid={validationMessage ? true : undefined}
+              className="min-h-[46px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm text-[#1A1E24] placeholder:text-[#746C5F] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
               onChange={(event) => onOtherTextChange(event.target.value)}
               placeholder="ພິມຄຳຕອບຂອງທ່ານທີ່ນີ້..."
               type="text"

@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-26 | Assessment completion issue visibility fix committed as `bf1c55b` and pushed to `origin/main`
+**Updated:** 2026-09-26 | Recorded user-reported generic retry error for follow-up diagnosis
 
 ---
 
@@ -88,6 +88,13 @@ npm run build                                      # Production build verificati
 ---
 
 ## 6. 📅 Session Logs
+
+### Follow-up — Generic Error Banner Seen During Web Check (2026-09-26)
+
+- User reported seeing the Next-path navigation followed by the generic banner: “ເກີດຂໍ້ຜິດພາດບາງຢ່າງ — ຂໍ້ມູນຂອງທ່ານຍັງຢູ່ຄົບ ລອງໃໝ່ອີກເທື່ອ” and a “ລອງໃໝ່” button.
+- The exact failing route, request, and trigger are not yet known. `ErrorBanner` is shared by Assessment, Processing, Report, Feedback, and Introduction, so the banner text alone does not identify the failing subsystem.
+- User asked to save this for a later debugging/fix session. At that time, reproduce with the same browser/session and inspect the failing route, browser console/network response, and backend logs before changing code.
+- No code change or root-cause claim was made for this report.
 
 ### Session 2026-09-26 — Assessment Completion Error Discovery
 
@@ -424,3 +431,21 @@ GET  /health                                  → Backend health check (NOT /api
 - **Tests/docs/history:** มี test assertions ที่คาดหวัง `PATHAI Reflection Report`, module/import labels และเอกสารสเปก/รีวิวย้อนหลัง. ปรับ tests ตามเมื่อ output ตั้งใจเปลี่ยน; คงชื่อเดิมในเอกสาร historical/versioned ที่บันทึกบริบทของช่วงเวลานั้น
 
 **Recommended rollout:** เริ่มจาก user-facing strings และ report branding โดยคง storage keys, backend/database identifiers, API metadata และ scoring/import identifiers เดิมไว้ก่อน; แยกงาน migration สำหรับ identifiers ที่เชื่อมกับข้อมูลหรือ deployment. ความเสี่ยงหลักของ brand-only pass ต่ำ; ความเสี่ยงต่อข้อมูลเกิดเมื่อเปลี่ยน localStorage keys หรือ database identifiers โดยไม่มี compatibility/migration.
+
+### Session 2026-09-26 — Frontend Brand and Technical-UI Cleanup
+
+**✅ Completed:**
+- Updated frontend-facing brand/copy from `PATHAI` to `Next-path` where it was still exposed through shared copy and the AI prompt export.
+- Reworded visible Report actions and the optional evidence accordion in plain Lao so users do not see developer terms such as JSON, Backend, Signal Engine, or Calculation Proof in the normal UI.
+- Kept the AI prompt generation flow, report behavior, questionnaire data, and frontend API calls intact.
+
+**Backend boundary:** No backend code, endpoint, export header/filename, storage key, form version, scoring identifier, or legacy questionnaire data was changed in this pass. Backend technical routes (`/docs`, `/redoc`, OpenAPI) and remaining `PATHAI` backend identifiers remain internal scope and are intentionally recorded for a separate decision.
+
+### Session 2026-09-26 — Build and Regression Harness Stabilization
+
+**✅ Completed:**
+- Updated `package.json` so the normal `npm run build` command uses `next build --webpack`; the production build completes all 9 app routes.
+- Updated `backend/tests/conftest.py` to use an isolated temporary SQLite database when no `DATABASE_URL` is supplied, initialize tables before each test, and dispose the async engine after each test.
+- Confirmed the full backend regression suite passes: **71 tests passed**.
+
+**Backend concurrency protection:** The frontend deduplicates report requests within a browser tab, and `backend/app/services/report_service.py` now also handles independent-tab/client races. If concurrent report creation hits the unique `reports.session_id` constraint, the losing request rolls back and reuses the committed report. Regression coverage is in `backend/tests/test_report_concurrency.py`; questionnaire data, scoring, API contracts, and session behavior remain unchanged.

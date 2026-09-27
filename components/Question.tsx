@@ -13,12 +13,17 @@ export type QuestionProps = {
 
 export default function Question({ item, answer, onChange, validationMessage }: QuestionProps) {
   const isDemographic = item.id.startsWith("D");
+  const headingId = `${item.id}-heading`;
+  const validationId = `${item.id}-validation`;
+  const hasValidation = Boolean(validationMessage);
 
   return (
     <div
       id={`question-${item.id}`}
-      tabIndex={validationMessage ? -1 : undefined}
-      className={validationMessage
+      aria-labelledby={headingId}
+      aria-describedby={hasValidation ? validationId : undefined}
+      tabIndex={hasValidation ? -1 : undefined}
+      className={hasValidation
         ? "scroll-mt-32 p-5 sm:p-7 rounded-2xl bg-white border-2 border-[#C7836F] shadow-[0_0_0_4px_rgba(199,131,111,0.12)]"
         : "scroll-mt-32 p-5 sm:p-7 rounded-2xl bg-white subtle-border transition-shadow duration-200 hover:shadow-2xs"}
     >
@@ -36,14 +41,13 @@ export default function Question({ item, answer, onChange, validationMessage }: 
       </div>
 
       {/* Main Question Stem */}
-      <h3 className="text-base sm:text-lg font-bold leading-snug text-[#171A1F] mt-1">
+      <h3 id={headingId} className="text-base sm:text-lg font-bold leading-snug text-[#171A1F] mt-1">
         {item.stem}
       </h3>
 
-      {validationMessage ? (
+      {hasValidation ? (
         <p
-          id={item.id + "-validation"}
-          role="alert"
+          id={validationId}
           className="mt-3 rounded-lg bg-[#FFF1ED] px-3 py-2 text-xs font-semibold leading-relaxed text-[#7A3E2D]"
         >
           {validationMessage}
@@ -66,7 +70,8 @@ export default function Question({ item, answer, onChange, validationMessage }: 
           <select
             id="province-select"
             name="province"
-            aria-describedby="province-help"
+            aria-describedby={["province-help", hasValidation ? validationId : null].filter(Boolean).join(" ") || undefined}
+            aria-invalid={hasValidation}
             className="province-select font-lao min-h-[50px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm sm:text-base text-[#1A1E24] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition cursor-pointer"
             onChange={(event) => onChange({ option_codes: event.target.value ? [event.target.value] : [] })}
             value={answer.option_codes[0] ?? ""}
@@ -80,7 +85,7 @@ export default function Question({ item, answer, onChange, validationMessage }: 
               </option>
             ))}
           </select>
-          <p id="province-help" className="text-xs text-[#7D7565]">
+          <p id="province-help" className="text-xs text-[#746C5F]">
             ເລື່ອນເບິ່ງລາຍຊື່ ຫຼື ພິມຕົວອັກສອນເພື່ອຄົ້ນຫາໄວຂຶ້ນ.
           </p>
         </div>
@@ -92,7 +97,9 @@ export default function Question({ item, answer, onChange, validationMessage }: 
           <input
             id={`${item.id}-text`}
             name={item.id}
-            className="min-h-[48px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm sm:text-base text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
+            aria-describedby={hasValidation ? validationId : undefined}
+            aria-invalid={hasValidation}
+            className="min-h-[48px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm sm:text-base text-[#1A1E24] placeholder:text-[#746C5F] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
             onChange={(event) => onChange({ text_value: event.target.value })}
             placeholder="ພິມຄຳຕອບຂອງທ່ານ..."
             type="text"
@@ -106,17 +113,21 @@ export default function Question({ item, answer, onChange, validationMessage }: 
           onOtherTextChange={(other_text) => onChange({ other_text })}
           otherText={answer.other_text}
           selectedCodes={answer.option_codes}
+          validationMessage={validationMessage}
         />
       )}
 
       {/* Optional extra text input (e.g. Q7) */}
       {item.extra_text ? (
         <div className="mt-4 pt-3 border-t border-[#F4F1EA]">
-          <label className="block text-xs font-semibold text-[#797061] mb-1.5">
+          <label htmlFor={`${item.id}-extra-text`} className="block text-xs font-semibold text-[#797061] mb-1.5">
             {item.extra_text.placeholder || "ເລົ່າສັ້ນໆ (ບໍ່ບັງຄັບ):"}
           </label>
           <input
-            className="min-h-[46px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm text-[#1A1E24] placeholder:text-[#A0988A] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
+            id={`${item.id}-extra-text`}
+            aria-describedby={hasValidation ? validationId : undefined}
+            aria-invalid={hasValidation}
+            className="min-h-[46px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm text-[#1A1E24] placeholder:text-[#746C5F] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
             onChange={(event) => onChange({ extra_text: event.target.value })}
             placeholder={item.extra_text.placeholder}
             type="text"

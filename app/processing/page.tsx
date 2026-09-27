@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isSessionNotFound } from "@/api/errors";
 import { getSessionStatus } from "@/api/session";
@@ -25,6 +25,7 @@ export default function ProcessingPage() {
   const [phase, setPhase] = useState<number>(1);
   const [selectedNode, setSelectedNode] = useState<SpatialNode | null>(null);
   const [readyToProceed, setReadyToProceed] = useState(false);
+  const reportNavigationStarted = useRef<string | null>(null);
 
   const nodes: SpatialNode[] = [
     // Cluster 1: Daily Rhythms & Energy
@@ -150,6 +151,11 @@ export default function ProcessingPage() {
 
     let active = true;
     let timer: number | undefined;
+    const openReportOnce = () => {
+      if (!active || reportNavigationStarted.current === sessionId) return;
+      reportNavigationStarted.current = sessionId;
+      router.replace("/report");
+    };
 
     const poll = () => {
       getSessionStatus(sessionId)
@@ -159,7 +165,7 @@ export default function ProcessingPage() {
             setReadyToProceed(true);
             // Smooth short pause before auto transition
             timer = window.setTimeout(() => {
-              if (active) router.replace("/report");
+              openReportOnce();
             }, 3000);
           } else if (status === "failed") {
             setHasError(true);
@@ -187,12 +193,13 @@ export default function ProcessingPage() {
   }, [retryToken, router, resolved, sessionId]);
 
   const handleOpenReport = () => {
-    if (!readyToProceed) return;
+    if (!readyToProceed || !sessionId || reportNavigationStarted.current === sessionId) return;
+    reportNavigationStarted.current = sessionId;
     router.replace("/report");
   };
 
   return (
-    <main aria-labelledby="processing-heading" className="w-full min-h-[calc(100vh-8rem)] flex flex-col justify-between py-10 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+    <main aria-labelledby="processing-heading" aria-busy={!readyToProceed && !hasError} className="w-full min-h-[calc(100vh-8rem)] flex flex-col justify-between py-10 sm:py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
       {/* Title & Atmosphere */}
       <div className="text-center max-w-2xl mx-auto mb-6">
         <span className="text-xs font-bold uppercase tracking-widest text-[#796F5F] block mb-1.5">
@@ -207,7 +214,8 @@ export default function ProcessingPage() {
       </div>
 
       {/* Spatial Connection Map */}
-      <div aria-label="ແຜນທີ່ການເຊື່ອມໂຍງຮູບແບບຄຳຕອບ" className="relative w-full min-h-[30rem] sm:min-h-0 aspect-4/3 sm:aspect-16/9 bg-white subtle-border rounded-3xl p-6 sm:p-10 shadow-xs overflow-hidden my-4">
+      <section aria-labelledby="processing-map-heading" className="relative w-full min-h-[30rem] sm:min-h-0 aspect-4/3 sm:aspect-16/9 bg-white subtle-border rounded-3xl p-6 sm:p-10 shadow-xs overflow-hidden my-4">
+        <h2 id="processing-map-heading" className="sr-only">ແຜນທີ່ການເຊື່ອມໂຍງຮູບແບບຄຳຕອບ</h2>
         {/* SVG Relationship Lines */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#E0DBD0] transition-opacity duration-1000">
           {phase >= 2 &&
@@ -232,16 +240,16 @@ export default function ProcessingPage() {
         </svg>
 
         {/* 4 Thematic Region Labels */}
-        <div className="absolute top-4 left-6 text-[11px] font-bold tracking-wider text-[#9E9585] uppercase">
+        <div className="absolute top-4 left-6 text-[11px] font-bold tracking-wider text-[#736A5B] uppercase">
           1. ຈັງຫວະ & ການພັກຜ່ອນ
         </div>
-        <div className="absolute top-4 right-6 text-[11px] font-bold tracking-wider text-[#9E9585] uppercase text-right">
+        <div className="absolute top-4 right-6 text-[11px] font-bold tracking-wider text-[#736A5B] uppercase text-right">
           2. ວັດສະດຸ & ການແກ້ໄຂ
         </div>
-        <div className="absolute bottom-4 left-6 text-[11px] font-bold tracking-wider text-[#9E9585] uppercase">
+        <div className="absolute bottom-4 left-6 text-[11px] font-bold tracking-wider text-[#736A5B] uppercase">
           3. ຄອບຄົວ & ບ້ານເກີດ
         </div>
-        <div className="absolute bottom-4 right-6 text-[11px] font-bold tracking-wider text-[#9E9585] uppercase text-right">
+        <div className="absolute bottom-4 right-6 text-[11px] font-bold tracking-wider text-[#736A5B] uppercase text-right">
           4. ຄວາມລັງເລ & ຂອບຟ້າ
         </div>
 
@@ -256,7 +264,7 @@ export default function ProcessingPage() {
               key={node.id}
               onClick={() => setSelectedNode(node)}
               style={{ left: `${node.x}%`, top: `${node.y}%` }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group transition-all duration-500 bg-transparent border-0 p-0 text-left"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group transition-all duration-500 bg-transparent border-0 p-1 text-left"
             >
               <div
                 className={`processing-node-label max-w-[9rem] px-3 py-1.5 rounded-full text-xs font-medium subtle-border whitespace-normal shadow-2xs flex items-center space-x-1.5 transition-all ${
@@ -291,11 +299,11 @@ export default function ProcessingPage() {
             </p>
           </div>
         )}
-      </div>
+      </section>
 
       {/* Progress & Next Step Action */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 subtle-border-t">
-        <div className="flex items-center space-x-2 text-xs text-[#6B6252]">
+        <div role="status" aria-live="polite" aria-atomic="true" className="flex items-center space-x-2 text-xs text-[#6B6252]">
           <CheckCircle2 className="w-4 h-4 text-[#2D4C3E]" />
           <span>
             {readyToProceed
@@ -307,7 +315,6 @@ export default function ProcessingPage() {
         <button
           onClick={handleOpenReport}
           disabled={!readyToProceed}
-          aria-disabled={!readyToProceed}
           className={`min-h-12 px-6 py-3 rounded-xl font-medium transition-all flex items-center justify-center space-x-2 shadow-xs text-xs sm:text-sm ${
             readyToProceed
               ? "bg-[#2D4C3E] hover:bg-[#21382E] text-white cursor-pointer"
@@ -316,7 +323,7 @@ export default function ProcessingPage() {
         >
           <span>
             {readyToProceed
-              ? "ເປີດເບິ່ງບົດສະທ້ອນ (Open Reflection)"
+              ? "ເປີດເບິ່ງບົດສະທ້ອນ"
               : "ກຳລັງກວດສອບຜົນ..."}
           </span>
           <ArrowRight className="w-4 h-4" />

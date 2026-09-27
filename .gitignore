@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# Local environment files; keep safe example templates visible to Git.
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -50,4 +51,3 @@ backend/.venv/
 backend/.pytest_cache/
 *.db
 *.sqlite3
-

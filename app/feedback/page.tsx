@@ -87,6 +87,7 @@ export default function FeedbackPage() {
         <div>
           <button
             onClick={() => router.back()}
+            type="button"
             className="inline-flex items-center space-x-1.5 text-xs text-[#7A7365] hover:text-[#171A1F] mb-4 transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -94,7 +95,7 @@ export default function FeedbackPage() {
           </button>
 
           <h1 id="feedback-heading" className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171A1F]">
-            ໃຫ້ຄຳເຫັນກ່ຽວກັບລະບົບ (Feedback)
+            ໃຫ້ຄຳເຫັນກ່ຽວກັບລະບົບ
           </h1>
           <p className="mt-1.5 text-xs sm:text-sm text-[#6A6357] leading-relaxed">
             ບອກຄວາມຮູ້ສຶກ ແລະ ຄວາມຄິດເຫັນຂອງທ່ານກ່ຽວກັບຜົນສະທ້ອນທີ່ໄດ້ຮັບ.
@@ -103,10 +104,10 @@ export default function FeedbackPage() {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Question 1: Agreement */}
-          <div className="surface-panel p-5 sm:p-6 space-y-3">
-            <label className="block text-sm sm:text-base font-bold text-[#171A1F]">
+          <fieldset className="surface-panel p-5 sm:p-6 space-y-3">
+            <legend className="block text-sm sm:text-base font-bold text-[#171A1F]">
               1. ທ່ານຮູ້ສຶກວ່າຜົນສະທ້ອນກົງກັບຕົວທ່ານຫຼືບໍ່? <span className="text-[#8A4F3E]">*</span>
-            </label>
+            </legend>
 
             <div className="grid grid-cols-3 gap-2.5 pt-1">
               {[
@@ -120,6 +121,7 @@ export default function FeedbackPage() {
                     key={opt.value}
                     type="button"
                     onClick={() => setAgreement(opt.value as FeedbackAgreement)}
+                    aria-pressed={isSelected}
                     className={`min-h-12 rounded-xl border px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold transition cursor-pointer text-center flex items-center justify-center select-none ${
                       isSelected
                         ? "bg-[#2D4C3E] text-white border-[#2D4C3E] shadow-2xs"
@@ -131,14 +133,16 @@ export default function FeedbackPage() {
                 );
               })}
             </div>
-          </div>
+          </fieldset>
 
           {/* Question 2: Incorrect note */}
           <div className="surface-panel p-5 sm:p-6 space-y-2">
-            <label className="block text-xs sm:text-sm font-bold text-[#171A1F]">
+            <label htmlFor="feedback-incorrect-note" className="block text-xs sm:text-sm font-bold text-[#171A1F]">
               2. ມີຈຸດໃດທີ່ທ່ານຮູ້ສຶກວ່າຍັງບໍ່ຄ່ອຍຖືກຕ້ອງ? (ຖ້າມີ)
             </label>
             <textarea
+              id="feedback-incorrect-note"
+              name="incorrect_note"
               className="input-calm w-full min-h-[7rem] resize-y text-sm"
               onChange={(e) => setIncorrectNote(e.target.value)}
               placeholder="ຕົວຢ່າງ: ຮູ້ສຶກວ່າດ້ານຄວາມສົນໃຈບາງຢ່າງຍັງບໍ່ຄ່ອຍກົງ..."
@@ -148,10 +152,12 @@ export default function FeedbackPage() {
 
           {/* Question 3: Next interest */}
           <div className="surface-panel p-5 sm:p-6 space-y-2">
-            <label className="block text-xs sm:text-sm font-bold text-[#171A1F]">
+            <label htmlFor="feedback-next-interest" className="block text-xs sm:text-sm font-bold text-[#171A1F]">
               3. ທ່ານຢາກໃຫ້ລະບົບຊ່ວຍແນະນຳຫຍັງຕື່ມອີກໃນອະນາຄົດ?
             </label>
             <textarea
+              id="feedback-next-interest"
+              name="next_interest"
               className="input-calm w-full min-h-[7rem] resize-y text-sm"
               onChange={(e) => setNextInterest(e.target.value)}
               placeholder="ຕົວຢ່າງ: ຢາກຮູ້ວິທີຝຶກທັກສະເທັກໂນໂລຊີ ຫຼື ທຶນການສຶກສາ..."

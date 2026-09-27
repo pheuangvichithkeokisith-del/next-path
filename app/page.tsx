@@ -111,7 +111,7 @@ export default function LandingPage() {
     {
       id: 2,
       titleLo: "2. ທັກສະ (Skills)",
-      descLo: "ຈຸດແຂງທີ່ຄົນອື່ນຊົມเชย ແລະ ສິ່ງທີ່ເຄີຍເຮັດຈົນພູມໃຈ",
+      descLo: "ຈຸດແຂງທີ່ຄົນອື່ນຊົມເຊີຍ ແລະ ສິ່ງທີ່ເຄີຍເຮັດຈົນພູມໃຈ",
       icon: Sparkles,
       color: "text-[#8D5B28]",
       bg: "bg-[#F7EFE3]",
@@ -227,7 +227,7 @@ export default function LandingPage() {
             </button>
           )}
 
-          <span className="text-xs text-[#7D7565] text-center sm:text-left">
+          <span className="text-xs text-[#746C5F] text-center sm:text-left">
             ຕອບແບບຕໍ່ເນື່ອງ 28 ຂໍ້ · ບັນທຶກອັດຕະໂນມັດ
           </span>
         </div>

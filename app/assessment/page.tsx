@@ -47,6 +47,11 @@ function emptyAnswer(): DraftAnswer {
   };
 }
 
+function getScrollBehavior(): ScrollBehavior {
+  if (typeof window === "undefined") return "auto";
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+}
+
 function isAnswered(item: FormItem, answer: DraftAnswer | undefined): boolean {
   if (!answer) return false;
   if (item.type === "text") {
@@ -381,15 +386,19 @@ export default function AssessmentPage() {
 
   const scrollToQuestion = (questionId: string) => {
     const question = document.getElementById("question-" + questionId);
-    question?.scrollIntoView({ behavior: "smooth", block: "center" });
-    window.setTimeout(() => question?.focus({ preventScroll: true }), 350);
+    if (!question) return;
+    question.focus({ preventScroll: true });
+    question.scrollIntoView({ behavior: getScrollBehavior(), block: "center" });
   };
 
   const handleComplete = async () => {
     if (!completionStatus.isReady) {
       setShowValidationNotice(true);
       requestAnimationFrame(() => {
-        validationNoticeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        const notice = validationNoticeRef.current;
+        if (!notice) return;
+        notice.scrollIntoView({ behavior: getScrollBehavior(), block: "center" });
+        notice.focus({ preventScroll: true });
       });
       return;
     }
@@ -438,7 +447,7 @@ export default function AssessmentPage() {
       <main className="flex-1 px-4 py-16 flex items-center justify-center">
         <div className="w-full max-w-xl text-center space-y-4">
           <Loading className="h-48" />
-          <p className="text-sm text-[#7D7565]">ກຳລັງໂຫລດແບບສຳຫຼວດ...</p>
+          <p className="text-sm text-[#746C5F]">ກຳລັງໂຫລດແບບສຳຫຼວດ...</p>
         </div>
       </main>
     );
@@ -447,8 +456,9 @@ export default function AssessmentPage() {
   return (
     <div className="w-full pb-20">
       {/* Sticky Progress & Navigation Bar */}
-      <div aria-label="ຄວາມຄືບໜ້າການສຳຫຼວດ" className="sticky top-16 z-30 bg-[#F9F8F5]/95 backdrop-blur-md subtle-border-b py-3.5 px-4 sm:px-6 shadow-2xs">
+      <section aria-labelledby="assessment-progress-heading" className="sticky top-16 z-30 bg-[#F9F8F5]/95 backdrop-blur-md subtle-border-b py-3.5 px-4 sm:px-6 shadow-2xs">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+          <h2 id="assessment-progress-heading" className="sr-only">ຄວາມຄືບໜ້າການສຳຫຼວດ</h2>
           <div className="flex items-center space-x-3">
             <span className="text-xs sm:text-sm font-bold text-[#1D2229]">
               ຕອບແລ້ວ {answeredQCount} / {totalQuestions} ຂໍ້
@@ -484,7 +494,7 @@ export default function AssessmentPage() {
             )}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Main Continuous Form Content */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-14">
@@ -492,7 +502,7 @@ export default function AssessmentPage() {
 
         {/* Intro Banner */}
         <div className="text-center max-w-xl mx-auto pb-4">
-          <span className="text-xs font-bold uppercase tracking-widest text-[#7D7565] block mb-1.5">
+          <span className="text-xs font-bold uppercase tracking-widest text-[#746C5F] block mb-1.5">
             ການສຳຫຼວດແບບຕໍ່ເນື່ອງ
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-[#171A1F] tracking-tight">
@@ -506,11 +516,13 @@ export default function AssessmentPage() {
         {showValidationNotice ? (
           <div
             ref={validationNoticeRef}
+            id="assessment-validation-summary"
+            tabIndex={-1}
             role="alert"
-            aria-live="polite"
-              className="max-w-2xl mx-auto rounded-2xl border border-[#D7B97A] bg-[#FFF8E8] px-4 py-4 text-sm text-[#5B4525] shadow-xs"
+            aria-labelledby="assessment-validation-heading"
+            className="max-w-2xl mx-auto rounded-2xl border border-[#D7B97A] bg-[#FFF8E8] px-4 py-4 text-sm text-[#5B4525] shadow-xs"
           >
-            <p className="font-semibold">ກ່ອນເປີດບົດສະທ້ອນ ກະລຸນາຕອບຄຳຖາມໃຫ້ຄົບກ່ອນ</p>
+            <h2 id="assessment-validation-heading" className="font-semibold">ກ່ອນເປີດບົດສະທ້ອນ ກະລຸນາຕອບຄຳຖາມໃຫ້ຄົບກ່ອນ</h2>
             <p className="mt-1 text-xs leading-relaxed">
               ຕອບແລ້ວ {answeredQCount}/{totalQuestions} ຂໍ້. ຕ້ອງຕອບຢ່າງໜ້ອຍ {completionStatus.minimumTotal} ຂໍ້ ແລະ ໃຫ້ຄົບຕາມຂັ້ນຕ່ຳຂອງແຕ່ລະໝວດ.
             </p>
@@ -603,7 +615,7 @@ export default function AssessmentPage() {
               disabled={submitting}
               className="btn-primary w-full py-4 bg-[#2D4C3E] hover:bg-[#22392F] text-sm sm:text-base"
             >
-              <span>{submitting ? "ກຳລັງສັງເຄາະຂໍ້ມູນ..." : completionStatus.isReady ? "ສັງເຄາະບົດສະທ້ອນ (Open Reflection)" : "ກວດຄຳຕອບກ່ອນ"}</span>
+              <span>{submitting ? "ກຳລັງສັງເຄາະຂໍ້ມູນ..." : completionStatus.isReady ? "ສັງເຄາະບົດສະທ້ອນ" : "ກວດຄຳຕອບກ່ອນ"}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
