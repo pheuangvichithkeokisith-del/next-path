@@ -346,7 +346,7 @@ ${unknownLines || "- ບໍ່ມີ"}
 
       {/* SECTION 1: OBSERVED PATTERNS */}
       {(activeTab === "all" || activeTab === "patterns") && (
-        <section className="space-y-4">
+        <section className="space-y-4 animate-fade-in-up">
           <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#2D4C3E]">
             <Layers className="w-4 h-4" />
             <span>1. ຮູບແບບຄວາມຄິດ ແລະ ທັກສະທີ່ສັງເກດເຫັນ</span>
@@ -357,10 +357,10 @@ ${unknownLines || "- ບໍ່ມີ"}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
             {report.response_pattern && report.response_pattern.length > 0 ? (
-              report.response_pattern.map((pattern: ReportPattern) => (
+              report.response_pattern.map((pattern: ReportPattern, idx: number) => (
                 <div
                   key={pattern.pattern_id}
-                  className="p-5 sm:p-6 rounded-2xl bg-white subtle-border hover:shadow-2xs transition-shadow flex flex-col justify-between"
+                  className={`p-5 sm:p-6 rounded-2xl bg-white subtle-border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between animate-fade-in-up ${idx % 2 === 1 ? "delay-100" : ""}`}
                 >
                   <div>
                     <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-[#695F4F] px-2.5 py-0.5 rounded-md bg-[#F4F1EA] mb-2.5">
@@ -383,7 +383,7 @@ ${unknownLines || "- ບໍ່ມີ"}
 
       {/* SECTION 2: POSSIBLE PATHS */}
       {(activeTab === "all" || activeTab === "paths") && (
-        <section className="space-y-4 pt-4">
+        <section className="space-y-4 pt-4 animate-fade-in-up">
           <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#8D5B28]">
             <Compass className="w-4 h-4" />
             <span>2. ທິດທາງ ແລະ ໂອກາດສຳຫຼວດ</span>
@@ -397,14 +397,14 @@ ${unknownLines || "- ບໍ່ມີ"}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
             {report.possible_paths && report.possible_paths.length > 0 ? (
-              report.possible_paths.map((path: ReportPath) => (
+              report.possible_paths.map((path: ReportPath, idx: number) => (
                 <div
                   key={path.group_id}
-                  className="p-5 sm:p-6 rounded-2xl bg-white subtle-border hover:border-[#2D4C3E] transition-colors flex flex-col justify-between"
+                  className={`p-5 sm:p-6 rounded-2xl bg-white subtle-border hover:border-[#2D4C3E] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between animate-fade-in-up ${idx % 3 === 1 ? "delay-100" : idx % 3 === 2 ? "delay-200" : ""}`}
                 >
                   <div>
-                    <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded bg-[#EBF2EE] text-[#2D4C3E] mb-2.5">
-                      {path.group_id}
+                    <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-[#EBF2EE] text-[#2D4C3E] mb-2.5">
+                      ທາງເລືອກທີ {idx + 1}
                     </span>
                     <h3 className="text-base sm:text-lg font-bold text-[#171A1F] leading-snug">
                       {path.label_lao}
@@ -423,7 +423,7 @@ ${unknownLines || "- ບໍ່ມີ"}
 
       {/* SECTION 3: UNKNOWNS & OPEN QUESTIONS */}
       {(activeTab === "all" || activeTab === "unknowns") && (
-        <section className="space-y-4 pt-4">
+        <section className="space-y-4 pt-4 animate-fade-in-up">
           <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#7A3E2D]">
             <HelpCircle className="w-4 h-4" />
             <span>3. ສິ່ງທີ່ຍັງເປີດກວ້າງ ແລະ ຄຳຖາມປາຍເປີດ</span>

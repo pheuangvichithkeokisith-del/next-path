@@ -122,10 +122,10 @@ export default function FeedbackPage() {
                     type="button"
                     onClick={() => setAgreement(opt.value as FeedbackAgreement)}
                     aria-pressed={isSelected}
-                    className={`min-h-12 rounded-xl border px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold transition cursor-pointer text-center flex items-center justify-center select-none ${
+                    className={`min-h-12 rounded-xl border px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer text-center flex items-center justify-center select-none active:scale-[0.98] ${
                       isSelected
-                        ? "bg-[#2D4C3E] text-white border-[#2D4C3E] shadow-2xs"
-                        : "bg-white text-[#2C271F] subtle-border hover:bg-[#FAF9F5]"
+                        ? "bg-[#2D4C3E] text-white border-[#2D4C3E] shadow-xs"
+                        : "bg-white text-[#2C271F] subtle-border hover:bg-[#FAF8F3] hover:border-[#CCC6B7]"
                     }`}
                   >
                     {opt.label}

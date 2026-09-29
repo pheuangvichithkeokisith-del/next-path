@@ -107,11 +107,11 @@ export default function OptionList({
             <label
               key={option.code}
               htmlFor={inputId}
-              className={`relative w-full min-h-[52px] text-left p-4 rounded-xl transition-colors flex items-start justify-between cursor-pointer select-none ${
+              className={`relative w-full min-h-[54px] text-left p-4 sm:p-4.5 rounded-2xl transition-all duration-150 flex items-start justify-between cursor-pointer select-none active:scale-[0.99] ${
                 isSelected
-                  ? "bg-[#F2ECE1] border-2 border-[#2D4C3E] text-[#171A1F] shadow-2xs"
-                  : "bg-white subtle-border text-[#332E26] hover:bg-[#FAF9F5] hover:border-[#CCC6B7]"
-              } ${disabled ? "opacity-45 cursor-not-allowed hover:bg-white hover:border-[#E5E1D8]" : ""}`}
+                  ? "bg-[#F2ECE1] border-2 border-[#2D4C3E] text-[#171A1F] shadow-xs"
+                  : "bg-white subtle-border text-[#332E26] hover:bg-[#FAF8F3] hover:border-[#CCC6B7]"
+              } ${disabled ? "opacity-40 cursor-not-allowed hover:bg-white hover:border-[#E5E1D8] active:scale-100" : ""}`}
             >
               <input
                 id={inputId}
@@ -125,20 +125,26 @@ export default function OptionList({
                 aria-describedby={describedBy}
                 aria-invalid={validationMessage ? true : undefined}
               />
-              <div className="pr-3 flex-1">
+              <div className="pr-3.5 flex-1">
                 <span className="text-sm sm:text-base font-medium leading-relaxed block">
                   {option.text}
                 </span>
               </div>
 
               <div
-                className={`w-5 h-5 rounded-full shrink-0 mt-0.5 flex items-center justify-center border transition-all ${
+                className={`w-5 h-5 ${item.type === "multi" ? "rounded-md" : "rounded-full"} shrink-0 mt-0.5 flex items-center justify-center border transition-all duration-200 ${
                   isSelected
-                    ? "bg-[#2D4C3E] border-[#2D4C3E] text-white"
-                    : "border-[#CCC6B7] bg-white"
+                    ? "bg-[#2D4C3E] border-[#2D4C3E] text-white scale-105"
+                    : "border-[#C8C2B3] bg-white"
                 }`}
               >
-                {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                {isSelected && (
+                  item.type === "multi" ? (
+                    <Check className="w-3.5 h-3.5 stroke-[3] animate-in fade-in zoom-in duration-150" />
+                  ) : (
+                    <div className="w-2 h-2 rounded-full bg-white animate-in fade-in zoom-in duration-150" />
+                  )
+                )}
               </div>
             </label>
           );

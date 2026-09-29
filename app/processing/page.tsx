@@ -217,7 +217,7 @@ export default function ProcessingPage() {
       <section aria-labelledby="processing-map-heading" className="relative w-full min-h-[30rem] sm:min-h-0 aspect-4/3 sm:aspect-16/9 bg-white subtle-border rounded-3xl p-6 sm:p-10 shadow-xs overflow-hidden my-4">
         <h2 id="processing-map-heading" className="sr-only">ແຜນທີ່ການເຊື່ອມໂຍງຮູບແບບຄຳຕອບ</h2>
         {/* SVG Relationship Lines */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#E0DBD0] transition-opacity duration-1000">
+        <svg className="absolute inset-0 w-full h-full pointer-events-none stroke-[#D5CFBF] transition-opacity duration-1000">
           {phase >= 2 &&
             nodes.map((source) =>
               source.connections.map((targetId) => {
@@ -230,9 +230,9 @@ export default function ProcessingPage() {
                     y1={`${source.y}%`}
                     x2={`${target.x}%`}
                     y2={`${target.y}%`}
-                    strokeWidth="1.2"
-                    strokeDasharray="3 3"
-                    className="opacity-75 transition-all duration-700"
+                    strokeWidth="1.5"
+                    strokeDasharray="4 4"
+                    className="opacity-80 animate-dash-flow transition-all duration-700"
                   />
                 );
               })
@@ -264,26 +264,39 @@ export default function ProcessingPage() {
               key={node.id}
               onClick={() => setSelectedNode(node)}
               style={{ left: `${node.x}%`, top: `${node.y}%` }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group transition-all duration-500 bg-transparent border-0 p-1 text-left"
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group transition-all duration-300 bg-transparent border-0 p-1 text-left active:scale-95"
             >
               <div
-                className={`processing-node-label max-w-[9rem] px-3 py-1.5 rounded-full text-xs font-medium subtle-border whitespace-normal shadow-2xs flex items-center space-x-1.5 transition-all ${
+                className={`processing-node-label max-w-[9.5rem] px-3 py-1.5 rounded-full text-xs font-medium subtle-border whitespace-normal shadow-2xs flex items-center space-x-1.5 transition-all duration-300 ${
                   isSelected
-                    ? "bg-[#1D2229] text-white border-[#1D2229] scale-110 z-20"
-                    : "bg-[#F9F8F5] text-[#2C271F] hover:bg-white hover:border-[#B5AEA0]"
+                    ? "bg-[#1D2229] text-white border-[#1D2229] scale-105 z-20 shadow-md"
+                    : "bg-[#F9F8F5] text-[#2C271F] hover:bg-white hover:border-[#B5AEA0] hover:scale-102"
                 }`}
               >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    node.cluster === 1
-                      ? "bg-[#2D4C3E]"
-                      : node.cluster === 2
-                      ? "bg-[#8D5B28]"
-                      : node.cluster === 3
-                      ? "bg-[#3F4D5A]"
-                      : "bg-[#7A3E2D]"
-                  }`}
-                />
+                <span className="relative flex h-2 w-2">
+                  <span
+                    className={`animate-pulse-ring absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                      node.cluster === 1
+                        ? "bg-[#2D4C3E]"
+                        : node.cluster === 2
+                        ? "bg-[#8D5B28]"
+                        : node.cluster === 3
+                        ? "bg-[#3F4D5A]"
+                        : "bg-[#7A3E2D]"
+                    }`}
+                  />
+                  <span
+                    className={`relative inline-flex rounded-full h-2 w-2 ${
+                      node.cluster === 1
+                        ? "bg-[#2D4C3E]"
+                        : node.cluster === 2
+                        ? "bg-[#8D5B28]"
+                        : node.cluster === 3
+                        ? "bg-[#3F4D5A]"
+                        : "bg-[#7A3E2D]"
+                    }`}
+                  />
+                </span>
                 <span>{node.labelLo}</span>
               </div>
             </button>

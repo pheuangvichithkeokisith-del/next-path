@@ -174,28 +174,35 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className="w-full">
+    <div className="relative w-full overflow-hidden">
+      {/* Ambient Organic Floating Background Orbs */}
+      <div aria-hidden="true" className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-full max-w-6xl h-96 overflow-hidden opacity-60 z-0">
+        <div className="absolute top-10 left-12 w-72 h-72 rounded-full bg-[#2D4C3E]/7 blur-3xl animate-float-slow" />
+        <div className="absolute top-20 right-10 w-80 h-80 rounded-full bg-[#8D5B28]/6 blur-3xl animate-float-reverse" />
+        <div className="absolute -top-10 left-1/3 w-64 h-64 rounded-full bg-[#7A3E2D]/5 blur-3xl animate-float-slow delay-200" />
+      </div>
+
       {/* Hero Section */}
-      <section aria-labelledby="landing-heading" className="relative px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-16 sm:pb-24 max-w-5xl mx-auto">
+      <section aria-labelledby="landing-heading" className="relative px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-16 sm:pb-24 max-w-5xl mx-auto z-10">
         {/* Spatial Place Indicator */}
-        <div className="eyebrow mb-7">
+        <div className="eyebrow mb-7 animate-fade-in-up">
           <span className="eyebrow-dot"></span>
           <span>ພື້ນທີ່ສຳຫຼວດຕົນເອງ ສຳລັບໄວໜຸ່ມລາວ (ອາຍຸ 15+)</span>
         </div>
 
         {/* Primary Statement */}
-        <h1 id="landing-heading" className="max-w-4xl text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#171A1F] leading-[1.2] mb-6">
+        <h1 id="landing-heading" className="max-w-4xl text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#171A1F] leading-[1.2] mb-6 animate-fade-in-up delay-100">
           ພື້ນທີ່ໃຫ້ເຈົ້າໄດ້ຢຸດພັກ, <br className="hidden sm:inline" />
           ເຂົ້າໃຈສິ່ງທີ່ຢູ່ພາຍໃນ, <br className="hidden sm:inline" />
           ແລະ ຄົ້ນພົບເສັ້ນທາງທີ່ຈະລອງກ້າວຕໍ່ໄປ.
         </h1>
 
-        <p className="text-base sm:text-lg text-[#524B40] max-w-3xl leading-relaxed mb-8 font-normal">
+        <p className="text-base sm:text-lg text-[#524B40] max-w-3xl leading-relaxed mb-8 font-normal animate-fade-in-up delay-150">
           Next-path ຖືກສ້າງຂຶ້ນມາເພື່ອໄວໜຸ່ມທຸກຄົນ ບໍ່ວ່າເຈົ້າຈະຢູ່ແຂວງໃດ ຮຽນສາຍສາມັນ ຫຼື ສາຍອາຊີບ. ທີ່ນີ້ບໍ່ມີຄຳຕອບທີ່ຖືກຫຼືຜິດ, ບໍ່ມີຄະແນນ, ແລະ ບໍ່ມີໃຜມາກຳນົດຊີວິດຂອງເຈົ້າ. ເປັນພຽງພື້ນທີ່ທີ່ຊ່ວຍສະທ້ອນຄວາມຄິດຂອງເຈົ້າເອງອອກມາໃຫ້ຊັດເຈນຂຶ້ນ.
         </p>
 
         {/* Action Group */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-14">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 mb-14 animate-fade-in-up delay-200">
           {hasExistingDraft ? (
             <>
               <button
@@ -233,33 +240,39 @@ export default function LandingPage() {
         </div>
 
         {/* 3 Grounded Truths */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8 subtle-border-t">
-          <div className="surface-panel p-5">
-            <div className="flex items-center space-x-2 text-sm font-bold text-[#1A1E24] mb-1.5">
-              <ShieldCheck className="w-4 h-4 text-[#2D4C3E]" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8 subtle-border-t animate-fade-in-up delay-300">
+          <div className="surface-panel p-5.5 hover:shadow-xs transition-shadow">
+            <div className="flex items-center space-x-2.5 text-sm font-bold text-[#1A1E24] mb-2">
+              <div className="w-7 h-7 rounded-lg bg-[#EBF2EE] flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4 text-[#2D4C3E]" />
+              </div>
               <span>ຄວາມເປັນສ່ວນຕົວ 100%</span>
             </div>
-            <p className="text-xs text-[#6A6357] leading-relaxed">
+            <p className="text-xs text-[#6A6357] leading-relaxed pl-9.5">
               ຄຳຕອບຈະຖືກໃຊ້ສ້າງບົດສະທ້ອນແບບບໍ່ລະບຸຕົວຕົນ. ລະບົບບໍ່ຂໍຊື່ຈິງ, ເບີໂທລະສັບ ຫຼື ອີເມວ.
             </p>
           </div>
 
-          <div className="surface-panel p-5">
-            <div className="flex items-center space-x-2 text-sm font-bold text-[#1A1E24] mb-1.5">
-              <Clock className="w-4 h-4 text-[#8D5B28]" />
+          <div className="surface-panel p-5.5 hover:shadow-xs transition-shadow">
+            <div className="flex items-center space-x-2.5 text-sm font-bold text-[#1A1E24] mb-2">
+              <div className="w-7 h-7 rounded-lg bg-[#F7EFE3] flex items-center justify-center shrink-0">
+                <Clock className="w-4 h-4 text-[#8D5B28]" />
+              </div>
               <span>ບໍ່ມີການຈັບເວລາ</span>
             </div>
-            <p className="text-xs text-[#6A6357] leading-relaxed">
+            <p className="text-xs text-[#6A6357] leading-relaxed pl-9.5">
               ຄ່ອຍໆຕອບໄປຕາມຈັງຫວະຂອງເຈົ້າ. ລະບົບຈະບັນທຶກຄຳຕອບໄວ້ໃຫ້ຕະຫຼອດເວລາ.
             </p>
           </div>
 
-          <div className="surface-panel p-5">
-            <div className="flex items-center space-x-2 text-sm font-bold text-[#1A1E24] mb-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#7A3E2D]" />
+          <div className="surface-panel p-5.5 hover:shadow-xs transition-shadow">
+            <div className="flex items-center space-x-2.5 text-sm font-bold text-[#1A1E24] mb-2">
+              <div className="w-7 h-7 rounded-lg bg-[#F9ECE7] flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-4 h-4 text-[#7A3E2D]" />
+              </div>
               <span>ບໍ່ແມ່ນບົດສອບເສັງ</span>
             </div>
-            <p className="text-xs text-[#6A6357] leading-relaxed">
+            <p className="text-xs text-[#6A6357] leading-relaxed pl-9.5">
               ບໍ່ມີຄະແນນຜ່ານ-ຕົກ ແລະ ບໍ່ແມ່ນການຕັດສິນ ແຕ່ເປັນແວ່ນແຍງສະທ້ອນຄວາມຄິດຂອງເຈົ້າ.
             </p>
           </div>
@@ -267,7 +280,7 @@ export default function LandingPage() {
       </section>
 
       {/* 8 Dimensions Architecture Grid */}
-      <section className="bg-[#F2EFE8] py-14 sm:py-20 subtle-border-t subtle-border-b">
+      <section className="bg-[#F2EFE8] py-14 sm:py-20 subtle-border-t subtle-border-b relative z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-10">
             <span className="text-xs font-bold uppercase tracking-widest text-[#847863]">
@@ -282,19 +295,27 @@ export default function LandingPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {DIMENSIONS.map((dim) => {
+            {DIMENSIONS.map((dim, idx) => {
               const IconComp = dim.icon;
+              const delayClass =
+                idx % 4 === 0
+                  ? ""
+                  : idx % 4 === 1
+                  ? "delay-100"
+                  : idx % 4 === 2
+                  ? "delay-200"
+                  : "delay-300";
               return (
                 <div
                   key={dim.id}
-                  className="surface-panel p-5 flex flex-col justify-between hover:shadow-xs transition-shadow"
+                  className={`surface-panel p-5 flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 animate-fade-in-up ${delayClass}`}
                 >
                   <div>
                     <div className="flex items-center justify-between mb-3">
-                      <div className={`w-8 h-8 rounded-lg ${dim.bg} flex items-center justify-center`}>
+                      <div className={`w-8 h-8 rounded-lg ${dim.bg} flex items-center justify-center shadow-2xs`}>
                         <IconComp className={`w-4 h-4 ${dim.color}`} />
                       </div>
-                      <span className="text-[11px] font-semibold text-[#8A8170] px-2 py-0.5 rounded bg-[#F4F1EA]">
+                      <span className="text-[11px] font-semibold text-[#8A8170] px-2 py-0.5 rounded-md bg-[#F4F1EA]">
                         {dim.count}
                       </span>
                     </div>

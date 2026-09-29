@@ -89,6 +89,17 @@ npm run build                                      # Production build verificati
 
 ## 6. 📅 Session Logs
 
+### Session 2026-09-29 — UI/UX Pro Max Animations & Human-Centered Report Refinement
+
+**✅ Completed and verified:**
+- Applied `ui-ux-pro-max` intelligence: Pure Tailwind & GPU-accelerated CSS animations (ambient floating background orbs, staggered fade-in entrance, smooth active button scales `active:scale-[0.985]`, and pulsing node halos).
+- Enhanced Processing screen with animated SVG dashline flow (`animate-dash-flow`) connecting 12 thought nodes across 4 clusters.
+- Refined Report UI and `backend/app/services/v4_report_service.py` to remove raw technical jargon (`v4_profile`, `r=0.678`, `normalized score 0.589`, raw cluster codes) in favor of warm, human-centered, natural Lao descriptions:
+  - Archetypes translated into supportive Lao phrasing (e.g. `ມີທິດທາງຫຼັກທີ່ເດັ່ນຊັດ (Clear Direction)`).
+  - Career paths clearly presented as `ທາງເລືອກທີ 1, 2, 3` with supportive match descriptions.
+  - Raw calculation proofs and formulas preserved exclusively inside the collapsible evidence accordion and AI prompt export.
+- Verification: Next.js production build (`npm run build`) passed with **9/9 static routes prerendered**; ESLint passed with 0 errors; full backend test suite passed with **72/72 tests (100%)**.
+
 ### Follow-up — Generic Error Banner Seen During Web Check (2026-09-26)
 
 - User reported seeing the Next-path navigation followed by the generic banner: “ເກີດຂໍ້ຜິດພາດບາງຢ່າງ — ຂໍ້ມູນຂອງທ່ານຍັງຢູ່ຄົບ ລອງໃໝ່ອີກເທື່ອ” and a “ລອງໃໝ່” button.
@@ -314,9 +325,11 @@ GET  /health                                  → Backend health check (NOT /api
 
 ## 7. 🗺️ Phase 2 Roadmap — PATHAI Signal Engine v1.2.0
 
-> **Status:** Draft / Phase 2 Master Plan  
-> **Foundation:** v1.1.2 (Continuous $N_{\text{eff}} = 2^H$ Hill Number Core)  
+> **Status:** Draft / Phase 2 Master Plan
+> **Foundation:** v1.1.2 (Continuous $N_{\text{eff}} = 2^H$ Hill Number Core)
 > **Target:** Explainability, Confidence Cross-Check, Matrix Rebalancing & Regression Harness
+> **Phase 2 start date:** 2026-10-04
+> **Deployment track:** Vercel frontend + FastAPI API service + Supabase PostgreSQL
 
 ### 🎯 3 Core Pillars of Phase 2
 1. **Explainability:** Transparent reasons for confidence deductions (`confidence_reasons[]`) and path-level matches (`reasons[]`).
@@ -351,6 +364,19 @@ GET  /health                                  → Backend health check (NOT /api
 * **Regression Safety Diff:** $\le 15\%$ classification shift across 100+ synthetic snapshot profiles.
 * **Backward Compatibility:** All new fields optional with safe defaults for existing API clients.
 * **Lao-First UX:** All explainability reasons paired with friendly, supportive Lao descriptions.
+
+### 🚀 Phase 2 Deployment Track — เริ่ม 2026-10-04
+
+งาน deployment นี้เป็นการยกระดับการใช้งาน ไม่ใช่การรื้อ architecture:
+
+| ID | Work Item | Acceptance Direction | Status |
+|---|---|---|---|
+| DEP-001 | Vercel frontend deployment | Preview/Production deploy ผ่าน Git และตั้งค่า `NEXT_PUBLIC_API_BASE_URL` ถูกต้อง | Planned |
+| DEP-002 | FastAPI API hosting | API แยก service พร้อม HTTPS, health check และ production environment config | Planned |
+| DEP-003 | Supabase PostgreSQL | ย้ายจาก SQLite โดยใช้ migration ที่ version-control และตรวจข้อมูลครบถ้วน | Planned |
+| DEP-004 | Production migration ownership | เลือก Alembic หรือ Supabase CLI เป็น migration owner เพียงชุดเดียว และห้ามใช้ `create_all()` ใน production | Planned |
+| DEP-005 | Deployment verification | ทดสอบ questionnaire → save → complete → report/export/feedback บน environment จริง | Planned |
+| DEP-006 | Data safety baseline | ตั้งค่า backup, retention/purge และยืนยันว่า analytics ใช้ข้อมูล aggregate แบบไม่ระบุตัวตน | Planned |
 
 ### 🔍 Phase 2 Intake — Senior Code Review (2026-09-25)
 

@@ -32,6 +32,15 @@ CLUSTER_LABELS = {
 }
 
 
+ARCHETYPE_LABELS_LAO = {
+    "Laser Focus": "ມີເປົ້າໝາຍຊັດເຈນສະເພາະດ້ານ (Laser Focus)",
+    "Clear Direction": "ມີທິດທາງຫຼັກທີ່ເດັ່ນຊັດ (Clear Direction)",
+    "Dual Interest": "ມີຄວາມສົນໃຈສອງດ້ານຄູ່ຂະໜານ (Dual Interest)",
+    "Multi-Scattered": "ມີຄວາມສົນໃຈຫຼາກຫຼາຍດ້ານ (Multi-Interest Exploration)",
+    "Total Uncertainty": "ກຳລັງເປີດກວ້າງຄົ້ນຫາຕົນເອງ (Open Exploration)",
+}
+
+
 def _load_v4_scoring() -> Any:
     module_path = V4_ROOT / "scoring.py"
     spec = importlib.util.spec_from_file_location("pathai_v4_scoring", module_path)
@@ -119,8 +128,8 @@ def build_v4_report(
         validation = result.get("validation", {})
         unknowns = _unknowns(validation)
         summary = (
-            "ຜົນ v4.0 ຍັງບໍ່ສົມບູນ ເພາະຄຳຕອບຍັງບໍ່ຜ່ານເກນການກວດ. "
-            "ກະລຸນາເບິ່ງລາຍການທີ່ຍັງຂາດ ແລະ ໃຊ້ຜົນນີ້ເປັນຮ່າງສຳຫຼວດເທົ່ານັ້ນ."
+            "ບົດສະທ້ອນຍັງບໍ່ສົມບູນ ເນື່ອງຈາກຄຳຕອບບາງຂໍ້ຍັງບໍ່ຄົບຖ້ວນ. "
+            "ກະລຸນາກວດເບິ່ງລາຍການທີ່ຍັງຂາດ ແລະ ໃຊ້ຜົນນີ້ເປັນຮ່າງສຳຫຼວດເບື້ອງຕົ້ນ."
         )
         return {
             "response_pattern": [],
@@ -137,37 +146,44 @@ def build_v4_report(
     ordered = sorted(CLUSTERS, key=lambda cluster: (-float(scores[cluster]), cluster))
     top_cluster = result.get("top_cluster")
     archetype = result.get("archetype", "Multi-Scattered")
-    r_max = float(result.get("r_max", 0.0))
+    archetype_lao = ARCHETYPE_LABELS_LAO.get(archetype, archetype)
+    top_cluster_name = CLUSTER_LABELS.get(top_cluster or "", "ຫຼາຍສາຍປະກອບກັນ")
 
     patterns: List[Dict[str, Any]] = [
         ReportPattern(
-            section="v4_profile",
+            section="ຮູບແບບຄວາມຄິດ",
             pattern_id=archetype.lower().replace(" ", "-"),
-            label_lao=(
-                f"{archetype} — {CLUSTER_LABELS.get(top_cluster or '', 'ບໍ່ມີສາຍຫຼັກ')} "
-                f"(profile correlation r={r_max:.3f})"
-            ),
+            label_lao=f"{archetype_lao} — ຈຸດເດັ່ນ: {top_cluster_name}",
             is_sample=False,
         ).model_dump()
     ]
 
-    possible_paths = [
-        ReportPath(
-            group_id=cluster,
-            label_lao=(
-                f"{cluster} — {CLUSTER_LABELS[cluster]} — ທາງເລືອກສຳຫຼວດ "
-                f"(normalized profile score {float(scores[cluster]):.3f})"
-            ),
-            is_sample=False,
-        ).model_dump()
-        for cluster in ordered[:3]
-    ]
+    possible_paths = []
+    for idx, cluster in enumerate(ordered[:3]):
+        tag = (
+            "ສາຍຫຼັກທີ່ສອດຄ່ອງເດັ່ນຊັດ"
+            if idx == 0 and archetype in ("Laser Focus", "Clear Direction")
+            else "ທາງເລືອກສຳຫຼວດເພີ່ມເຕີມ"
+        )
+        possible_paths.append(
+            ReportPath(
+                group_id=cluster,
+                label_lao=f"{CLUSTER_LABELS[cluster]} ({tag})",
+                is_sample=False,
+            ).model_dump()
+        )
 
-    summary = (
-        f"ຜົນ v4.0 ສະທ້ອນຮູບແບບ {archetype} "
-        f"ໂດຍມີ {top_cluster or 'ຫຼາຍສາຍ'} ເປັນຈຸດທີ່ຄວນສຳຫຼວດຕໍ່. "
-        "ຄະແນນນີ້ແມ່ນຫຼັກຖານສຳລັບການຄິດ ບໍ່ແມ່ນຄຳຕັດສິນອາຊີບ."
-    )
+    if top_cluster and top_cluster in CLUSTER_LABELS:
+        summary = (
+            f"ຈາກຄຳຕອບຂອງທ່ານ ສະທ້ອນໃຫ້ເຫັນຮູບແບບ \"{archetype_lao}\" "
+            f"ໂດຍມີ \"{CLUSTER_LABELS[top_cluster]}\" ເປັນຈຸດເລີ່ມຕົ້ນທີ່ໜ້າສົນໃຈໃນການສຳຫຼວດຕໍ່. "
+            "ບົດສະທ້ອນນີ້ແມ່ນແວ່ນແຍງຊ່ວຍຈັດລະບຽບຄວາມຄິດ ບໍ່ແມ່ນການຕັດສິນອາຊີບ."
+        )
+    else:
+        summary = (
+            f"ຈາກຄຳຕອບຂອງທ່ານ ສະທ້ອນໃຫ້ເຫັນຮູບແບບ \"{archetype_lao}\" "
+            "ເຊິ່ງມີຫຼາຍດ້ານທີ່ໜ້າສົນໃຈພ້ອມໆກັນ. ທ່ານສາມາດເລີ່ມທົດລອງສິ່ງນ້ອຍໆໃນແຕ່ລະສາຍເພື່ອຄົ້ນຫາຕົນເອງຕໍ່ໄປ."
+        )
 
     return {
         "response_pattern": patterns,
