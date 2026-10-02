@@ -5,7 +5,13 @@ from typing import Any
 
 from app.models.answer import AnswerModel
 from app.models.session import SessionModel
-from app.schemas.report import ContextFactors, ReportResponse, ReportVersions, V4ContextFactors
+from app.schemas.report import (
+    ContextFactors,
+    ReportAnswer,
+    ReportResponse,
+    ReportVersions,
+    V4ContextFactors,
+)
 from app.services.v4_report_service import build_v4_report
 
 
@@ -192,11 +198,22 @@ def test_v4_report_adapter_returns_json_persistence_payload() -> None:
     assert context_payload["risk_willingness"] == 3.0
     assert context_payload["safety_readiness"] == 1
 
+    score_details = report_data["score_details"]
+    assert set(score_details["scores"]) == set(_load_scoring().CLUSTERS)
+    assert set(score_details["positive_scores"]) == set(_load_scoring().CLUSTERS)
+    assert set(score_details["negative_penalty"]) == set(_load_scoring().CLUSTERS)
+    assert score_details["section_coverage"]["interests"] == 1.0
+
     v4_context = V4ContextFactors(**context_payload)
     response = ReportResponse(
         response_pattern=report_data["response_pattern"],
         possible_paths=report_data["possible_paths"],
+        answers=[
+            ReportAnswer(question_id=question_id, option_codes=answer["option_codes"])
+            for question_id, answer in answers.items()
+        ],
         context_factors=v4_context,
+        score_details=score_details,
         unknowns=report_data["unknowns"],
         versions=ReportVersions(**report_data["versions"]),
         summary_text=report_data["summary_text"],
@@ -204,3 +221,62 @@ def test_v4_report_adapter_returns_json_persistence_payload() -> None:
         ai_version=report_data["ai_version"],
     )
     assert response.model_dump()["context_factors"] == context_payload
+    assert len(response.answers) == len(answers)
+    assert response.score_details is not None
+
+
+def test_v4_paths_include_fit_feasibility_and_change_with_context() -> None:
+    spec = _load_questions()
+    session_id = "00000000-0000-0000-0000-000000000005"
+    base = _complete_v4_answers(spec)
+    base.update(
+        {
+            "D1": {"option_codes": ["D1-O2"]},
+            "D2": {"text_value": "ກຳລັງຮຽນ — ປະລິນຍາຕີ"},
+            "D3": {"option_codes": ["D3-O01"]},
+        }
+    )
+    constrained = {question_id: dict(answer) for question_id, answer in base.items()}
+    constrained.update(
+        {
+            "Q23": {"option_codes": ["Q23-O3", "Q23-O4"]},
+            "Q24": {"option_codes": ["Q24-O4"]},
+            "Q25": {"option_codes": ["Q25-O2"]},
+            "Q26": {"option_codes": ["Q26-O4"]},
+            "Q27": {"option_codes": ["Q27-O1"]},
+            "Q28": {"option_codes": ["Q28-O1"]},
+        }
+    )
+
+    def build(answers: dict[str, dict[str, Any]]) -> dict[str, Any]:
+        answer_models = [
+            AnswerModel(
+                session_id=session_id,
+                question_id=question_id,
+                option_codes=answer.get("option_codes", []),
+                text_value=answer.get("text_value"),
+            )
+            for question_id, answer in answers.items()
+        ]
+        return build_v4_report(
+            SessionModel(id=session_id, form_version="v4.0.0", status="completed"),
+            answer_models,
+        )
+
+    base_report = build(base)
+    constrained_report = build(constrained)
+
+    assert len(base_report["possible_paths"]) == 3
+    for path in base_report["possible_paths"]:
+        assert 0 <= path["fit_score"] <= 100
+        assert 0 <= path["feasibility_score"] <= 100
+        assert 0 <= path["compatibility_score"] <= 100
+        assert path["evidence_question_ids"]
+        assert path["reasons_lao"]
+        assert path["conditions_lao"]
+
+    assert base_report["score_details"]["scores"] == constrained_report["score_details"]["scores"]
+    assert [path["group_id"] for path in base_report["possible_paths"]] != [
+        path["group_id"] for path in constrained_report["possible_paths"]
+    ]
+    assert constrained_report["context_factors"]["mobility"] == ["no_mobility"]

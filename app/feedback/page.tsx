@@ -6,14 +6,31 @@ import { submitFeedback } from "@/api/feedback";
 import type { FeedbackAgreement, FeedbackPayload } from "@/types/feedback";
 import { useSessionId } from "@/hooks/useSession";
 import ErrorBanner from "@/components/ErrorBanner";
-import { ArrowLeft, CheckCircle2, Send } from "lucide-react";
+import {
+  Heart,
+  Star,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  MessageSquare,
+} from "lucide-react";
+
+const RATING_DESCRIPTIONS = [
+  "ຍັງບໍ່ຄ່ອຍກົງກັບຂ້ອຍປານໃດ",
+  "ກົງບາງສ່ວນ ແຕ່ຍັງມີບາງຈຸດທີ່ບໍ່ແມ່ນ",
+  "ກົງປານກາງ ຊ່ວຍໃຫ້ເຫັນບາງມຸມມອງ",
+  "ກົງກັບຂ້ອຍຫຼາຍ ສອດຄ່ອງກັບຄວາມຮູ້ສຶກ",
+  "ກົງຫຼາຍທີ່ສຸດ! ເຮັດໃຫ້ເຂົ້າໃຈຕົນເອງຊັດເຈນຂຶ້ນ",
+];
 
 export default function FeedbackPage() {
   const router = useRouter();
   const { sessionId, resolved } = useSessionId();
-  const [agreement, setAgreement] = useState<FeedbackAgreement | null>(null);
-  const [incorrectNote, setIncorrectNote] = useState("");
-  const [nextInterest, setNextInterest] = useState("");
+  const [rating, setRating] = useState<number>(5);
+  const [feltComfortable, setFeltComfortable] = useState<boolean>(true);
+  const [comments, setComments] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -26,15 +43,17 @@ export default function FeedbackPage() {
 
   async function handleSubmit(e: React.FormEvent): Promise<void> {
     e.preventDefault();
-    if (!agreement) return;
-
     setSubmitting(true);
     setHasError(false);
 
+    let agreement: FeedbackAgreement = "yes";
+    if (rating <= 2) agreement = "not_really";
+    else if (rating === 3) agreement = "unsure";
+
     const payload: FeedbackPayload = {
       agreement,
-      incorrect_note: incorrectNote.trim() || null,
-      next_interest: nextInterest.trim() || null,
+      incorrect_note: comments.trim() || null,
+      next_interest: feltComfortable ? "ຮູ້ສຶກສະບາຍໃຈບໍ່ກົດດັນ" : "ຢາກໃຫ້ປັບປຸງ",
     };
 
     try {
@@ -52,134 +71,191 @@ export default function FeedbackPage() {
     }
   }
 
-  if (submitted) {
+  // If user visits feedback with no session
+  if (resolved && !sessionId) {
     return (
-      <main className="flex-1 px-4 py-16 flex items-center justify-center">
-        <div className="max-w-md w-full text-center space-y-6 p-8 rounded-3xl bg-white subtle-border shadow-xs">
-          <div className="w-12 h-12 rounded-full bg-[#EBF2EE] text-[#2D4C3E] flex items-center justify-center mx-auto text-xl font-bold">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold text-[#171A1F]">
-              ຂອບໃຈສຳລັບຄຳຄິດເຫັນ
-            </h2>
-            <p className="text-xs sm:text-sm text-[#6A6357] leading-relaxed">
-              ທຸກຄຳຕອບ ແລະ ຂໍ້ສະເໜີແນະຂອງທ່ານມີຄຸນຄ່າໃນການປັບປຸງລະບົບ Next-path ໃຫ້ດີຍິ່ງຂຶ້ນ.
-            </p>
-          </div>
-          <div className="pt-2">
-            <button
-              className="btn-primary w-full text-sm"
-              onClick={() => router.push("/")}
-              type="button"
-            >
-              ກັບຄືນໜ້າຫຼັກ
-            </button>
-          </div>
+      <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-6">
+        <div className="w-16 h-16 rounded-2xl bg-[#FDF3F0] text-[#7A3E2D] flex items-center justify-center mx-auto">
+          <AlertCircle className="w-8 h-8" />
         </div>
-      </main>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-[#2D4C3E]">ຍັງບໍ່ພົບເຊດຊັນການສຳຫຼວດ</h1>
+          <p className="text-sm text-[#2D4C3E]/75 leading-relaxed">
+            ທ່ານຈຳເປັນຕ້ອງຕອບແບບສຳຫຼວດເພື່ອເບິ່ງຜົນສະທ້ອນກ່ອນ ຈຶ່ງຈະສາມາດສົ່ງຄຳຕິຊົມກ່ຽວກັບຜົນໄດ້.
+          </p>
+        </div>
+        <button
+          onClick={() => router.push("/")}
+          className="px-8 py-3.5 rounded-2xl bg-[#2D4C3E] text-[#F9F8F5] text-sm font-semibold hover:bg-[#233c31] transition-all shadow-md inline-flex items-center gap-2 cursor-pointer"
+        >
+          <span>ກັບຄືນໜ້າຫຼັກ</span>
+          <ArrowRight className="w-4 h-4" />
+        </button>
+      </div>
     );
   }
 
   return (
-    <main aria-labelledby="feedback-heading" className="flex-1 px-4 py-10 sm:py-14 flex flex-col items-center max-w-xl mx-auto w-full">
-      <div className="w-full space-y-6">
-        <div>
-          <button
-            onClick={() => router.back()}
-            type="button"
-            className="inline-flex items-center space-x-1.5 text-xs text-[#7A7365] hover:text-[#171A1F] mb-4 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>ກັບຄືນ</span>
-          </button>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      {/* Back button */}
+      <button
+        onClick={() => router.push(sessionId ? "/report" : "/")}
+        className="inline-flex items-center gap-2 text-sm text-[#2D4C3E]/70 hover:text-[#2D4C3E] mb-6 transition-colors cursor-pointer"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        <span>ກັບຄືນໜ້າຜົນສະທ້ອນ (Report)</span>
+      </button>
 
-          <h1 id="feedback-heading" className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#171A1F]">
-            ໃຫ້ຄຳເຫັນກ່ຽວກັບລະບົບ
-          </h1>
-          <p className="mt-1.5 text-xs sm:text-sm text-[#6A6357] leading-relaxed">
-            ບອກຄວາມຮູ້ສຶກ ແລະ ຄວາມຄິດເຫັນຂອງທ່ານກ່ຽວກັບຜົນສະທ້ອນທີ່ໄດ້ຮັບ.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Question 1: Agreement */}
-          <fieldset className="surface-panel p-5 sm:p-6 space-y-3">
-            <legend className="block text-sm sm:text-base font-bold text-[#171A1F]">
-              1. ທ່ານຮູ້ສຶກວ່າຜົນສະທ້ອນກົງກັບຕົວທ່ານຫຼືບໍ່? <span className="text-[#8A4F3E]">*</span>
-            </legend>
-
-            <div className="grid grid-cols-3 gap-2.5 pt-1">
-              {[
-                { value: "yes", label: "ກົງຫຼາຍ" },
-                { value: "not_really", label: "ບໍ່ຄ່ອຍກົງ" },
-                { value: "unsure", label: "ຍັງບໍ່ແນ່ໃຈ" },
-              ].map((opt) => {
-                const isSelected = agreement === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setAgreement(opt.value as FeedbackAgreement)}
-                    aria-pressed={isSelected}
-                    className={`min-h-12 rounded-xl border px-2 sm:px-3 py-2 text-xs sm:text-sm font-semibold transition-all duration-150 cursor-pointer text-center flex items-center justify-center select-none active:scale-[0.98] ${
-                      isSelected
-                        ? "bg-[#2D4C3E] text-white border-[#2D4C3E] shadow-xs"
-                        : "bg-white text-[#2C271F] subtle-border hover:bg-[#FAF8F3] hover:border-[#CCC6B7]"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-
-          {/* Question 2: Incorrect note */}
-          <div className="surface-panel p-5 sm:p-6 space-y-2">
-            <label htmlFor="feedback-incorrect-note" className="block text-xs sm:text-sm font-bold text-[#171A1F]">
-              2. ມີຈຸດໃດທີ່ທ່ານຮູ້ສຶກວ່າຍັງບໍ່ຄ່ອຍຖືກຕ້ອງ? (ຖ້າມີ)
-            </label>
-            <textarea
-              id="feedback-incorrect-note"
-              name="incorrect_note"
-              className="input-calm w-full min-h-[7rem] resize-y text-sm"
-              onChange={(e) => setIncorrectNote(e.target.value)}
-              placeholder="ຕົວຢ່າງ: ຮູ້ສຶກວ່າດ້ານຄວາມສົນໃຈບາງຢ່າງຍັງບໍ່ຄ່ອຍກົງ..."
-              value={incorrectNote}
-            />
+      {submitted ? (
+        /* Success State */
+        <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-3xl p-8 sm:p-10 shadow-xs text-center space-y-6 animate-fade-in-scale">
+          <div className="w-16 h-16 rounded-2xl bg-[#EBF2EE] text-[#2D4C3E] flex items-center justify-center mx-auto shadow-xs">
+            <CheckCircle2 className="w-8 h-8" />
           </div>
 
-          {/* Question 3: Next interest */}
-          <div className="surface-panel p-5 sm:p-6 space-y-2">
-            <label htmlFor="feedback-next-interest" className="block text-xs sm:text-sm font-bold text-[#171A1F]">
-              3. ທ່ານຢາກໃຫ້ລະບົບຊ່ວຍແນະນຳຫຍັງຕື່ມອີກໃນອະນາຄົດ?
-            </label>
-            <textarea
-              id="feedback-next-interest"
-              name="next_interest"
-              className="input-calm w-full min-h-[7rem] resize-y text-sm"
-              onChange={(e) => setNextInterest(e.target.value)}
-              placeholder="ຕົວຢ່າງ: ຢາກຮູ້ວິທີຝຶກທັກສະເທັກໂນໂລຊີ ຫຼື ທຶນການສຶກສາ..."
-              value={nextInterest}
-            />
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-[#2D4C3E]">
+              ຂອບໃຈຫຼາຍໆ ສຳລັບຄຳຕິຊົມຂອງທ່ານ!
+            </h1>
+            <p className="text-sm text-[#2D4C3E]/80 leading-relaxed max-w-md mx-auto">
+              ສຽງຂອງທ່ານມີຄ່າຫຼາຍ ແລະ ຈະຊ່ວຍໃຫ້ Next-path ພັດທະນາໃຫ້ເປັນພື້ນທີ່ທີ່ອົບອຸ່ນ ແລະ ເໝາະສົມກັບໄວໜຸ່ມລາວຫຼາຍຍິ່ງຂຶ້ນ.
+            </p>
           </div>
 
-          {hasError ? <ErrorBanner onRetry={() => setHasError(false)} /> : null}
-
-          {/* Submit Action */}
-          <div className="pt-2">
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
-              className="btn-primary w-full text-sm sm:text-base flex items-center justify-center space-x-2"
-              disabled={!agreement || submitting}
-              type="submit"
+              onClick={() => router.push("/report")}
+              className="w-full sm:w-auto px-6 py-3 rounded-xl border border-[#E5E1D8] text-sm font-medium text-[#2D4C3E] hover:bg-[#F4EFEA] transition-colors cursor-pointer"
             >
-              <span>{submitting ? "ກຳລັງສົ່ງ..." : "ສົ່ງຄຳຄິດເຫັນ"}</span>
-              <Send className="w-4 h-4" />
+              ກັບໄປອ່ານຜົນສະທ້ອນ
+            </button>
+            <button
+              onClick={() => router.push("/")}
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#2D4C3E] text-[#F9F8F5] text-sm font-semibold hover:bg-[#233c31] transition-all cursor-pointer"
+            >
+              ກັບຄືນໜ້າຫຼັກ (Home)
             </button>
           </div>
-        </form>
-      </div>
-    </main>
+        </div>
+      ) : (
+        /* Feedback Form */
+        <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-3xl p-6 sm:p-10 shadow-xs space-y-8 animate-fade-in-scale">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F9F3EB] text-[#8D5B28] text-xs font-medium mb-3">
+              <Heart className="w-3.5 h-3.5 fill-current" />
+              <span>ຄຳຕິຊົມ ແລະ ຄວາມຄິດເຫັນ (Feedback)</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#2D4C3E]">
+              ຜົນສະທ້ອນນີ້ເປັນແນວໃດແດ່ສຳລັບທ່ານ?
+            </h1>
+            <p className="text-sm text-[#2D4C3E]/75 mt-1 leading-relaxed">
+              ພວກເຮົາຢາກຟັງຄວາມຮູ້ສຶກຂອງທ່ານ ເພື່ອປັບປຸງປະສົບການໃຫ້ດີຂຶ້ນເລື້ອຍໆ.
+            </p>
+          </div>
+
+          {hasError && <ErrorBanner onRetry={() => setHasError(false)} />}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* 1. Rating Stars / Buttons */}
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-[#2D4C3E]">
+                1. ຜົນການສະທ້ອນກົງກັບຕົວຕົນ ຫຼື ຄວາມຮູ້ສຶກຂອງທ່ານຫຼາຍປານໃດ?
+              </label>
+
+              <div className="flex items-center gap-2 sm:gap-3">
+                {[1, 2, 3, 4, 5].map((starVal) => {
+                  const isSelected = rating >= starVal;
+                  return (
+                    <button
+                      key={starVal}
+                      type="button"
+                      onClick={() => setRating(starVal)}
+                      className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-[#F7EFE3] text-[#8D5B28] border-2 border-[#8D5B28] scale-105"
+                          : "bg-[#F9F8F5] text-[#2D4C3E]/30 border border-[#E5E1D8] hover:border-[#8D5B28]/50"
+                      }`}
+                      aria-label={`${starVal} ດາວ`}
+                    >
+                      <Star
+                        className={`w-6 h-6 ${
+                          isSelected ? "fill-[#8D5B28] text-[#8D5B28]" : ""
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+
+              <p className="text-xs font-medium text-[#8D5B28] pt-1">
+                {RATING_DESCRIPTIONS[rating - 1]}
+              </p>
+            </div>
+
+            {/* 2. Emotional Comfort Checkbox */}
+            <div className="space-y-3 pt-2 border-t border-[#E5E1D8]">
+              <label className="block text-sm font-semibold text-[#2D4C3E]">
+                2. ທ່ານຮູ້ສຶກສະບາຍໃຈ ແລະ ບໍ່ມີຄວາມກົດດັນໃນລະຫວ່າງການຕອບບໍ?
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFeltComfortable(true)}
+                  className={`p-3.5 rounded-xl border text-sm text-left flex items-center justify-between cursor-pointer transition-all ${
+                    feltComfortable
+                      ? "bg-[#EBF2EE] border-[#2D4C3E] text-[#2D4C3E] font-semibold"
+                      : "bg-[#F9F8F5] border-[#E5E1D8] text-[#2D4C3E]/80 hover:bg-[#F4EFEA]"
+                  }`}
+                >
+                  <span>ສະບາຍໃຈ ຜ່ອນຄາຍດີ</span>
+                  {feltComfortable && <CheckCircle2 className="w-4 h-4 text-[#2D4C3E]" />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFeltComfortable(false)}
+                  className={`p-3.5 rounded-xl border text-sm text-left flex items-center justify-between cursor-pointer transition-all ${
+                    !feltComfortable
+                      ? "bg-[#FDF3F0] border-[#7A3E2D] text-[#7A3E2D] font-semibold"
+                      : "bg-[#F9F8F5] border-[#E5E1D8] text-[#2D4C3E]/80 hover:bg-[#F4EFEA]"
+                  }`}
+                >
+                  <span>ຍັງມີບາງຈຸດທີ່ກົດດັນ ຫຼື ຍາວເກີນໄປ</span>
+                  {!feltComfortable && <CheckCircle2 className="w-4 h-4 text-[#7A3E2D]" />}
+                </button>
+              </div>
+            </div>
+
+            {/* 3. Open Comments Textarea */}
+            <div className="space-y-2 pt-2 border-t border-[#E5E1D8]">
+              <label htmlFor="feedback-comments" className="block text-sm font-semibold text-[#2D4C3E]">
+                3. ສິ່ງທີ່ທ່ານຢາກບອກພວກເຮົາເພີ່ມເຕີມ (ບໍ່ບັງຄັບ):
+              </label>
+              <textarea
+                id="feedback-comments"
+                rows={4}
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+                placeholder="ບອກສິ່ງທີ່ເຈົ້າມັກ, ສິ່ງທີ່ຢາກໃຫ້ປັບປຸງ ຫຼື ຄວາມຮູ້ສຶກຫຼັງຈາກໄດ້ອ່ານບົດສະທ້ອນ..."
+                className="w-full p-4 rounded-2xl border border-[#E5E1D8] bg-[#F9F8F5] text-sm text-[#2D4C3E] placeholder:text-[#2D4C3E]/40 focus:outline-none focus:border-[#2D4C3E] focus:bg-[#FFFFFF] transition-all"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-4 rounded-2xl bg-[#2D4C3E] text-[#F9F8F5] text-base font-semibold hover:bg-[#233c31] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-[0.985] disabled:opacity-50"
+              >
+                <span>{submitting ? "ກຳລັງສົ່ງຂໍ້ມູນ..." : "ສົ່ງຄຳຕິຊົມ"}</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
   );
 }

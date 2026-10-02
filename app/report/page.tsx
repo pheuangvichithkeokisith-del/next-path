@@ -12,6 +12,7 @@ import { clearDraft, restoreDraft } from "@/utils/draft";
 import type { DraftAnswers } from "@/types/form";
 import staticQuestions from "@/data/questions.json";
 import v4Questions from "@/v4.0/questions_full.json";
+import { AiPromptModal } from "@/components/AiPromptModal";
 import {
   Compass,
   Layers,
@@ -19,38 +20,90 @@ import {
   Sparkles,
   Check,
   Download,
-  Bot,
   RotateCcw,
-  ExternalLink,
-  ChevronDown,
-  ChevronUp,
+  Printer,
+  Share2,
+  MessageSquare,
+  HeartHandshake,
 } from "lucide-react";
 
-type ReportTab = "all" | "patterns" | "paths" | "unknowns" | "experiments";
+type ReportTab = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
-const REPORT_TABS: Array<{ id: ReportTab; labelLo: string }> = [
-  { id: "all", labelLo: "ພາບລວມທັງໝົດ" },
-  { id: "patterns", labelLo: "ຮູບແບບທີ່ພົບ" },
-  { id: "paths", labelLo: "ທິດທາງສຳຫຼວດ" },
-  { id: "unknowns", labelLo: "ສິ່ງທີ່ຍັງເປີດກວ້າງ" },
-  { id: "experiments", labelLo: "ການທົດລອງນ້ອຍໆ" },
-];
+const CONTEXT_LABELS = {
+  time_constraint: "ເວລາບໍ່ພໍ",
+  location_constraint: "ຕ້ອງຢູ່ໃກ້ເຮືອນ/ຄອບຄົວ",
+  health_constraint: "ຂໍ້ຈຳກັດດ້ານສຸຂະພາບ",
+  transport_constraint: "ການເດີນທາງ/ລະຍະທາງ",
+  high_mobility: "ພ້ອມຍ້າຍ",
+  medium_mobility: "ອາດຍ້າຍໄດ້ຖ້າເງື່ອນໄຂເໝາະສົມ",
+  low_mobility: "ຢາກຢູ່ພື້ນທີ່ປັດຈຸບັນ",
+  no_mobility: "ຕອນນີ້ຍ້າຍບໍ່ໄດ້",
+  family_high_education: "ຄອບຄົວຄາດຫວັງໃຫ້ຮຽນຕໍ່ສູງ",
+  family_near_home: "ຄອບຄົວຢາກໃຫ້ເຮັດວຽກໃກ້ບ້ານ",
+  family_stable_career: "ຄອບຄົວຢາກໃຫ້ເລືອກອາຊີບໝັ້ນຄົງ",
+  family_self_choice: "ຄອບຄົວໃຫ້ເລືອກເອງ",
+  family_other: "ບໍລິບົດຄອບຄົວອື່ນໆ",
+} as const;
+
+const SCORE_LABELS: Record<string, string> = {
+  C1: "ວິເຄາະຂໍ້ມູນ ແລະ ວິໄຈ",
+  C2: "ເທັກໂນໂລຊີ ແລະ ດິຈິຕອນ",
+  C3: "ອອກແບບ ແລະ ສື່ສານສ້າງສັນ",
+  C4: "ພັດທະນາຄົນ ແລະ ສັງຄົມ",
+  C5: "ສຸຂະພາບ ແລະ ການເບິ່ງແຍງ",
+  C6: "ທຸລະກິດ ແລະ ການຄຸ້ມຄອງ",
+  C7: "ງານປະຕິບັດ, ທຳມະຊາດ ແລະ ສິ່ງແວດລ້ອມ",
+};
+
+const PATH_CLASS_LABELS: Record<string, string> = {
+  strong_fit: "ສາຍຫຼັກທີ່ຄວນສຳຫຼວດຕໍ່",
+  good_to_explore: "ທາງເລືອກທີ່ໜ້າສຳຫຼວດ",
+  try_first: "ຄວນລອງກ່ອນ",
+  explore: "ທາງເລືອກສຳຫຼວດ",
+};
+
+function translateContextValues(values: string[] | undefined) {
+  return (
+    values
+      ?.map((value) => CONTEXT_LABELS[value as keyof typeof CONTEXT_LABELS] ?? value)
+      .join(", ") || "ບໍ່ໄດ້ລະບຸ"
+  );
+}
 
 export default function ReportPage() {
   const router = useRouter();
   const { sessionId, resolved } = useSessionId();
   const [report, setReport] = useState<ReportResponse | null>(null);
   const [hasError, setHasError] = useState(false);
-  const [copiedPrompt, setCopiedPrompt] = useState(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [activeTab, setActiveTab] = useState<ReportTab>("all");
+  const [activeTab, setActiveTab] = useState<ReportTab>(0);
   const [retryToken, setRetryToken] = useState(0);
-  const [userDraft] = useState<DraftAnswers>(() => {
+
+  const userDraft = useMemo<DraftAnswers>(() => {
     if (typeof window === "undefined") return {};
     return restoreDraft(window.localStorage, sessionId);
-  });
-  const [showProof, setShowProof] = useState(false);
-  const activeTabLabel = REPORT_TABS.find((tab) => tab.id === activeTab)?.labelLo ?? REPORT_TABS[0].labelLo;
+  }, [sessionId]);
+
+  // The completed session is the source of truth. Keep the local draft only as
+  // a compatibility fallback for older reports or a transient API response.
+  const reportAnswers = useMemo<DraftAnswers>(() => {
+    if (report?.answers?.length) {
+      return Object.fromEntries(
+        report.answers.map((answer) => [
+          answer.question_id,
+          {
+            option_codes: answer.option_codes || [],
+            other_text: answer.other_text,
+            extra_text: answer.extra_text,
+            text_value: answer.text_value,
+          },
+        ]),
+      );
+    }
+    return userDraft;
+  }, [report, userDraft]);
 
   useEffect(() => {
     if (!resolved) return;
@@ -82,7 +135,7 @@ export default function ReportPage() {
     };
   }, [retryToken, resolved, sessionId, router]);
 
-  // Generate a comprehensive, high-quality prompt containing transparent raw evidence + calculation results
+  // Master AI Prompt Text (tailored to Next-path)
   const aiPromptText = useMemo(() => {
     if (!report) return "";
 
@@ -100,7 +153,6 @@ export default function ReportPage() {
     const sourceItems = [...(source.demographics || []), ...(source.questions || [])];
     const itemMap = Object.fromEntries(sourceItems.map((item) => [item.id, item]));
 
-    // 1. Lookup the selected questionnaire version's Lao option text.
     const optionsMap: Record<string, string> = {};
     for (const item of sourceItems) {
       for (const option of item.options || []) {
@@ -108,23 +160,23 @@ export default function ReportPage() {
       }
     }
 
-    // 2. Format translated answers grouped by the actual section in the selected form.
     const sectionLabels: Record<string, string> = {
-      interests: "ຄວາມສົນໃຈ (Interests)",
-      skills: "ທັກສະ (Skills)",
-      values: "ຄ່ານິຍົມ (Values)",
-      work_style: "ຮູບແບບການເຮັດວຽກ (Work Style)",
-      academic: "ການຮຽນ/ວິຊາການ (Academic)",
-      learning: "ການຮຽນ ແລະ ການຮຽນຮູ້ (Learning)",
-      goals: "ເປົ້າໝາຍ (Goals)",
-      constraints: "ຂໍ້ຈຳກັດ ແລະ ບໍລິບົດ (Constraints)",
-      feasibility: "ຄວາມເປັນໄປໄດ້ (Feasibility)",
-      flexibility: "ຄວາມຍືດຢຸ່ນ (Flexibility)",
-      journey: "ເສັ້ນທາງການເດີນຕໍ່ (Journey)",
+      interests: "ໝວດ 1 — ຄວາມສົນໃຈ (Interests)",
+      skills: "ໝວດ 2 — ທັກສະ ແລະ ຄວາມຖະໜັດ (Skills)",
+      values: "ໝວດ 3 — ຄ່ານິຍົມ (Values)",
+      work_style: "ໝວດ 4 — ຮູບແບບການເຮັດວຽກ (Work Style)",
+      academic: "ໝວດ 5 — ການຮຽນ ແລະ ວິຊາການ (Academic)",
+      learning: "ໝວດ 5 — ການຮຽນ ແລະ ການຮຽນຮູ້ (Learning)",
+      goals: "ໝວດ 6 — ເປົ້າໝາຍ (Goals)",
+      constraints: "ໝວດ 7 — ຂໍ້ຈຳກັດ ແລະ ບໍລິບົດ (Constraints)",
+      feasibility: "ໝວດ 7 — ຄວາມເປັນໄປໄດ້ຕົວຈິງ (Feasibility)",
+      flexibility: "ໝວດ 8 — ຄວາມຍືດຢຸ່ນ ແລະ ຄວາມພ້ອມ (Flexibility)",
+      journey: "ໝວດ 8 — ເສັ້ນທາງການເດີນຕໍ່ (Journey)",
     };
+
     const answersBySection: Record<string, string[]> = {};
 
-    for (const [qid, ans] of Object.entries(userDraft)) {
+    for (const [qid, ans] of Object.entries(reportAnswers)) {
       const item = itemMap[qid];
       const sec = item?.section ? (sectionLabels[item.section] || item.section) : "ຂໍ້ມູນເບື້ອງຕົ້ນ (Demographics)";
       if (!answersBySection[sec]) answersBySection[sec] = [];
@@ -148,64 +200,97 @@ export default function ReportPage() {
       .join("\n");
 
     const pathLines = (report.possible_paths || [])
-      .map((p: ReportPath) => `- ${p.label_lao} (${p.group_id})`)
+      .map((p: ReportPath, idx: number) => {
+        const scores = p.compatibility_score == null
+          ? ""
+          : ` — ຄວາມເໝາະສົມລວມ ${p.compatibility_score}%, ສັນຍານ ${p.fit_score ?? "-"}%, ຄວາມເປັນໄປໄດ້ ${p.feasibility_score ?? "-"}%`;
+        const reasons = p.reasons_lao?.join("; ") || "";
+        const conditions = p.conditions_lao?.join("; ") || "";
+        return `- ທາງເລືອກທີ ${idx + 1}: ${p.label_lao} (${p.group_id})${scores}\n  ເຫດຜົນ: ${reasons || "ບໍ່ມີ"}\n  ເງື່ອນໄຂ: ${conditions || "ບໍ່ມີ"}`;
+      })
       .join("\n");
 
     const unknownLines = (report.unknowns || [])
       .map((u: string) => `- ${u}`)
       .join("\n");
 
-    const ageText = userDraft["D1"]?.option_codes?.[0] ? optionsMap[userDraft["D1"].option_codes[0]] || userDraft["D1"].option_codes[0] : (report.context_factors.age_band || "ບໍ່ໄດ້ລະບຸ");
-    const eduText = userDraft["D2"]?.text_value || "ບໍ່ໄດ້ລະບຸ";
-    const provText = userDraft["D3"]?.option_codes?.[0] ? optionsMap[userDraft["D3"].option_codes[0]] || userDraft["D3"].option_codes[0] : (report.context_factors.province_code || "ບໍ່ໄດ້ລະບຸ");
-    const methodText = report.versions.form === "v4.0.0"
-      ? `- ເວີຊັນແບບຄຳຖາມ: v4.0.0 (D1–D3 + Q1–Q28)\n- ຄະແນນ C1–C7: normalize ລາຍຂໍ້ເປັນ 0–1 ຕາມ max_select ແລ້ວສະເລ່ຍ 6 ໝວດດ້ວຍນ້ຳໜັກເທົ່າກັນ\n- Q17: ແຍກ negative penalty ແລະ clamp ຄະແນນ 0–1\n- Q26–Q27: risk willingness; Q28: safety readiness`
-      : `- ເວີຊັນແບບຄຳຖາມ: ${report.versions.form}\n- ຜົນແມ່ນການສະທ້ອນຈາກຄຳຕອບຂອງ Next-path`;
+    const ageText = reportAnswers["D1"]?.option_codes?.[0]
+      ? optionsMap[reportAnswers["D1"].option_codes[0]] || reportAnswers["D1"].option_codes[0]
+      : (report.context_factors.age_band || "ບໍ່ໄດ້ລະບຸ");
+    const eduText = reportAnswers["D2"]?.text_value || "ບໍ່ໄດ້ລະບຸ";
+    const provText = reportAnswers["D3"]?.option_codes?.[0]
+      ? optionsMap[reportAnswers["D3"].option_codes[0]] || reportAnswers["D3"].option_codes[0]
+      : (report.context_factors.province_code || "ບໍ່ໄດ້ລະບຸ");
+    const contextLines = [
+      `- ຂໍ້ຈຳກັດ: ${translateContextValues(report.context_factors.constraints)}`,
+      `- ຄວາມພ້ອມຍ້າຍ: ${translateContextValues(report.context_factors.mobility)}`,
+      `- ບໍລິບົດຄອບຄົວ: ${translateContextValues(report.context_factors.family_context)}`,
+      `- ຄວາມພ້ອມຮັບຄວາມສ່ຽງ: ${report.context_factors.risk_willingness == null ? "ບໍ່ໄດ້ລະບຸ" : `${report.context_factors.risk_willingness} / 4`}`,
+      `- ຄວາມພ້ອມດ້ານຄວາມປອດໄພ: ${report.context_factors.safety_readiness == null ? "ບໍ່ໄດ້ລະບຸ" : `${report.context_factors.safety_readiness} / 5`}`,
+    ].join("\n");
 
-    return `# 🧭 ໂປຣໄຟລ໌ສຳຫຼວດຕົນເອງຈາກ Next-path (Self-Reflection & Pure Evidence Profile)
+    return `# 🧭 ບົດສະທ້ອນຕົນເອງຈາກ Next-path
+(ສຳລັບໄວໜຸ່ມລາວ)
 
-## 👤 1. ຂໍ້ມູນບໍລິບົດຂອງຜູ້ຕອບ (Context Factors)
+## 👤 1. ຂໍ້ມູນບໍລິບົດຂອງຜູ້ຕອບ (Context Profile)
 - ອາຍຸ: ${ageText}
 - ລະດັບການສຶກສາ: ${eduText}
-- ແຂວງ: ${provText}
+- ແຂວງ / ທີ່ຢູ່: ${provText}
+${contextLines}
 
-## 📊 2. ຫຼັກຖານຄຳຕອບຕົວຈິງສຳລັບການສະທ້ອນ
+## 📊 2. ຄຳຕອບ ແລະ ບໍລິບົດຂອງຂ້ອຍ
 ${answersSummary || "- ບໍ່ມີຂໍ້ມູນຄຳຕອບລະອຽດ"}
 
-## 🧠 3. ຜົນການສະທ້ອນຈາກຄຳຕອບ
-**ວິທີການທີ່ລະບົບລະບຸໄວ້ (Method Used):**
-${methodText}
-
+## 🧠 3. ຜົນການສະທ້ອນຈາກລະບົບ Next-path
 **ບົດສະຫຼຸບພາບລວມ (Summary):**
 ${report.summary_text}
 
-**ຮູບແບບຄວາມຄິດ ແລະ ທັກສະທີ່ພົບ (Identified Patterns):**
+**ຮູບແບບຄວາມຄິດ ແລະ ທັກສະທີ່ພົບ (Observed Patterns):**
 ${patternLines || "- ບໍ່ພົບຮູບແບບສະເພາະ"}
 
-**ທິດທາງເສັ້ນທາງທີ່ແນະນຳໃຫ້ສຳຫຼວດ (Suggested Exploration Paths in Laos):**
+**ທິດທາງເສັ້ນທາງທີ່ແນະນຳໃຫ້ສຳຫຼວດໃນລາວ (Suggested Exploration Paths in Laos):**
 ${pathLines || "- ບໍ່ພົບເສັ້ນທາງສະເພາະ"}
 
-**ສິ່ງທີ່ຍັງເປີດກວ້າງສຳລັບການສຳຫຼວດຕໍ່ (Unknowns / Open Reflections):**
+**ສິ່ງທີ່ຍັງເປີດກວ້າງສຳລັບການຮຽນຮູ້ຕໍ່ (Unknowns / Open Reflections):**
 ${unknownLines || "- ບໍ່ມີ"}
 
 ---
 ## 🤖 4. ຄຳຖາມເຈາະເລິກສຳລັບ AI ພາຍນອກ (Prompt for ChatGPT / Claude / Gemini)
-ຂ້າພະເຈົ້າເປັນໄວໜຸ່ມໃນປະເທດລາວ. ຈາກຂໍ້ມູນຄຳຕອບຕົວຈິງ ແລະ ຜົນສະທ້ອນຈາກ Next-path ຂ້າງເທິງນີ້, ກະລຸນາຊ່ວຍ:
-1. ກວດວ່າການແປຄຳຕອບ, ການແບ່ງໝວດ, ນ້ຳໜັກ ແລະ normalize ສອດຄ່ອງກັບຄຳຖາມຈິງຫຼືບໍ່; ຊີ້ຈຸດທີ່ອາດຄຳນວນຜິດ.
-2. ວິເຄາະຈຸດເຊື່ອມໂຍງລະຫວ່າງຄຳຕອບຕົວຈິງກັບທິດທາງທີ່ລະບົບແນະນຳໃນບໍລິບົດລາວ.
-3. ແນະນຳ Micro-Experiments 1–2 ຢ່າງ ແລະ ຄຳຖາມທົບທວນ 3 ຂໍ້ ທີ່ເຮັດໄດ້ໃນ 1–2 ອາທິດ ດ້ວຍຕົ້ນທຶນຕ່ຳ.
-4. ຖ້າພົບບັນຫາ ໃຫ້ແຍກເປັນ: ຜິດດ້ານຂໍ້ມູນ, ຜິດດ້ານສູດ, ຫຼື ຂໍ້ຈຳກັດທີ່ຕ້ອງທົດສອບເພີ່ມ.
-`;
-  }, [report, userDraft]);
+ເຈົ້າຄື "ເພື່ອນຮ່ວມຄິດສຳລັບການສຳຫຼວດການຮຽນ, ວຽກ ແລະ ຊີວິດຂອງໄວໜຸ່ມລາວ".
+ຈາກຂໍ້ມູນຄຳຕອບຕົວຈິງ ແລະ ບົດສະທ້ອນຂອງ Next-path ຂ້າງເທິງນີ້, ຂໍໃຫ້ຊ່ວຍ:
+1. ສະທ້ອນຈຸດແຂງ ແລະ ຄວາມສົນໃຈໂດຍອ້າງອີງຈາກຄຳຕອບຈິງ; ບອກໃຫ້ເຫັນວ່າຄຳຕອບໃດເຊື່ອມກັບຂໍ້ສະທ້ອນໃດ.
+2. ຊ່ວຍສຳຫຼວດ 2-3 ທາງເລືອກຈາກທິດທາງຂ້າງເທິງ ໂດຍຄຳນຶງເຖິງອາຍຸ, ການສຶກສາ, ຂໍ້ຈຳກັດ ແລະ ບໍລິບົດຄອບຄົວ.
+3. ແນະນຳກິດຈະກຳທົດລອງ 2-3 ຢ່າງ ທີ່ເຮັດໄດ້ໃນ 1-2 ອາທິດ ຕົ້ນທຶນຕ່ຳ ແລະ ປອດໄພ; ໃຫ້ບອກວ່າຄວນສັງເກດຫຍັງຈາກການລອງ.
+4. ຊ່ວຍຮ່າງບົດສົນທະນາກັບຄອບຄົວ ໂດຍອະທິບາຍທາງເລືອກຢ່າງສະຫງົບ, ບໍ່ອ້າງວ່າເປັນຄຳຕັດສິນອາຊີບ.
+5. ຕັ້ງຄຳຖາມປາຍເປີດ 3 ຂໍ້ ໃຫ້ຂ້ອຍກັບໄປທົບທວນຕໍ່.
 
-  const handleCopyAiPrompt = async () => {
-    if (!aiPromptText) return;
-    try {
-      await navigator.clipboard.writeText(aiPromptText);
-      setCopiedPrompt(true);
-      setTimeout(() => setCopiedPrompt(false), 2500);
-    } catch {
-      setHasError(true);
+ຫຼັກການສຳຄັນ:
+- ຢ່າວິນິດໄສ, ຈັດອັນດັບ ຫຼື ບອກວ່າຂ້ອຍຕ້ອງເລືອກອາຊີບໃດ.
+- ຢ່າແຕ່ງຂໍ້ມູນທີ່ບໍ່ມີ. ຖ້າຂາດຂໍ້ມູນ ໃຫ້ບອກວ່າຂາດ ແລະ ຖາມຄຳຖາມຕໍ່.
+- ຖ້າກ່າວເຖິງຕະຫຼາດວຽກ ຫຼື ໂອກາດປັດຈຸບັນໃນລາວ ໃຫ້ແຍກຂໍ້ເທັດຈິງອອກຈາກການຄາດຄະເນ ແລະ ແນະນຳໃຫ້ກວດແຫຼ່ງຂໍ້ມູນ.
+- ຕອບເປັນພາສາລາວທີ່ອ່ານງ່າຍ, ອົບອຸ່ນ ແລະ ບໍ່ຕັດສິນ.
+`;
+  }, [report, reportAnswers]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleShare = async () => {
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: "Next-path: ຜົນສະທ້ອນຕົນເອງ",
+          text: "ຜົນສະທ້ອນຄວາມສົນໃຈ ແລະ ເສັ້ນທາງຊີວິດຈາກ Next-path ສຳລັບໄວໜຸ່ມລາວ",
+          url: window.location.href,
+        });
+      } catch {
+        // Cancelled
+      }
+    } else if (typeof navigator !== "undefined") {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
     }
   };
 
@@ -294,346 +379,583 @@ ${unknownLines || "- ບໍ່ມີ"}
     );
   }
 
+  const tabs = [
+    { id: 0 as ReportTab, label: "1. ພາບລວມຕົນເອງ" },
+    { id: 1 as ReportTab, label: "2. ຮູບແບບທີ່ພົບ" },
+    { id: 2 as ReportTab, label: "3. ທິດທາງສຳຫຼວດ" },
+    { id: 3 as ReportTab, label: "4. ສິ່ງທີ່ຍັງເປີດກວ້າງ" },
+    { id: 4 as ReportTab, label: "5. ການທົດລອງນ້ອຍໆ" },
+    { id: 5 as ReportTab, label: "6. ວິທີລົມກັບພໍ່ແມ່" },
+    { id: 6 as ReportTab, label: "7. ກວດຄືນຄຳຕອບ" },
+  ];
+
+  const topPath = report.possible_paths?.[0];
+  const provinceOption = v4Questions.demographics
+    .find((item) => item.id === "D3")
+    ?.options?.find((option) => option.code === report.context_factors.province_code);
+  const provinceLabel =
+    provinceOption?.text ?? report.context_factors.province_code ?? "ປະເທດລາວ";
+  const contextRows = [
+    { label: "ອາຍຸ", value: report.context_factors.age_band || "ບໍ່ໄດ້ລະບຸ" },
+    {
+      label: "ການສຶກສາ",
+      value: reportAnswers.D2?.text_value?.trim() || "ບໍ່ໄດ້ລະບຸ",
+    },
+    { label: "ພື້ນທີ່", value: provinceLabel },
+    { label: "ຂໍ້ຈຳກັດ", value: translateContextValues(report.context_factors.constraints) },
+    { label: "ຄວາມພ້ອມຍ້າຍ", value: translateContextValues(report.context_factors.mobility) },
+    {
+      label: "ບໍລິບົດຄອບຄົວ",
+      value: translateContextValues(report.context_factors.family_context),
+    },
+    {
+      label: "ຄວາມພ້ອມຮັບຄວາມສ່ຽງ",
+      value:
+        report.context_factors.risk_willingness == null
+          ? "ບໍ່ໄດ້ລະບຸ"
+          : `${report.context_factors.risk_willingness} / 4`,
+    },
+    {
+      label: "ຄວາມພ້ອມດ້ານຄວາມປອດໄພ",
+      value:
+        report.context_factors.safety_readiness == null
+          ? "ບໍ່ໄດ້ລະບຸ"
+          : `${report.context_factors.safety_readiness} / 5`,
+    },
+  ];
+  const reportSource = (report.versions.form === "v4.0.0" ? v4Questions : staticQuestions) as {
+    demographics: Array<{
+      id: string;
+      stem: string;
+      options?: Array<{ code: string; text: string }>;
+    }>;
+    questions: Array<{
+      id: string;
+      stem: string;
+      options?: Array<{ code: string; text: string }>;
+    }>;
+  };
+  const reportItems = [...reportSource.demographics, ...reportSource.questions];
+  const answerRows = Object.entries(reportAnswers).map(([qid, answer]) => {
+    const item = reportItems.find((candidate) => candidate.id === qid);
+    const selectedOptions = (answer.option_codes || []).map(
+      (code) => item?.options?.find((option) => option.code === code)?.text || code,
+    );
+    const values = [
+      selectedOptions.join(", "),
+      answer.text_value,
+      answer.other_text,
+      answer.extra_text,
+    ].filter(Boolean);
+    return {
+      qid,
+      question: item?.stem || qid,
+      answer: values.join(" — ") || "ບໍ່ໄດ້ລະບຸ",
+    };
+  });
+  const scoreRows = Object.entries(report.score_details?.scores ?? {})
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([cluster, score]) => ({
+      cluster,
+      label: SCORE_LABELS[cluster] ?? cluster,
+      percent: Math.round(Math.max(0, Math.min(1, score)) * 100),
+    }));
+
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-14 space-y-10">
-      {/* Header of the Reflection Space */}
-      <div className="pb-8 subtle-border-b space-y-4">
-        <div className="eyebrow">
-          <span className="eyebrow-dot"></span>
-          <span>ແວ່ນແຍງສະທ້ອນຄວາມຄິດ</span>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-10">
+      {/* Top Banner & Context */}
+      <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-3xl p-6 sm:p-8 shadow-xs space-y-5 animate-fade-in-scale">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#E5E1D8]/60 text-xs sm:text-sm text-[#2D4C3E]/70">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-[#2D4C3E]">Next-path</span>
+            <span>•</span>
+            <span>ບົດສະທ້ອນຕົນເອງ (Self-reflection Report)</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span>{report.context_factors.age_band || "ອາຍຸ 15+"}</span>
+            <span>•</span>
+            <span>{provinceLabel}</span>
+          </div>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#171A1F] tracking-tight">
-          ຮູບແບບ ແລະ ສິ່ງທີ່ສະທ້ອນອອກມາຈາກຕົວເຈົ້າ
-        </h1>
+        {topPath && (
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EBF2EE] border border-[#2D4C3E]/20 text-[#2D4C3E] text-xs font-semibold">
+            <Sparkles className="w-3.5 h-3.5 text-[#8D5B28]" />
+            <span>ຈຸດເລີ່ມຕົ້ນທີ່ພົບ: {topPath.label_lao}</span>
+          </div>
+        )}
 
-        <p className="text-sm sm:text-base text-[#5B5345] max-w-3xl leading-relaxed">
-          ບົດລາຍງານນີ້ບໍ່ແມ່ນການສອບເສັງ ຫຼື ການຕັດສິນວ່າເຈົ້າຕ້ອງເປັນໃຜ. ມັນຄືການຮວບຮວມສິ່ງທີ່ເຈົ້າແບ່ງປັນ ມາຈັດເປັນລະບຽບ ເພື່ອໃຫ້ເຈົ້າໄດ້ເຫັນຄວາມຊັດເຈນໃນຕົວເອງ.
-        </p>
-
-        {/* Narrative Summary Box */}
-        <div className="p-6 sm:p-7 rounded-3xl bg-white subtle-border shadow-2xs mt-6">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#2D4C3E] block mb-2">
-            ບົດສະຫຼຸບພາບລວມ
-          </span>
-          <p className="text-base sm:text-lg font-medium text-[#1A1E24] leading-relaxed">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#2D4C3E] tracking-tight">
+            ແວ່ນແຍງສະທ້ອນຕົວຕົນ ແລະ ເສັ້ນທາງທີ່ໜ້າລອງ
+          </h1>
+          <p className="text-sm sm:text-base text-[#2D4C3E]/80 mt-2 leading-relaxed">
             {report.summary_text}
           </p>
         </div>
 
-        {/* Filter Tab Bar */}
-        <div role="group" aria-label="ພາກສ່ວນຂອງບົດສະທ້ອນ" className="flex max-w-full gap-2 overflow-x-auto pt-6 pb-1 scrollbar-none">
-          {REPORT_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              aria-pressed={activeTab === tab.id}
-              className={`min-h-11 shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? "bg-[#1D2229] text-white shadow-2xs"
-                  : "bg-white subtle-border text-[#5E5546] hover:bg-[#F2EFE8]"
-              }`}
-            >
-              {tab.labelLo}
-            </button>
-          ))}
-        </div>
-        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-          ກຳລັງສະແດງ: {activeTabLabel}
-        </p>
-      </div>
-
-      {/* SECTION 1: OBSERVED PATTERNS */}
-      {(activeTab === "all" || activeTab === "patterns") && (
-        <section className="space-y-4 animate-fade-in-up">
-          <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#2D4C3E]">
-            <Layers className="w-4 h-4" />
-            <span>1. ຮູບແບບຄວາມຄິດ ແລະ ທັກສະທີ່ສັງເກດເຫັນ</span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#171A1F]">
-            ຈຸດເຊື່ອມໂຍງລະຫວ່າງ ສິ່ງທີ່ເຈົ້າສົນໃຈ, ວິທີຄິດ ແລະ ສະພາບແວດລ້ອມ
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-            {report.response_pattern && report.response_pattern.length > 0 ? (
-              report.response_pattern.map((pattern: ReportPattern, idx: number) => (
-                <div
-                  key={pattern.pattern_id}
-                  className={`p-5 sm:p-6 rounded-2xl bg-white subtle-border hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between animate-fade-in-up ${idx % 2 === 1 ? "delay-100" : ""}`}
-                >
-                  <div>
-                    <span className="inline-block text-[11px] font-bold uppercase tracking-wider text-[#695F4F] px-2.5 py-0.5 rounded-md bg-[#F4F1EA] mb-2.5">
-                      {pattern.section}
-                    </span>
-                    <h3 className="text-base sm:text-lg font-bold text-[#171A1F] mb-1.5">
-                      {pattern.label_lao}
-                    </h3>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-6 rounded-2xl bg-white subtle-border col-span-2 text-xs text-[#7A7365]">
-                ບໍ່ພົບຮູບແບບສະເພາະ
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* SECTION 2: POSSIBLE PATHS */}
-      {(activeTab === "all" || activeTab === "paths") && (
-        <section className="space-y-4 pt-4 animate-fade-in-up">
-          <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#8D5B28]">
-            <Compass className="w-4 h-4" />
-            <span>2. ທິດທາງ ແລະ ໂອກາດສຳຫຼວດ</span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#171A1F]">
-            ທາງເລືອກທີ່ສອດຄ່ອງກັບຈຸດພິເສດຂອງເຈົ້າ
-          </h2>
-          <p className="text-xs sm:text-sm text-[#6A6357]">
-            ບໍ່ແມ່ນການບັງຄັບເລືອກອາຊີບ ແຕ່ເປັນຕົວຢ່າງຂອງສິ່ງທີ່ກຳລັງພັດທະນາໃນສັງຄົມລາວ ບໍ່ມີການຈັດອັນດັບຄະແນນ.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-            {report.possible_paths && report.possible_paths.length > 0 ? (
-              report.possible_paths.map((path: ReportPath, idx: number) => (
-                <div
-                  key={path.group_id}
-                  className={`p-5 sm:p-6 rounded-2xl bg-white subtle-border hover:border-[#2D4C3E] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between animate-fade-in-up ${idx % 3 === 1 ? "delay-100" : idx % 3 === 2 ? "delay-200" : ""}`}
-                >
-                  <div>
-                    <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-[#EBF2EE] text-[#2D4C3E] mb-2.5">
-                      ທາງເລືອກທີ {idx + 1}
-                    </span>
-                    <h3 className="text-base sm:text-lg font-bold text-[#171A1F] leading-snug">
-                      {path.label_lao}
-                    </h3>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-6 rounded-2xl bg-white subtle-border col-span-3 text-xs text-[#7A7365]">
-                ບໍ່ພົບເສັ້ນທາງສະເພາະ
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* SECTION 3: UNKNOWNS & OPEN QUESTIONS */}
-      {(activeTab === "all" || activeTab === "unknowns") && (
-        <section className="space-y-4 pt-4 animate-fade-in-up">
-          <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#7A3E2D]">
-            <HelpCircle className="w-4 h-4" />
-            <span>3. ສິ່ງທີ່ຍັງເປີດກວ້າງ ແລະ ຄຳຖາມປາຍເປີດ</span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#171A1F]">
-            ສິ່ງທີ່ຍັງບໍ່ຈຳເປັນຕ້ອງມີຄຳຕອບໃນຕອນນີ້
-          </h2>
-          <p className="text-xs sm:text-sm text-[#6A6357]">
-            ຄວາມບໍ່ແນ່ໃຈຄືໂອກາດໃນການຄົ້ນຫາ ບໍ່ແມ່ນຄວາມອ່ອນແອ.
-          </p>
-
-          <div className="p-6 sm:p-7 rounded-3xl bg-[#FAF8F3] subtle-border space-y-3">
-            <h3 className="text-sm font-bold text-[#171A1F] flex items-center space-x-2">
-              <span>✦</span>
-              <span>ພື້ນທີ່ທີ່ເຈົ້າສາມາດຄົ້ນຫາຕໍ່ໄດ້:</span>
-            </h3>
-            {report.unknowns && report.unknowns.length > 0 ? (
-              <ul className="space-y-2 text-xs sm:text-sm text-[#4D4537] list-disc list-inside leading-relaxed pl-1">
-                {report.unknowns.map((u: string, idx: number) => (
-                  <li key={idx} className="font-medium">{u}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-xs text-[#746C5F]">
-                ບໍ່ມີສິ່ງທີ່ຍັງບໍ່ແນ່ໃຈສະເພາະ
-              </p>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* SECTION 4: MICRO-EXPERIMENTS */}
-      {(activeTab === "all" || activeTab === "experiments") && (
-        <section className="space-y-4 pt-4">
-          <div className="flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#8D5B28]">
-            <Sparkles className="w-4 h-4" />
-            <span>4. ການທົດລອງນ້ອຍໆສຳລັບອາທິດນີ້</span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-[#171A1F]">
-            ລອງເຮັດສິ່ງເຫຼົ່ານີ້ ໂດຍບໍ່ມີຄວາມກົດດັນ
-          </h2>
-          <p className="text-xs sm:text-sm text-[#6A6357]">
-            ການລົງມືເຮັດຕົວຈິງ 20-30 ນາທີ ຈະຊ່ວຍຕອບຄຳຖາມໃນໃຈໄດ້ດີກວ່າການນັ່ງຄິດຄົນດຽວ.
-          </p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-            <div className="p-5 sm:p-6 rounded-2xl bg-white subtle-border flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-[#2D4C3E] block mb-1">1. ສົນທະນາສັ້ນໆ</span>
-                <p className="text-xs sm:text-sm text-[#4D4537] leading-relaxed">
-                  ລອງປຶກສາ ຫຼື ລົມກັບຜູ້ທີ່ກຳລັງເຮັດວຽກໃນສາຍທີ່ທ່ານສົນໃຈ (15-20 ນາທີ)
-                </p>
-              </div>
-            </div>
-
-            <div className="p-5 sm:p-6 rounded-2xl bg-white subtle-border flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-[#8D5B28] block mb-1">2. ທົດລອງເຮັດຈິງ</span>
-                <p className="text-xs sm:text-sm text-[#4D4537] leading-relaxed">
-                  ລອງເຮັດໂປຣເຈັກນ້ອຍໆ 1 ອາທິດ ຫຼື ຮຽນຄອສຟຣີອອນລາຍສັ້ນໆ
-                </p>
-              </div>
-            </div>
-
-            <div className="p-5 sm:p-6 rounded-2xl bg-white subtle-border flex flex-col justify-between">
-              <div>
-                <span className="text-xs font-bold text-[#7A3E2D] block mb-1">3. ສັງເກດຕົວຈິງ</span>
-                <p className="text-xs sm:text-sm text-[#4D4537] leading-relaxed">
-                  ເຂົ້າຮ່ວມກິດຈະກຳ, ເວທີສຳມະນາ ຫຼື ງານອາສາສະໝັກໃນຊຸມຊົນ
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* SUPERCHARGED AI PROMPT MASTER BOX */}
-      <div className="mt-12 p-6 sm:p-9 rounded-3xl bg-[#1D2229] text-white space-y-6 shadow-md border border-[#2D3540]">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center space-x-2 text-xs font-bold uppercase tracking-wider text-[#B5AEA0]">
-              <Bot className="w-4 h-4 text-[#8D5B28]" />
-              <span>ນຳບົດສະທ້ອນໄປປຶກສາ AI (ພ້ອມຫຼັກຖານຕົວຈິງ)</span>
-            </div>
-            <h3 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
-              ນຳບົດສະທ້ອນ ແລະ ຫຼັກຖານຄຳຕອບ ໄປປຶກສາ AI ອື່ນ
-            </h3>
-            <p className="text-xs sm:text-sm text-[#BDB7A9] max-w-2xl leading-relaxed">
-              ລະບົບຮວບຮວມຄຳຕອບຕົວຈິງ ແລະ ຜົນສະທ້ອນ ເປັນຂໍ້ຄວາມສຳລັບນຳໄປປຶກສາ ChatGPT, Claude ຫຼື Gemini ຕໍ່.
-            </p>
-          </div>
-        </div>
-
-        {/* SINGLE MASTER CTA BUTTON */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-1">
+        {/* Action Buttons: AI Prompt Modal, Print, Share, Download, Reset */}
+        <div className="flex flex-wrap items-center gap-3 pt-2">
           <button
-            type="button"
-            onClick={handleCopyAiPrompt}
-            className={`px-8 py-4 rounded-2xl font-bold text-sm sm:text-base transition-all flex items-center justify-center space-x-3 cursor-pointer shadow-lg active:scale-98 ${
-              copiedPrompt
-                ? "bg-[#2D4C3E] text-white"
-                : "bg-white text-[#1D2229] hover:bg-[#F2EFE8]"
-            }`}
+            onClick={() => setIsAiModalOpen(true)}
+            className="px-4 py-2.5 rounded-xl bg-[#2D4C3E] text-[#F9F8F5] text-xs sm:text-sm font-semibold hover:bg-[#233c31] transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-[0.985]"
           >
-            {copiedPrompt ? (
-              <>
-                <Check className="w-5 h-5 text-[#85E3B3]" />
-              <span>ຄັດລອກຂໍ້ຄວາມສຳເລັດແລ້ວ! (ນຳໄປວາງຖາມ AI ໄດ້ເລີຍ)</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5 text-[#8D5B28]" />
-                <span>ຄັດລອກຂໍ້ຄວາມພ້ອມຫຼັກຖານ ໄປຖາມ AI ຕໍ່</span>
-              </>
-            )}
+            <MessageSquare className="w-4 h-4 text-[#E5E1D8]" />
+            <span>ນຳບົດສະທ້ອນໄປຄຸຍກັບ AI</span>
           </button>
 
           <button
-            type="button"
+            onClick={handlePrint}
+            className="px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-xs sm:text-sm font-medium text-[#2D4C3E] hover:bg-[#F4EFEA] transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <Printer className="w-4 h-4 text-[#8D5B28]" />
+            <span>ພິມລາຍງານ (Print)</span>
+          </button>
+
+          <button
+            onClick={handleShare}
+            className="px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-xs sm:text-sm font-medium text-[#2D4C3E] hover:bg-[#F4EFEA] transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            {copiedLink ? <Check className="w-4 h-4 text-[#2D4C3E]" /> : <Share2 className="w-4 h-4 text-[#8D5B28]" />}
+            <span>{copiedLink ? "ຄັດລອກລິ້ງແລ້ວ" : "ແບ່ງປັນ"}</span>
+          </button>
+
+          <button
             onClick={handleDownloadJson}
             disabled={downloading}
-            className="px-5 py-4 rounded-2xl bg-[#2A3038] text-white border border-[#424A54] font-medium text-xs sm:text-sm hover:bg-[#343C46] transition-all flex items-center justify-center space-x-2 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-xs sm:text-sm font-medium text-[#2D4C3E] hover:bg-[#F4EFEA] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <Download className="w-4 h-4 text-[#B5AEA0]" />
-            <span>{downloading ? "ກຳລັງດາວໂຫຼດ..." : "ດາວໂຫຼດຂໍ້ມູນບົດສະທ້ອນ"}</span>
+            <Download className="w-4 h-4 text-[#8D5B28]" />
+            <span>{downloading ? "ກຳລັງດາວໂຫລດ..." : "ບັນທຶກບົດສະທ້ອນ"}</span>
+          </button>
+
+          <button
+            onClick={handleStartNew}
+            className="px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-[#7A3E2D] hover:bg-[#FDF3F0] transition-colors flex items-center gap-1.5 cursor-pointer ml-auto"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>ເລີ່ມຕົ້ນໃໝ່</span>
           </button>
         </div>
+      </div>
 
-        {/* QUICK SHORTCUT LINKS TO EXTERNAL AIs */}
-        <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-[#A8A193]">
-          <span className="font-medium text-[#C8C2B5]">ເປີດໃຊ້ງານ AI:</span>
-          <a
-            href="https://chatgpt.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-[#2A3038] hover:bg-[#38414D] text-white transition-colors cursor-pointer"
-          >
-            <span>ChatGPT</span>
-            <ExternalLink className="w-3 h-3 text-[#8A92A0]" />
-          </a>
-          <a
-            href="https://claude.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-[#2A3038] hover:bg-[#38414D] text-white transition-colors cursor-pointer"
-          >
-            <span>Claude</span>
-            <ExternalLink className="w-3 h-3 text-[#8A92A0]" />
-          </a>
-          <a
-            href="https://gemini.google.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-[#2A3038] hover:bg-[#38414D] text-white transition-colors cursor-pointer"
-          >
-            <span>Gemini</span>
-            <ExternalLink className="w-3 h-3 text-[#8A92A0]" />
-          </a>
+      {/* Tabs Navigation */}
+      <div className="space-y-6">
+        <div className="flex overflow-x-auto pb-2 gap-2 scrollbar-none border-b border-[#E5E1D8]">
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all cursor-pointer select-none ${
+                  isActive
+                    ? "bg-[#2D4C3E] text-[#F9F8F5] shadow-xs"
+                    : "bg-[#FFFFFF] border border-[#E5E1D8] text-[#2D4C3E]/80 hover:bg-[#F4EFEA]"
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="rounded-2xl border border-[#4A515B] bg-[#252B32] px-4 py-3 text-xs leading-relaxed text-[#D8D2C8]" role="note">
-          <p className="font-semibold text-white">ວິທີໃຊ້:</p>
-          <p className="mt-1">1) ກົດຄັດລອກຂໍ້ຄວາມ  2) ເປີດ AI ທີ່ຕ້ອງການ  3) ກົດວາງ  4) ອ່ານຄຳຕອບຢ່າງມີວິຈາລະນາ.</p>
-          <p className="mt-1 text-[#F0C98B]">ຂໍ້ຄວາມອາດມີຄຳຕອບ ແລະ ບໍລິບົດຂອງທ່ານ. ກວດເນື້ອຫາກ່ອນສົ່ງໃຫ້ AI ພາຍນອກ.</p>
+        {/* Tab 0: Overview & Signals */}
+        {activeTab === 0 && (
+          <div className="space-y-6 animate-fade-in-up">
+            <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-[#2D4C3E] mb-2">
+                  ຮູບແບບຄວາມສົນໃຈ ແລະ ທ່າແຮງ (Interest Patterns)
+                </h2>
+                <p className="text-xs sm:text-sm text-[#2D4C3E]/75 leading-relaxed">
+                  ສັນຍານເຫຼົ່ານີ້ມາຈາກກິດຈະກຳທີ່ເຈົ້າເລືອກວ່າເຮັດແລ້ວມີຄວາມສຸກ ແລະ ຮູ້ສຶກເປັນຕົວຂອງຕົວເອງ:
+                </p>
+              </div>
+
+              <div className="bg-[#F9F8F5] border border-[#E5E1D8] rounded-2xl p-5 sm:p-6 shadow-2xs">
+                <div className="max-w-2xl mb-4">
+                  <h3 className="font-bold text-sm sm:text-base text-[#2D4C3E]">
+                    🧭 ບໍລິບົດຈາກຄຳຕອບທີ່ນຳມາອ່ານຮ່ວມກັບຜົນ
+                  </h3>
+                  <p className="text-xs text-[#2D4C3E]/70 mt-1 leading-relaxed">
+                    ສ່ວນນີ້ສະແດງຄຳຕອບ ແລະ ບໍລິບົດຈິງຂອງເຈົ້າ. ບົດສະທ້ອນນີ້ເປັນຈຸດເລີ່ມຕົ້ນໃຫ້ຄິດຕໍ່ ບໍ່ແມ່ນຄະແນນ ຫຼື ຄຳຕັດສິນ.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {contextRows.map((row) => (
+                    <div key={row.label} className="p-3.5 rounded-xl bg-[#FFFFFF] border border-[#E5E1D8]">
+                      <span className="block text-[11px] font-semibold text-[#695F4F]">{row.label}</span>
+                      <strong className="block mt-1 text-xs sm:text-sm text-[#2D4C3E] leading-relaxed">{row.value}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {scoreRows.length > 0 && (
+                <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-2xl p-5 sm:p-6 shadow-2xs space-y-4">
+                  <div>
+                    <h3 className="font-bold text-sm sm:text-base text-[#2D4C3E]">
+                      ສັນຍານຈາກຄຳຕອບຂອງເຈົ້າ
+                    </h3>
+                    <p className="text-xs text-[#2D4C3E]/70 mt-1 leading-relaxed">
+                      ຕົວເລກນີ້ແມ່ນຄ່າສັນຍານ 0–100 ຈາກຄຳຕອບ ບໍ່ແມ່ນຄະແນນສອບ ຫຼື ການຕັດສິນອາຊີບ.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {scoreRows.map((row) => (
+                      <div key={row.cluster} className="space-y-2">
+                        <div className="flex items-start justify-between gap-3 text-xs">
+                          <span className="font-semibold text-[#2D4C3E] leading-relaxed">
+                            {row.label}
+                          </span>
+                          <span className="font-bold text-[#8D5B28] tabular-nums shrink-0">
+                            {row.percent}%
+                          </span>
+                        </div>
+                        <div
+                          role="meter"
+                          aria-label={`${row.label}: ${row.percent}%`}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={row.percent}
+                          className="h-2.5 rounded-full bg-[#E5E1D8] overflow-hidden"
+                        >
+                          <div
+                            className="h-full rounded-full bg-[#8D5B28] transition-[width] duration-500 motion-reduce:transition-none"
+                            style={{ width: `${row.percent}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 1: Patterns */}
+        {activeTab === 1 && (
+          <div className="space-y-6 animate-fade-in-up">
+            <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2EE] text-[#2D4C3E] text-xs font-semibold mb-2">
+                  <Layers className="w-3.5 h-3.5 text-[#2D4C3E]" />
+                  <span>ຮູບແບບຄວາມຄິດ ແລະ ທັກສະ (Identified Patterns)</span>
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-[#2D4C3E]">
+                  ຈຸດເຊື່ອມໂຍງລະຫວ່າງສິ່ງທີ່ເຈົ້າສົນໃຈ, ວິທີຄິດ ແລະ ສະພາບແວດລ້ອມ
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {report.response_pattern && report.response_pattern.length > 0 ? (
+                  report.response_pattern.map((pattern: ReportPattern, idx: number) => (
+                    <div
+                      key={pattern.pattern_id || idx}
+                      className="p-5 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] hover:border-[#2D4C3E] transition-all flex flex-col justify-between"
+                    >
+                      <div>
+                        <span className="inline-block text-[11px] font-bold text-[#695F4F] px-2.5 py-0.5 rounded-md bg-[#FFFFFF] border border-[#E5E1D8] mb-2.5">
+                          {pattern.section}
+                        </span>
+                        <h3 className="text-sm sm:text-base font-bold text-[#2D4C3E] leading-snug">
+                          {pattern.label_lao}
+                        </h3>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] col-span-2 text-xs text-[#2D4C3E]/70">
+                    ບໍ່ພົບຮູບແບບສະເພາະ
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Possible Paths */}
+        {activeTab === 2 && (
+          <div className="space-y-6 animate-fade-in-up">
+            <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F7EFE3] text-[#8D5B28] text-xs font-semibold mb-2">
+                  <Compass className="w-3.5 h-3.5 text-[#8D5B28]" />
+                  <span>ທິດທາງ ແລະ ໂອກາດສຳຫຼວດໃນລາວ</span>
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-[#2D4C3E]">
+                  ທາງເລືອກທີ່ສອດຄ່ອງກັບຈຸດພິເສດຂອງເຈົ້າ
+                </h2>
+                <p className="text-xs sm:text-sm text-[#2D4C3E]/75 mt-1">
+                  ແຕ່ລະສາຍມີສັນຍານ, ຄວາມເປັນໄປໄດ້ ແລະ ເງື່ອນໄຂປະກອບໃຫ້ສຳຫຼວດ. ບໍ່ແມ່ນຄຳຕັດສິນອາຊີບ ຫຼື ຄວາມນ່າຈະເປັນ:
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {report.possible_paths && report.possible_paths.length > 0 ? (
+                  report.possible_paths.map((path: ReportPath, idx: number) => (
+                    <div
+                      key={path.group_id || idx}
+                      className="p-5 sm:p-6 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] hover:border-[#2D4C3E] hover:shadow-xs transition-all flex flex-col justify-between"
+                    >
+                      <div>
+                        <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-md bg-[#EBF2EE] text-[#2D4C3E] mb-2.5">
+                          ທາງເລືອກທີ {idx + 1}
+                        </span>
+                        <h3 className="text-base font-bold text-[#2D4C3E] leading-snug">
+                          {path.label_lao}
+                        </h3>
+                        <div className="mt-3 grid grid-cols-3 gap-2 text-[10px] text-[#2D4C3E]/75">
+                          <div className="rounded-lg bg-white border border-[#E5E1D8] p-2">
+                            <span className="block">ຄວາມເໝາະສົມ</span>
+                            <strong className="text-[#8D5B28]">{path.compatibility_score ?? "—"}%</strong>
+                          </div>
+                          <div className="rounded-lg bg-white border border-[#E5E1D8] p-2">
+                            <span className="block">ສັນຍານ</span>
+                            <strong className="text-[#8D5B28]">{path.fit_score ?? "—"}%</strong>
+                          </div>
+                          <div className="rounded-lg bg-white border border-[#E5E1D8] p-2">
+                            <span className="block">ໄປຕໍ່ໄດ້</span>
+                            <strong className="text-[#8D5B28]">{path.feasibility_score ?? "—"}%</strong>
+                          </div>
+                        </div>
+                        {path.reasons_lao?.length ? (
+                          <p className="mt-3 text-xs text-[#2D4C3E]/80 leading-relaxed">
+                            {path.reasons_lao.join(" ")}
+                          </p>
+                        ) : null}
+                        {path.conditions_lao?.length ? (
+                          <p className="mt-2 text-xs text-[#7A3E2D]/80 leading-relaxed">
+                            <span className="font-semibold">ເງື່ອນໄຂ: </span>
+                            {path.conditions_lao.join(" ")}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-6 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] col-span-3 text-xs text-[#2D4C3E]/70">
+                    ບໍ່ພົບເສັ້ນທາງສະເພາະ
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Unknowns & Tensions */}
+        {activeTab === 3 && (
+          <div className="space-y-6 animate-fade-in-up">
+            <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FDF3F0] text-[#7A3E2D] text-xs font-semibold mb-2">
+                  <HelpCircle className="w-3.5 h-3.5 text-[#7A3E2D]" />
+                  <span>ສິ່ງທີ່ຍັງເປີດກວ້າງ ແລະ ຄຳຖາມປາຍເປີດ</span>
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-[#2D4C3E]">
+                  ສິ່ງທີ່ຍັງບໍ່ຈຳເປັນຕ້ອງມີຄຳຕອບໃນຕອນນີ້
+                </h2>
+                <p className="text-xs sm:text-sm text-[#2D4C3E]/75 mt-1">
+                  ຄວາມບໍ່ແນ່ໃຈຄືໂອກາດໃນການຄົ້ນຫາ ບໍ່ແມ່ນຄວາມອ່ອນແອ ຫຼື ຂໍ້ຜິດພາດ.
+                </p>
+              </div>
+
+              <div className="p-6 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] space-y-3">
+                <h3 className="text-sm font-bold text-[#2D4C3E] flex items-center gap-2">
+                  <span>✦</span>
+                  <span>ພື້ນທີ່ທີ່ເຈົ້າສາມາດຄົ້ນຫາຕໍ່ໄດ້:</span>
+                </h3>
+                {report.unknowns && report.unknowns.length > 0 ? (
+                  <ul className="space-y-2 text-xs sm:text-sm text-[#2D4C3E]/85 list-disc list-inside leading-relaxed pl-1">
+                    {report.unknowns.map((u: string, idx: number) => (
+                      <li key={idx} className="font-medium">{u}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-[#2D4C3E]/70">
+                    ບໍ່ມີສິ່ງທີ່ຍັງບໍ່ແນ່ໃຈສະເພາະ
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Micro-experiments */}
+        {activeTab === 4 && (
+          <div className="space-y-6 animate-fade-in-up">
+            <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F4EFEA] text-[#8D5B28] text-xs font-semibold mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-[#8D5B28]" />
+                  <span>ການທົດລອງນ້ອຍໆສຳລັບອາທິດນີ້ (Micro-experiments)</span>
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-[#2D4C3E]">
+                  ລອງເຮັດສິ່ງເຫຼົ່ານີ້ ໂດຍບໍ່ມີຄວາມກົດດັນ
+                </h2>
+                <p className="text-xs sm:text-sm text-[#2D4C3E]/75 mt-1">
+                  ການລົງມືເຮັດຕົວຈິງ 20-30 ນາທີ ຈະຊ່ວຍຕອບຄຳຖາມໃນໃຈໄດ້ດີກວ່າການນັ່ງຄິດຄົນດຽວ:
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-5 sm:p-6 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] flex flex-col justify-between space-y-3">
+                  <div>
+                    <span className="text-xs font-bold text-[#2D4C3E] block mb-1">
+                      1. ສົນທະນາສັ້ນໆ (15 ນາທີ)
+                    </span>
+                    <p className="text-xs sm:text-sm text-[#2D4C3E]/80 leading-relaxed">
+                      ລອງປຶກສາ ຫຼື ລົມກັບຜູ້ທີ່ກຳລັງເຮັດວຽກໃນສາຍທີ່ເຈົ້າສົນໃຈ ຖາມກ່ຽວກັບວຽກປະຈຳວັນຕົວຈິງ.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-5 sm:p-6 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] flex flex-col justify-between space-y-3">
+                  <div>
+                    <span className="text-xs font-bold text-[#8D5B28] block mb-1">
+                      2. ທົດລອງເຮັດຈິງ (1 ອາທິດ)
+                    </span>
+                    <p className="text-xs sm:text-sm text-[#2D4C3E]/80 leading-relaxed">
+                      ລອງເຮັດໂປຣເຈັກນ້ອຍໆ 1 ອາທິດ ຫຼື ຮຽນຄອສຟຣີອອນລາຍສັ້ນໆ ເພື່ອສຳຜັດເນື້ອຫາແທ້.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-5 sm:p-6 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] flex flex-col justify-between space-y-3">
+                  <div>
+                    <span className="text-xs font-bold text-[#7A3E2D] block mb-1">
+                      3. ສັງເກດຕົວຈິງ (Field Observation)
+                    </span>
+                    <p className="text-xs sm:text-sm text-[#2D4C3E]/80 leading-relaxed">
+                      ເຂົ້າຮ່ວມກິດຈະກຳ, ເວທີສຳມະນາ, ງານວາງສະແດງ ຫຼື ງານອາສາສະໝັກໃນຊຸມຊົນ.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Family Bridge */}
+        {activeTab === 5 && (
+          <div className="space-y-6 animate-fade-in-up">
+            <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2EE] text-[#2D4C3E] text-xs font-semibold mb-2">
+                  <HeartHandshake className="w-3.5 h-3.5 text-[#2D4C3E]" />
+                  <span>ຂົວເຊື່ອມຕໍ່ຄວາມເຂົ້າໃຈກັບຄອບຄົວ (Family Bridge)</span>
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-[#2D4C3E]">
+                  ວິທີເລົ່າໃຫ້ພໍ່ແມ່ ແລະ ຄອບຄົວເຂົ້າໃຈຢ່າງສະບາຍໃຈ
+                </h2>
+                <p className="text-xs sm:text-sm text-[#2D4C3E]/75 mt-1">
+                  ພໍ່ແມ່ສ່ວນໃຫຍ່ເປັນຫ່ວງເລື່ອງ "ຄວາມໝັ້ນຄົງ ແລະ ອະນາຄົດ". ນີ້ແມ່ນຄຳແນະນຳໃນການສື່ສານ:
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="p-5 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] space-y-2">
+                  <h3 className="font-bold text-sm text-[#2D4C3E]">
+                    1. ເລີ່ມຕົ້ນດ້ວຍຄວາມຂອບໃຈ ແລະ ຮັບຟັງຄວາມເປັນຫ່ວງ
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#2D4C3E]/80 leading-relaxed">
+                    ບອກພໍ່ແມ່ວ່າ: "ລູກເຂົ້າໃຈວ່າພໍ່ແມ່ເປັນຫ່ວງ ແລະ ຢາກໃຫ້ລູກມີອະນາຄົດທີ່ໝັ້ນຄົງ ລູກເລີຍໄດ້ລອງມາສຳຫຼວດທ່າແຮງຕົນເອງໃນ Next-path ເພື່ອຫາທາງເລືອກທີ່ດີທີ່ສຸດ".
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] space-y-2">
+                  <h3 className="font-bold text-sm text-[#8D5B28]">
+                    2. ອະທິບາຍທິດທາງອາຊີບດ້ວຍມຸມມອງຄວາມໝັ້ນຄົງ
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#2D4C3E]/80 leading-relaxed">
+                    ແທນທີ່ຈະບອກວ່າ 'ມັກສາຍນີ້ຍ້ອນມ່ວນ', ໃຫ້ບອກວ່າ: 'ສາຍນີ້ມີໂອກາດສ້າງລາຍຮັບ, ຕະຫຼາດແຮງງານໃນລາວກຳລັງຕ້ອງການ ແລະ ລູກມີທັກສະດ້ານນີ້ທີ່ເຮັດໄດ້ດີ'.
+                  </p>
+                </div>
+
+                <div className="p-5 rounded-2xl bg-[#F9F8F5] border border-[#E5E1D8] space-y-2">
+                  <h3 className="font-bold text-sm text-[#7A3E2D]">
+                    3. ສະເໜີແຜນການທົດລອງນ້ອຍໆ ກ່ອນໃຫ້ພໍ່ແມ່ຕັດສິນໃຈ
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#2D4C3E]/80 leading-relaxed">
+                    ຂໍໂອກາດລອງຮຽນຄອສສັ້ນໆ ຫຼື ທົດລອງເຮັດໂປຣເຈັກນ້ອຍໆ 1-2 ເດືອນ ເພື່ອພິສູດຄວາມຕັ້ງໃຈໃຫ້ຄອບຄົວເຫັນກ່ອນລົງທຶນຮຽນຕໍ່.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 6: Review answers */}
+        {activeTab === 6 && (
+          <div className="space-y-6 animate-fade-in-up">
+            <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold text-[#2D4C3E]">
+                  ກວດຄືນຄຳຕອບຂອງເຈົ້າ
+                </h2>
+                <p className="text-xs sm:text-sm text-[#2D4C3E]/75 mt-1">
+                  ລອງອ່ານຄຳຕອບຂອງເຈົ້າຄືນ. ມັນຊ່ວຍໃຫ້ເຫັນວ່າ ບົດສະທ້ອນນີ້ເກີດຈາກສິ່ງໃດ ແລະ ຈຸດໃດທີ່ຢາກຄົ້ນຫາຕໍ່.
+                </p>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="p-4 rounded-xl bg-[#F9F8F5] border border-[#E5E1D8] space-y-2">
+                  <span className="font-bold text-[#2D4C3E] block">ຄຳຕອບຂອງເຈົ້າ:</span>
+                  {answerRows.length > 0 ? (
+                    <div className="max-h-60 overflow-y-auto space-y-2 text-xs text-[#2D4C3E]/80">
+                      {answerRows.map((row) => (
+                        <div key={row.qid} className="leading-relaxed">
+                          <span className="font-semibold">{row.question}</span>: {row.answer}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-[#2D4C3E]/70">
+                      ບໍ່ພົບຄຳຕອບທີ່ຍັງຢູ່ໃນອຸປະກອນ. ບົດສະທ້ອນດ້ານເທິງຍັງສາມາດອ່ານເພື່ອຄິດຕໍ່ໄດ້.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* SUPERCHARGED AI PROMPT MASTER BOX */}
+      <div className="mt-12 p-6 sm:p-9 rounded-3xl bg-[#2D4C3E] text-[#F9F8F5] space-y-6 shadow-md border border-[#233c31]">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#E5E1D8]">
+            <Sparkles className="w-4 h-4 text-[#8D5B28]" />
+            <span>ນຳບົດສະທ້ອນໄປປຶກສາ AI ຕໍ່</span>
+          </div>
+          <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
+            ນຳບົດສະທ້ອນໄປປຶກສາ AI ຕໍ່
+          </h3>
+          <p className="text-xs sm:text-sm text-[#F9F8F5]/85 max-w-2xl leading-relaxed">
+            ລະບົບ Next-path ໄດ້ຮວບຮວມຄຳຕອບຕົວຈິງ ແລະ ບົດສະທ້ອນຂອງທ່ານ ເປັນຂໍ້ຄວາມທີ່ພ້ອມນຳໄປປຶກສາ ChatGPT, Claude ຫຼື Gemini ຕໍ່ໄດ້ທັນທີ.
+          </p>
         </div>
 
-        {/* Optional supporting information accordion */}
-        <div className="pt-4 border-t border-[#313842]">
+        <div className="pt-1">
           <button
             type="button"
-            onClick={() => setShowProof(!showProof)}
-            aria-expanded={showProof}
-            aria-controls="ai-prompt-proof"
-            className="inline-flex items-center space-x-2 text-xs text-[#D1CBC1] hover:text-white transition-colors cursor-pointer"
+            onClick={() => setIsAiModalOpen(true)}
+            className="px-8 py-4 rounded-2xl bg-[#F9F8F5] text-[#2D4C3E] font-bold text-sm sm:text-base hover:bg-[#FFFFFF] transition-all flex items-center gap-3 cursor-pointer shadow-md active:scale-[0.985]"
           >
-            {showProof ? <ChevronUp className="w-4 h-4 text-[#8D5B28]" /> : <ChevronDown className="w-4 h-4 text-[#8D5B28]" />}
-            <span className="font-semibold">
-              {showProof ? "ເຊື່ອງຂໍ້ມູນປະກອບ" : "ເບິ່ງຂໍ້ມູນປະກອບທີ່ນຳໄປສະທ້ອນ"}
-            </span>
+            <MessageSquare className="w-5 h-5 text-[#8D5B28]" />
+            <span>ຄັດລອກບົດສະທ້ອນໄປຖາມ AI ຕໍ່</span>
           </button>
-
-          {showProof && (
-            <div id="ai-prompt-proof" className="mt-3 p-4 sm:p-5 rounded-2xl bg-[#13171C] text-xs text-[#C8C2B5] space-y-2 max-h-80 overflow-y-auto border border-[#262D36]">
-              <pre className="whitespace-pre-wrap font-sans leading-relaxed text-xs">
-                {aiPromptText}
-              </pre>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Action Footer: Start New Reflection & Voluntary Feedback */}
-      <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#EAE6DC]">
-        <button
-          type="button"
-          onClick={handleStartNew}
-          className="px-6 py-3 rounded-xl bg-[#2D4C3E] hover:bg-[#22392F] text-white font-medium text-xs sm:text-sm transition-all flex items-center space-x-2 cursor-pointer shadow-xs"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span>ເລີ່ມຕົ້ນການສຳຫຼວດຮອບໃໝ່</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => router.push("/feedback")}
-          className="text-xs text-[#7A7365] hover:text-[#1D2229] underline transition-colors cursor-pointer"
-        >
-          ຕ້ອງການໃຫ້ຄຳເຫັນກ່ຽວກັບລະບົບ Next-path
-        </button>
-      </div>
+      {/* AI Prompt Modal */}
+      <AiPromptModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        markdownContent={aiPromptText}
+      />
     </div>
   );
 }

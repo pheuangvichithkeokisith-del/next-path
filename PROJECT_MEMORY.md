@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-09-26 | Recorded user-reported generic retry error for follow-up diagnosis
+**Updated:** 2026-10-02 | Recorded path-fit logic, report/AI evidence flow, and release verification
 
 ---
 
@@ -89,6 +89,55 @@ npm run build                                      # Production build verificati
 
 ## 6. 📅 Session Logs
 
+### Session 2026-10-02 — Path Fit, Feasibility & Real-User Readiness
+
+**✅ Completed and verified:**
+- Added deterministic v4 exploration-path evaluation without changing the existing C1–C7 scoring formula.
+- Each of the top three paths now includes fit signal, context-aware feasibility, combined compatibility, evidence question IDs, reasons, and conditions.
+- Q23–Q28 context, mobility, transport, health, time, risk, and safety signals now affect path feasibility/ranking; D2 remains contextual evidence/education guidance rather than a score input.
+- Report UI now displays the three ranked exploration paths with `ຄວາມເໝາະສົມ`, `ສັນຍານ`, and `ໄປຕໍ່ໄດ້` values.
+- External AI prompt now includes the completed report answers as the primary evidence source plus path scores, reasons, and conditions.
+- Assessment display numbers are continuous 1–28 while internal Q1–Q28 identifiers remain unchanged.
+
+**Verification:** browser smoke passed with 31 report answers, seven score keys, three possible paths, AI prompt evidence, no console errors, and no failed requests. Focused E2E + v4 tests passed **27/27**; latest v4 path tests passed **8/8**; `npm run build` passed; `git diff --check` passed.
+
+**Release boundary:** suitable for a controlled real-user pilot after deployment. The path scores are questionnaire fit/feasibility indicators, not Lao labor-market probabilities. Production deployment, environment configuration, and live monitoring remain separate operational steps.
+
+### Session 2026-10-01 — Comprehensive UI/UX Overhaul Aligning with Next-path Aesthetic & AiPromptModal
+
+**✅ Completed and verified:**
+- **Design & Layout Alignment:** Brought the layout, warmth, paper grain texture, and visual hierarchy from `-nextpath.la` to the production Next.js 16 app without breaking any backend contracts, v4.0.0 questionnaire data (D1–D3 + Q1–Q28), or scoring engine logic.
+- **Universal Header & Footer:**
+  - Enhanced Header with animated Compass logo box, subtitle *“· ພື້ນທີ່ສຳຫຼວດຕົນເອງ”*, navigation pills (ໜ້າຫຼັກ, ການສຳຫຼວດ, ຜົນສະທ້ອນ, ຕິຊົມ), and quick exploration action button.
+  - Created 3-column universal `Footer.tsx` with core user commitments (ບໍ່ແມ່ນບົດສອບເສັງ, ບໍ່ຕັດສິນ, ບໍ່ເກັບຊື່/ອີເມວ), navigation links, and Lao youth reflection dedication.
+- **Landing Page (`app/page.tsx`):**
+  - Hero with animated backdrop glow, organic curved underline for *“ໂດຍບໍ່ມີຄວາມກົດດັນ”*, and time estimate badge (*10-15 ນາທີ, ບໍ່ຟ້າວ ຕອບສະບາຍໆ*).
+  - **Interactive Archetype Preview:** 4-archetype interactive switcher with live trait score bars, real jobs in Laos, and match reasoning.
+  - **3-Step Journey Cards:** 1. ສຳຫຼວດ 2. ສັງເຄາະ 3. ທົດລອງ.
+  - **4 Core Principles Grid:** ບໍ່ແມ່ນບົດສອບເສັງ, ບໍ່ຕັດສິນ, ທົດລອງນ້ອຍໆ, ພາສາທີ່ພໍ່ແມ່ເຂົ້າໃຈ.
+  - **Interactive FAQ Accordion:** 4 common questions with collapsible answer panels.
+- **Introduction Page (`app/introduction/page.tsx`):**
+  - 4-point guide cards with distinct colored badges and warm Lao copywriting.
+  - Styled Consent Checkbox card with accessibility labeling and proceed button guard.
+- **Assessment Studio (`app/assessment/page.tsx`):**
+  - **Sticky Top Bar:** Live answered counter (`ຕອບແລ້ວ X / 28 ຂໍ້`), smooth progress bar, and autosave status toast (*“ບັນທຶກຮ່າງແລ້ວ”*).
+  - **Validation Alert Box:** Direct jump buttons for missing/incomplete questions with smooth focus scroll.
+  - **Option Cards:** Natural soothing green selection highlight (`#EBF2EE` + `#2D4C3E`) with checkboxes/radios.
+  - **Floating Quick Navigation Helper Dock:** Floating toggle button in bottom-right with 8 module jumps and *“ໄປຫາຂໍ້ທີ່ຍັງບໍ່ໄດ້ຕອບ”* quick jump.
+- **Processing Screen (`app/processing/page.tsx`):**
+  - Multi-Orbit Compass Synthesis Animation with rotating dashed ring, 6 colored orbital domain dots, reverse ring, pulsing core, and 5 cycling warm reflection messages.
+- **Report & AI Prompt Export (`app/report/page.tsx` & `components/AiPromptModal.tsx`):**
+  - Top context banner with age/province context and dominant direction badge.
+  - **Compass Radar Visualizer (SVG 8 ມິຕິ):** Interactive-style dimension radar chart calculated from user responses.
+  - **7-Part Reflection Tabs:** 1. ພາບລວມຕົນເອງ 2. ຮູບແບບທີ່ພົບ 3. ທິດທາງສຳຫຼວດໃນລາວ 4. ສິ່ງທີ່ຍັງເປີດກວ້າງ 5. ການທົດລອງນ້ອຍໆ 6. ວິທີລົມກັບພໍ່ແມ່ (Family Bridge) 7. ຫຼັກຖານການຄຳນວນ.
+  - **Dedicated `AiPromptModal`:** Clean popup with safety disclaimer, 1-click Markdown copy button with check feedback, and direct launch links to ChatGPT, Claude, and Gemini.
+  - Tailored AI Prompt text formatted specifically for Lao youth self-reflection with full evidence, report summary, 3 paths, micro-experiments, and family conversation prompts.
+- **Feedback Page (`app/feedback/page.tsx`):**
+  - 5-star rating with supportive Lao descriptive labels, emotional comfort toggle, comments textarea, and success state.
+- **Verification:**
+  - Next.js Production Build (`npm run build`): **9/9 static routes prerendered (Exit code 0)**.
+  - Full Backend Test Suite: **72/72 tests passed (100%)**.
+
 ### Session 2026-09-29 — UI/UX Pro Max Animations & Human-Centered Report Refinement
 
 **✅ Completed and verified:**
@@ -99,6 +148,16 @@ npm run build                                      # Production build verificati
   - Career paths clearly presented as `ທາງເລືອກທີ 1, 2, 3` with supportive match descriptions.
   - Raw calculation proofs and formulas preserved exclusively inside the collapsible evidence accordion and AI prompt export.
 - Verification: Next.js production build (`npm run build`) passed with **9/9 static routes prerendered**; ESLint passed with 0 errors; full backend test suite passed with **72/72 tests (100%)**.
+
+### Session 2026-09-29 — GitHub Repository Sync
+
+**✅ Completed:**
+- The pending UI/report commit was rebased on the latest `origin/main` commit (`8c1a9df`, `SECURITY.md`) and pushed successfully.
+- Current local `main` and `origin/main` are synchronized at `458d08d` (`feat: add CSS animations, UI polish, and human-centered report language`).
+- Untracked local-only items were not uploaded: `.agents/skills/`, `.env.example`, `backend/.env.example`, and `skills-lock.json`.
+- Secrets and local runtime data remain excluded from the push, including `.env.local`, `backend/.env`, `.venv/`, caches, and `pathai.db`.
+
+**Deployment status:** Production deployment remains pending. The repository has the application code, Dockerfile, PostgreSQL configuration, Alembic files, and health endpoint, but Vercel frontend deployment, hosted FastAPI service, production PostgreSQL migration, production CORS/environment configuration, live-flow verification, and data-safety setup have not been completed.
 
 ### Follow-up — Generic Error Banner Seen During Web Check (2026-09-26)
 

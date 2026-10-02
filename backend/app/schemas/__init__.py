@@ -8,9 +8,11 @@ from app.schemas.session import (
 from app.schemas.answer import AnswerCreate, AnswerResponse
 from app.schemas.report import (
     ContextFactors,
+    ReportAnswer,
     ReportPath,
     ReportPattern,
     ReportResponse,
+    ReportScoreDetails,
     ReportVersions,
 )
 from app.schemas.feedback import FeedbackCreate, FeedbackResponse
@@ -27,6 +29,8 @@ __all__ = [
     "AnswerResponse",
     "ReportPattern",
     "ReportPath",
+    "ReportAnswer",
+    "ReportScoreDetails",
     "ContextFactors",
     "ReportVersions",
     "ReportResponse",

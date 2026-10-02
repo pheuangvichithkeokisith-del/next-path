@@ -16,7 +16,6 @@ import Loading from "@/components/Loading";
 import Question from "@/components/Question";
 import { clearDraft, restoreDraft, saveDraft } from "@/utils/draft";
 import {
-  BookmarkCheck,
   CheckCircle2,
   ArrowRight,
   Sparkles,
@@ -27,7 +26,12 @@ import {
   Heart,
   Target,
   Route,
-  UserCheck
+  UserCheck,
+  Check,
+  AlertCircle,
+  ChevronUp,
+  ChevronDown,
+  RotateCcw,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type {
@@ -108,6 +112,9 @@ export default function AssessmentPage() {
   const [submitError, setSubmitError] = useState(false);
   const [showValidationNotice, setShowValidationNotice] = useState(false);
   const [isSavedFlash, setIsSavedFlash] = useState(false);
+  const [isNavDockOpen, setIsNavDockOpen] = useState(false);
+  const [focusedQuestionId, setFocusedQuestionId] = useState<string | null>(null);
+
   const saveTimers = useRef<Record<string, number>>({});
   const validationNoticeRef = useRef<HTMLDivElement>(null);
 
@@ -135,117 +142,133 @@ export default function AssessmentPage() {
           storeSessionId(session_id);
         })
         .catch(() => {
-          // Do not create a fake client-only session. Without the backend,
-          // answers cannot be persisted and Processing cannot reach Report.
           setHasError(true);
-      });
-    } else {
-      // Never reuse a session created before the current questionnaire revision.
-      // Its backend may still contain answers for questions that are no longer
-      // represented in the current draft.
-      if (getStoredSessionRevision() !== CURRENT_FORM_REVISION) {
-        if (typeof window !== "undefined") {
-          clearDraft(window.localStorage);
+        });
+      return;
+    }
+
+    const storedRevision = getStoredSessionRevision();
+    if (storedRevision && storedRevision !== CURRENT_FORM_REVISION) {
+      clearSessionId();
+      if (typeof window !== "undefined") {
+        clearDraft(window.localStorage);
+      }
+      setDraft({});
+      createSession(CURRENT_FORM_VERSION)
+        .then(({ session_id }) => {
+          storeSessionId(session_id);
+        })
+        .catch(() => {
+          setHasError(true);
+        });
+      return;
+    }
+
+    let active = true;
+    getSessionStatus(sessionId)
+      .then(({ status }) => {
+        if (!active) return;
+        if (status === "completed") {
+          clearSessionId();
+          if (typeof window !== "undefined") {
+            clearDraft(window.localStorage);
+          }
+          setDraft({});
+          createSession(CURRENT_FORM_VERSION)
+            .then(({ session_id }) => {
+              storeSessionId(session_id);
+            })
+            .catch(() => {
+              setHasError(true);
+            });
         }
-        createSession(CURRENT_FORM_VERSION)
-          .then(({ session_id }) => {
-            setDraft({});
-            storeSessionId(session_id);
-          })
-          .catch(() => {
-            clearSessionId();
-            setHasError(true);
-          });
-        return;
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        if (isSessionNotFound(error)) {
+          clearSessionId();
+          if (typeof window !== "undefined") {
+            clearDraft(window.localStorage);
+          }
+          setDraft({});
+          createSession(CURRENT_FORM_VERSION)
+            .then(({ session_id }) => {
+              storeSessionId(session_id);
+            })
+            .catch(() => {
+              setHasError(true);
+            });
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [sessionId, sessionResolved]);
+
+  // Answer updater with local storage autosave and backend sync
+  const updateAnswer = (questionId: string, changes: Partial<DraftAnswer>) => {
+    setDraft((prev) => {
+      const current = prev[questionId] ?? emptyAnswer();
+      const updated: DraftAnswer = { ...current, ...changes };
+      const nextDraft = { ...prev, [questionId]: updated };
+
+      if (typeof window !== "undefined") {
+        saveDraft(window.localStorage, nextDraft, sessionId);
       }
 
-      // If returning to assessment with an already completed session, start a fresh session
-      getSessionStatus(sessionId)
-        .then((sessionStatus) => {
-          if (sessionStatus.status === "completed" || sessionStatus.form_version !== CURRENT_FORM_VERSION) {
-            clearSessionId();
-            if (typeof window !== "undefined") {
-              clearDraft(window.localStorage);
+      // Debounce saving individual answer to backend (600ms)
+      if (typeof window !== "undefined") {
+        if (saveTimers.current[questionId]) {
+          window.clearTimeout(saveTimers.current[questionId]);
+        }
+        saveTimers.current[questionId] = window.setTimeout(async () => {
+          if (sessionId) {
+            try {
+              await saveAnswer(sessionId, questionId, updated);
+              setIsSavedFlash(true);
+              setTimeout(() => setIsSavedFlash(false), 2000);
+            } catch {
+              // Silently fail network error; draft is in localStorage and will retry
             }
-            setDraft({});
           }
-        })
-        .catch((error: unknown) => {
-          if (isSessionNotFound(error)) {
-            clearSessionId();
-            if (typeof window !== "undefined") {
-              clearDraft(window.localStorage);
-            }
-            setDraft({});
-            return;
-          }
+        }, 600);
+      }
 
-          // Keep the failure visible instead of continuing with a session
-          // whose status and answers cannot be verified or persisted.
-          setHasError(true);
-        });
-    }
-  }, [retryToken, sessionResolved, sessionId]);
+      return nextDraft;
+    });
 
-  // Handle answers update
-  const updateAnswer = (itemId: string, changes: Partial<DraftAnswer>) => {
-    const previous = draft[itemId] ?? emptyAnswer();
-    const updated: DraftAnswer = { ...previous, ...changes };
-    const nextDraft = { ...draft, [itemId]: updated };
-
-    setDraft(nextDraft);
-    if (typeof window !== "undefined") {
-      saveDraft(window.localStorage, nextDraft, sessionId);
-    }
-
-    // Auto-save flash feedback
-    setIsSavedFlash(true);
-    setTimeout(() => setIsSavedFlash(false), 1200);
-
-    // Async autosave to backend if session exists
-    if (sessionId) {
-      const previousTimer = saveTimers.current[itemId];
-      if (previousTimer !== undefined) window.clearTimeout(previousTimer);
-      saveTimers.current[itemId] = window.setTimeout(() => {
-        saveAnswer(sessionId, itemId, updated).catch((err) => {
-          if (isSessionNotFound(err)) {
-            clearSessionId();
-            createSession(CURRENT_FORM_VERSION)
-              .then(({ session_id }) => storeSessionId(session_id))
-              .catch(() => undefined);
-          }
-        });
-      }, 250);
+    if (showValidationNotice) {
+      setShowValidationNotice(false);
     }
   };
 
+  // Group questions by section
   const sections = useMemo<SectionGroup[]>(() => {
     if (!form) return [];
-
     const result: SectionGroup[] = [];
+    const dList = form.demographics || [];
+    const qList = form.questions || [];
 
-    // 1. Demographics
-    if (form.demographics && form.demographics.length > 0) {
+    if (dList.length > 0) {
       result.push({
         id: "sec-demo",
-        titleLo: "ຂໍ້ມູນເບື້ອງຕົ້ນ (Demographics)",
-        descLo: "ກະລຸນາບອກຂໍ້ມູນທົ່ວໄປເພື່ອຊ່ວຍໃຫ້ລະບົບເຂົ້າໃຈບໍລິບົດຂອງທ່ານ",
+        titleLo: "ຂໍ້ມູນພື້ນຖານ (Demographics)",
+        descLo: "ຂໍ້ມູນທົ່ວໄປເພື່ອຊ່ວຍໃຫ້ບົດສະທ້ອນສອດຄ່ອງກັບທ່ານຫຼາຍຂຶ້ນ (ບໍ່ລະບຸຕົວຕົນ)",
         icon: UserCheck,
-        items: form.demographics,
+        items: dList,
       });
     }
 
-    // Group Q1-Q28 into the 8 actual modules
-    const qList = form.questions || [];
     const secMap: Record<string, { titleLo: string; descLo: string; icon: LucideIcon }> = {
       interests: {
         titleLo: "ໝວດ 1 — ຄວາມສົນໃຈ (Interests)",
-        descLo: "ສິ່ງທີ່ເຮັດແລ້ວມີຄວາມສຸກ ລືມເວລາ ແລະ ຢາກຮຽນຮູ້",
+        descLo: "ສິ່ງທີ່ເຮັດແລ້ວມີຄວາມສຸກ ລືມເວລາ ແລະ ຢາກຄົ້ນຫາ",
         icon: Compass,
       },
       skills: {
-        titleLo: "ໝວດ 2 — ທັກສະ (Skills)",
-        descLo: "ຈຸດແຂງທີ່ຄົນອື່ນຊົມເຊີຍ ແລະ ສິ່ງທີ່ເຄີຍເຮັດຈົນພູມໃຈ",
+        titleLo: "ໝວດ 2 — ທັກສະ ແລະ ຄວາມຖະໜັດ (Skills)",
+        descLo: "ສິ່ງທີ່ເຮັດໄດ້ດີ ຖືກຊົມເຊີຍ ແລະ ເຄີຍສ້າງຄວາມພູມໃຈ",
         icon: Sparkles,
       },
       values: {
@@ -320,6 +343,22 @@ export default function AssessmentPage() {
     return result;
   }, [form]);
 
+  // Keep internal Q IDs stable for scoring/API contracts, while showing a
+  // simple continuous number in the order the cards appear on the page.
+  const displayNumberById = useMemo<Record<string, number>>(() => {
+    const numbers: Record<string, number> = {};
+    let number = 1;
+    for (const section of sections) {
+      for (const item of section.items) {
+        if (item.id.startsWith("Q")) {
+          numbers[item.id] = number;
+          number += 1;
+        }
+      }
+    }
+    return numbers;
+  }, [sections]);
+
   // Total questions count (Q1-Q28)
   const totalQuestions = form?.questions?.length ?? 28;
   const answeredQCount = useMemo(() => {
@@ -344,7 +383,7 @@ export default function AssessmentPage() {
         const required = config.min_required ?? 0;
         return { section, answered, required };
       })
-        .filter(({ answered, required }) => Boolean(meta.validation?.min_per_section) && answered < required);
+      .filter(({ answered, required }) => Boolean(meta.validation?.min_per_section) && answered < required);
     const missingRequired = requiredQuestions.filter((questionId) => {
       const item = form?.questions?.find((question) => question.id === questionId);
       return !item || !isAnswered(item, draft[questionId]);
@@ -389,6 +428,25 @@ export default function AssessmentPage() {
     if (!question) return;
     question.focus({ preventScroll: true });
     question.scrollIntoView({ behavior: getScrollBehavior(), block: "center" });
+    setFocusedQuestionId(questionId);
+    setTimeout(() => setFocusedQuestionId(null), 3000);
+  };
+
+  const scrollToNextUnanswered = () => {
+    if (!form?.questions) return;
+    const nextQ = form.questions.find((q) => !isAnswered(q, draft[q.id]));
+    if (nextQ) {
+      scrollToQuestion(nextQ.id);
+    }
+    setIsNavDockOpen(false);
+  };
+
+  const scrollToSection = (secId: string) => {
+    const sectionEl = document.getElementById(`${secId}-heading`);
+    if (sectionEl) {
+      sectionEl.scrollIntoView({ behavior: getScrollBehavior(), block: "start" });
+    }
+    setIsNavDockOpen(false);
   };
 
   const handleComplete = async () => {
@@ -407,7 +465,6 @@ export default function AssessmentPage() {
     setSubmitError(false);
     try {
       if (sessionId) {
-        // Explicitly flush and save ALL answered items in draft to ensure 100% data persistence
         const itemsToSave = Object.entries(draft).filter(([, ans]) =>
           (ans.option_codes && ans.option_codes.length > 0) ||
           ans.text_value ||
@@ -454,173 +511,288 @@ export default function AssessmentPage() {
   }
 
   return (
-    <div className="w-full pb-20">
-      {/* Sticky Progress & Navigation Bar */}
-      <section aria-labelledby="assessment-progress-heading" className="sticky top-16 z-30 bg-[#F9F8F5]/95 backdrop-blur-md subtle-border-b py-3.5 px-4 sm:px-6 shadow-2xs">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
-          <h2 id="assessment-progress-heading" className="sr-only">ຄວາມຄືບໜ້າການສຳຫຼວດ</h2>
-          <div className="flex items-center space-x-3">
-            <span className="text-xs sm:text-sm font-bold text-[#1D2229]">
-              ຕອບແລ້ວ {answeredQCount} / {totalQuestions} ຂໍ້
-            </span>
-            <div aria-hidden="true" className="w-20 sm:w-36 h-2 bg-[#EBE7DD] rounded-full overflow-hidden hidden xs:block">
-              <div
-                className="h-full bg-[#2D4C3E] rounded-full transition-all duration-300"
-                style={{ width: `${percentage}%` }}
-              />
-            </div>
-          </div>
+    <div className="relative pb-24">
+      {/* Skip Link for Keyboard Accessibility */}
+      <a
+        href="#assessment-questions"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 bg-[#2D4C3E] text-[#F9F8F5] px-4 py-2 rounded-lg font-medium shadow-md"
+      >
+        ຂ້າມໄປຍັງຄຳຖາມແບບສຳຫຼວດ
+      </a>
 
-          <div className="flex items-center space-x-2">
-            {/* Auto-save indicator */}
+      {/* Sticky Progress Header */}
+      <section
+        aria-labelledby="assessment-progress-heading"
+        className="sticky top-18 z-30 bg-[#F9F8F5]/95 backdrop-blur-md border-b border-[#E5E1D8] py-3.5 px-4 sm:px-6 shadow-xs transition-all"
+      >
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5">
+          <h2 id="assessment-progress-heading" className="sr-only">
+            ຄວາມຄືບໜ້າການສຳຫຼວດ
+          </h2>
+
+          <div className="w-full sm:w-auto flex items-center justify-between sm:justify-start gap-4">
+            <span className="text-xs sm:text-sm font-semibold text-[#2D4C3E] flex items-center gap-1.5">
+              <span>ຕອບແລ້ວ</span>
+              <span className="font-bold text-[#8D5B28]">{answeredQCount}</span>
+              <span>/</span>
+              <span>{totalQuestions} ຂໍ້</span>
+            </span>
+
+            <span className="text-xs text-[#2D4C3E]/70 hidden md:inline">
+              {answeredQCount === totalQuestions
+                ? "ຕອບຄົບທຸກຂໍ້ແລ້ວ! ພ້ອມເບິ່ງຜົນສະທ້ອນ 🎉"
+                : answeredQCount >= 20
+                ? "ຍັງເຫຼືອອີກໜ້ອຍດຽວ, ຕອບສະບາຍໆ"
+                : "ຄ່ອຍໆ ຕອບຕາມຄວາມຮູ້ສຶກ"}
+            </span>
+
+            {/* Autosave status toast */}
             <span
-              className={`text-xs text-[#2D4C3E] font-medium flex items-center space-x-1 transition-opacity duration-300 ${
+              className={`text-xs text-[#2D4C3E] font-medium flex items-center gap-1 transition-opacity duration-300 ${
                 isSavedFlash ? "opacity-100" : "opacity-0"
               }`}
             >
-              <BookmarkCheck className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">ບັນທຶກອັດຕະໂນມັດແລ້ວ</span>
+              <Check className="w-3.5 h-3.5 text-[#2D4C3E]" />
+              <span>ບັນທຶກຮ່າງແລ້ວ</span>
             </span>
+          </div>
 
-            {answeredQCount >= 10 && (
-              <button
-                onClick={handleComplete}
-                disabled={submitting}
-                className="btn-primary min-h-11 px-3.5 py-1.5 rounded-lg bg-[#2D4C3E] hover:bg-[#233C31] text-xs"
-              >
-                <span>ສັງເຄາະຜົນ</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )}
+          {/* Spring Progress Bar */}
+          <div className="w-full sm:w-64 flex items-center gap-2">
+            <div
+              className="flex-1 h-2 rounded-full bg-[#E5E1D8] overflow-hidden"
+              role="progressbar"
+              aria-valuenow={percentage}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label="ຄວາມຄືບໜ້າການຕອບແບບສຳຫຼວດ"
+            >
+              <div
+                className="h-full bg-[#2D4C3E] rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+            <span className="text-xs font-semibold text-[#2D4C3E] w-9 text-right">
+              {percentage}%
+            </span>
           </div>
         </div>
       </section>
 
       {/* Main Continuous Form Content */}
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 space-y-14">
+      <div id="assessment-questions" className="max-w-3xl mx-auto px-4 sm:px-6 pt-8 space-y-10">
         {submitError ? <ErrorBanner onRetry={handleComplete} /> : null}
 
-        {/* Intro Banner */}
-        <div className="text-center max-w-xl mx-auto pb-4">
-          <span className="text-xs font-bold uppercase tracking-widest text-[#746C5F] block mb-1.5">
-            ການສຳຫຼວດແບບຕໍ່ເນື່ອງ
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#171A1F] tracking-tight">
+        {/* Intro Card */}
+        <div className="bg-[#FFFFFF] border border-[#E5E1D8] rounded-2xl p-6 shadow-xs">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F4EFEA] text-[#8D5B28] text-xs font-semibold mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>ແບບສຳຫຼວດຕົນເອງ (Self-reflection)</span>
+          </div>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#2D4C3E] mb-2">
             28 ຄຳຖາມເພື່ອຄວາມເຂົ້າໃຈຕົນເອງ
           </h1>
-          <p className="text-xs sm:text-sm text-[#615B50] mt-2 leading-relaxed">
-            ເລື່ອນຕອບຕາມລຳດັບຢ່າງສະບາຍໃຈ. ທຸກຄຳຕອບຈະຖືກບັນທຶກອັດຕະໂນມັດ. ບໍ່ມີຂໍ້ໃດຖືກຫຼືຜິດ.
+          <p className="text-xs sm:text-sm text-[#2D4C3E]/80 leading-relaxed">
+            ຄຳຖາມທັງໝົດແບ່ງອອກເປັນ 8 ພາກສ່ວນ. ບໍ່ມີການກຳນົດເວລາ ແລະ ບໍ່ມີຄຳຕອບທີ່ຖືກ ຫຼື ຜິດ.
+            ເຈົ້າສາມາດເລື່ອນຕອບຢ່າງຕໍ່ເນື່ອງ (Continuous scroll) ແລະ ຂໍ້ມູນຈະບັນທຶກຮ່າງອັດຕະໂນມັດ.
           </p>
         </div>
 
-        {showValidationNotice ? (
+        {/* Validation Errors Alert Box */}
+        {showValidationNotice && (
           <div
             ref={validationNoticeRef}
             id="assessment-validation-summary"
             tabIndex={-1}
             role="alert"
-            aria-labelledby="assessment-validation-heading"
-            className="max-w-2xl mx-auto rounded-2xl border border-[#D7B97A] bg-[#FFF8E8] px-4 py-4 text-sm text-[#5B4525] shadow-xs"
+            className="p-5 rounded-2xl bg-[#FDF3F0] border border-[#7A3E2D]/40 text-[#7A3E2D] shadow-xs space-y-3 animate-fade-in-up"
           >
-            <h2 id="assessment-validation-heading" className="font-semibold">ກ່ອນເປີດບົດສະທ້ອນ ກະລຸນາຕອບຄຳຖາມໃຫ້ຄົບກ່ອນ</h2>
-            <p className="mt-1 text-xs leading-relaxed">
-              ຕອບແລ້ວ {answeredQCount}/{totalQuestions} ຂໍ້. ຕ້ອງຕອບຢ່າງໜ້ອຍ {completionStatus.minimumTotal} ຂໍ້ ແລະ ໃຫ້ຄົບຕາມຂັ້ນຕ່ຳຂອງແຕ່ລະໝວດ.
+            <div className="flex items-center gap-2 font-bold text-sm sm:text-base">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <span>ຍັງມີບາງຂໍ້ທີ່ຍັງບໍ່ທັນໄດ້ຕອບ ຫຼື ຍັງເລືອກບໍ່ຄົບ:</span>
+            </div>
+            <p className="text-xs sm:text-sm text-[#7A3E2D]/90">
+              ກະລຸນາກົດທີ່ລາຍການດ້ານລຸ່ມນີ້ ເພື່ອໄປຍັງຂໍ້ດັ່ງກ່າວ ແລະ ເລືອກຄຳຕອບ:
             </p>
-            {completionStatus.issues.length > 0 ? (
-              <div className="mt-3 border-t border-[#E7D5AA] pt-3">
-                <p className="text-xs font-semibold text-[#5B4525]">
-                  ຈຸດທີ່ຕ້ອງແກ້ ({completionStatus.issues.length})
-                </p>
-                <ul className="mt-1.5 space-y-1">
-                  {completionStatus.issues.map((issue) => (
-                    <li key={issue.questionId}>
-                      <button
-                        type="button"
-                        onClick={() => scrollToQuestion(issue.questionId)}
-                        className="text-left text-xs text-[#7A3E2D] underline underline-offset-2 hover:text-[#5B2F24] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7A3E2D]"
-                      >
-                        {issue.questionId}: {issue.message} ↗
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {completionStatus.issues.map((issue) => (
+                <button
+                  key={issue.questionId}
+                  type="button"
+                  onClick={() => scrollToQuestion(issue.questionId)}
+                  className="px-3 py-1.5 rounded-xl bg-[#FFFFFF] border border-[#7A3E2D]/40 text-xs font-semibold text-[#7A3E2D] hover:bg-[#7A3E2D] hover:text-[#FFFFFF] transition-all cursor-pointer shadow-2xs"
+                >
+                  ໄປທີ່ຂໍ້ {displayNumberById[issue.questionId] ?? issue.questionId.replace("Q", "")}: {issue.message}
+                </button>
+              ))}
+            </div>
           </div>
-        ) : null}
+        )}
 
         {/* Section Groups */}
-        {sections.map((sec) => {
-          const IconComp = sec.icon;
-          return (
-            <section key={sec.id} aria-labelledby={`${sec.id}-heading`} className="space-y-6 pt-4">
-              {/* Section Header Card */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-[#F2EFE8] subtle-border">
-                <div className="flex items-center space-x-3 mb-1">
-                  <div className="w-8 h-8 rounded-lg bg-white subtle-border flex items-center justify-center text-[#2D4C3E]">
-                    <IconComp className="w-4 h-4" />
+        <div className="space-y-12">
+          {sections.map((sec, secIdx) => {
+            const IconComp = sec.icon;
+            return (
+              <section
+                key={sec.id}
+                id={sec.id}
+                aria-labelledby={`${sec.id}-heading`}
+                className="space-y-6"
+              >
+                {/* Module Header */}
+                <div className="pt-6 border-t border-[#E5E1D8]">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-[#8D5B28] mb-1">
+                    {secIdx === 0 ? (
+                      <span>ຂໍ້ມູນເບື້ອງຕົ້ນ (Demographics)</span>
+                    ) : (
+                      <span>ພາກສ່ວນທີ {secIdx} ຈາກ 8</span>
+                    )}
                   </div>
-                  <h2 id={`${sec.id}-heading`} className="text-lg sm:text-xl font-bold text-[#171A1F]">
-                    {sec.titleLo}
-                  </h2>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#EBF2EE] text-[#2D4C3E] flex items-center justify-center shrink-0">
+                      <IconComp className="w-5 h-5" />
+                    </div>
+                    <h2
+                      id={`${sec.id}-heading`}
+                      className="text-lg sm:text-xl font-bold text-[#2D4C3E]"
+                    >
+                      {sec.titleLo}
+                    </h2>
+                  </div>
+                  {sec.descLo && (
+                    <p className="text-xs sm:text-sm text-[#2D4C3E]/75 mt-2 leading-relaxed">
+                      {sec.descLo}
+                    </p>
+                  )}
                 </div>
-                {sec.descLo && (
-                  <p className="text-xs sm:text-sm text-[#61584A] mt-1.5 leading-relaxed pl-11">
-                    {sec.descLo}
-                  </p>
-                )}
-              </div>
 
-              {/* Questions in this Section */}
-              <div className="space-y-4">
-                {sec.items.map((item) => {
-                  const currentAns = draft[item.id] ?? emptyAnswer();
-                  return (
-                    <Question
-                      key={item.id}
-                      item={item}
-                      answer={currentAns}
-                      validationMessage={
-                        showValidationNotice
-                          ? completionStatus.issues.find((issue) => issue.questionId === item.id)?.message
-                          : undefined
-                      }
-                      onChange={(changes) => updateAnswer(item.id, changes)}
-                    />
-                  );
-                })}
-              </div>
-            </section>
-          );
-        })}
-
-        {/* Bottom Submit Section */}
-        <div className="pt-8 pb-12 subtle-border-t text-center space-y-4">
-          <div className="max-w-md mx-auto p-6 rounded-3xl bg-white subtle-border shadow-xs space-y-4">
-            <div className="w-10 h-10 rounded-full bg-[#EBF2EE] text-[#2D4C3E] flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-
-            <div>
-              <h3 className="text-lg font-bold text-[#171A1F]">
-                ສຳເລັດການສຳຫຼວດ
-              </h3>
-              <p className="text-xs text-[#6A6357] mt-1">
-                ທ່ານໄດ້ຕອບແລ້ວ {answeredQCount} ຈາກ {totalQuestions} ຂໍ້. ພ້ອມແລ້ວກົດປຸ່ມດ້ານລຸ່ມເພື່ອເປີດບົດສະທ້ອນ.
-              </p>
-            </div>
-
-            <button
-              onClick={handleComplete}
-              disabled={submitting}
-              className="btn-primary w-full py-4 bg-[#2D4C3E] hover:bg-[#22392F] text-sm sm:text-base"
-            >
-              <span>{submitting ? "ກຳລັງສັງເຄາະຂໍ້ມູນ..." : completionStatus.isReady ? "ສັງເຄາະບົດສະທ້ອນ" : "ກວດຄຳຕອບກ່ອນ"}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+                {/* Question Cards */}
+                <div className="space-y-5">
+                  {sec.items.map((item) => {
+                    const currentAns = draft[item.id] ?? emptyAnswer();
+                    const isFocused = focusedQuestionId === item.id;
+                    return (
+                      <div
+                        key={item.id}
+                        className={`transition-all duration-300 rounded-2xl ${
+                          isFocused ? "ring-2 ring-[#8D5B28] shadow-md" : ""
+                        }`}
+                      >
+                        <Question
+                          item={item}
+                          answer={currentAns}
+                          displayNumber={displayNumberById[item.id]}
+                          validationMessage={
+                            showValidationNotice
+                              ? completionStatus.issues.find(
+                                  (issue) => issue.questionId === item.id
+                                )?.message
+                              : undefined
+                          }
+                          onChange={(changes) => updateAnswer(item.id, changes)}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
         </div>
-      </main>
+
+        {/* Bottom Submission Bar */}
+        <div className="pt-8 border-t border-[#E5E1D8] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-[#E5E1D8] text-sm font-medium text-[#2D4C3E]/80 hover:bg-[#F4EFEA] transition-colors cursor-pointer"
+          >
+            ກັບຄືນໜ້າຫຼັກ (Home)
+          </button>
+
+          <button
+            onClick={handleComplete}
+            disabled={submitting}
+            className="w-full sm:w-auto px-10 py-4 rounded-2xl bg-[#2D4C3E] text-[#F9F8F5] text-base font-semibold hover:bg-[#233c31] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer active:scale-[0.985] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2D4C3E]"
+          >
+            <span>
+              {submitting
+                ? "ກຳລັງສັງເຄາະຂໍ້ມູນ..."
+                : completionStatus.isReady
+                ? "ສຳເລັດການຕອບ ແລະ ເບິ່ງຜົນສະທ້ອນ"
+                : "ກວດຄຳຕອບກ່ອນ"}
+            </span>
+            <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Floating Quick Navigation Helper Dock */}
+      <div className="fixed bottom-6 right-6 z-40">
+        {isNavDockOpen && (
+          <div className="mb-3 w-72 bg-[#FFFFFF] border border-[#E5E1D8] rounded-2xl shadow-xl p-4 space-y-3 font-sans animate-fade-in-scale">
+            <div className="flex items-center justify-between border-b border-[#E5E1D8]/60 pb-2">
+              <span className="font-bold text-xs text-[#2D4C3E] flex items-center gap-1.5">
+                <Compass className="w-3.5 h-3.5 text-[#8D5B28]" />
+                <span>ເມນູຂ້າມໄປຍັງໝວດຕ່າງໆ</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsNavDockOpen(false)}
+                className="text-xs text-[#2D4C3E]/60 hover:text-[#2D4C3E]"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="max-h-60 overflow-y-auto space-y-1.5 scrollbar-thin pr-1 text-xs">
+              {sections.map((sec, idx) => (
+                <button
+                  key={sec.id}
+                  type="button"
+                  onClick={() => scrollToSection(sec.id)}
+                  className="w-full text-left p-2 rounded-lg hover:bg-[#F4EFEA] text-[#2D4C3E]/85 transition-colors flex items-center justify-between"
+                >
+                  <span className="line-clamp-1">{sec.titleLo}</span>
+                  <span className="text-[11px] text-[#8D5B28] shrink-0 font-medium ml-1">
+                    {idx === 0 ? "3 ຂໍ້" : `${sec.items.length} ຂໍ້`}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {answeredQCount < totalQuestions && (
+              <div className="pt-2 border-t border-[#E5E1D8]/60">
+                <button
+                  type="button"
+                  onClick={scrollToNextUnanswered}
+                  className="w-full py-2 px-3 rounded-xl bg-[#EBF2EE] hover:bg-[#d8e6de] text-[#2D4C3E] font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#8D5B28]" />
+                  <span>ໄປຫາຂໍ້ທີ່ຍັງບໍ່ໄດ້ຕອບ</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Floating Toggle Button */}
+        <button
+          type="button"
+          onClick={() => setIsNavDockOpen(!isNavDockOpen)}
+          className="p-3.5 rounded-full bg-[#2D4C3E] text-[#F9F8F5] shadow-lg hover:bg-[#233c31] transition-transform active:scale-95 cursor-pointer flex items-center gap-2"
+          aria-label="ເປີດເມນູຂ້າມໝວດ"
+        >
+          <Layers className="w-5 h-5 text-[#E5E1D8]" />
+          <span className="text-xs font-semibold hidden sm:inline">ຂ້າມໝວດ</span>
+          {isNavDockOpen ? (
+            <ChevronDown className="w-4 h-4" />
+          ) : (
+            <ChevronUp className="w-4 h-4" />
+          )}
+        </button>
+      </div>
     </div>
   );
 }

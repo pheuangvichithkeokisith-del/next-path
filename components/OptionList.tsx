@@ -109,8 +109,8 @@ export default function OptionList({
               htmlFor={inputId}
               className={`relative w-full min-h-[54px] text-left p-4 sm:p-4.5 rounded-2xl transition-all duration-150 flex items-start justify-between cursor-pointer select-none active:scale-[0.99] ${
                 isSelected
-                  ? "bg-[#F2ECE1] border-2 border-[#2D4C3E] text-[#171A1F] shadow-xs"
-                  : "bg-white subtle-border text-[#332E26] hover:bg-[#FAF8F3] hover:border-[#CCC6B7]"
+                  ? "bg-[#EBF2EE] border-2 border-[#2D4C3E] text-[#2D4C3E] shadow-2xs font-medium"
+                  : "bg-[#F9F8F5]/80 border border-[#E5E1D8] text-[#2D4C3E]/90 hover:bg-[#F4EFEA] hover:border-[#CCC6B7]"
               } ${disabled ? "opacity-40 cursor-not-allowed hover:bg-white hover:border-[#E5E1D8] active:scale-100" : ""}`}
             >
               <input
@@ -156,14 +156,14 @@ export default function OptionList({
         .filter((option) => option.has_other && selectedCodes.includes(option.code))
         .map((option) => (
           <div key={`${option.code}-other`} className="pt-2">
-            <label htmlFor={`${item.id}-${option.code}-other`} className="block text-xs font-semibold text-[#6D6353] mb-1.5">
+            <label htmlFor={`${item.id}-${option.code}-other`} className="block text-xs font-semibold text-[#8D5B28] mb-1.5">
               ກະລຸນາລະບຸເພີ່ມເຕີມ:
             </label>
             <input
               id={`${item.id}-${option.code}-other`}
               aria-describedby={validationMessage ? `${item.id}-validation` : undefined}
               aria-invalid={validationMessage ? true : undefined}
-              className="min-h-[46px] w-full rounded-xl subtle-border bg-[#FAF9F6] px-4 text-sm text-[#1A1E24] placeholder:text-[#746C5F] outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
+              className="min-h-[46px] w-full rounded-xl border border-[#E5E1D8] bg-[#F9F8F5] px-4 text-sm text-[#2D4C3E] placeholder:text-[#2D4C3E]/40 outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
               onChange={(event) => onOtherTextChange(event.target.value)}
               placeholder="ພິມຄຳຕອບຂອງທ່ານທີ່ນີ້..."
               type="text"

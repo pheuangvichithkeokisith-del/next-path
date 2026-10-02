@@ -241,7 +241,7 @@ async def test_e2e_report_has_required_fields():
         res = await client.get(f"/api/v1/sessions/{session_id}/report")
         assert res.status_code == 200
         data = res.json()
-        for field in ["response_pattern", "possible_paths", "context_factors", "unknowns", "versions", "summary_text"]:
+        for field in ["response_pattern", "possible_paths", "answers", "context_factors", "score_details", "unknowns", "versions", "summary_text"]:
             assert field in data, f"Missing field: {field}"
 
 

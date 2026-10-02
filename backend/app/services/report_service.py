@@ -11,9 +11,11 @@ from app.models.answer import AnswerModel
 from app.models.report import ReportModel
 from app.schemas.report import (
     ContextFactors,
+    ReportAnswer,
     ReportPath,
     ReportPattern,
     ReportResponse,
+    ReportScoreDetails,
     ReportVersions,
     V4ContextFactors,
 )
@@ -62,6 +64,7 @@ async def get_or_create_session_report(
         report_data = {
             "response_pattern": [p.model_dump() for p in ds_result.response_patterns],
             "possible_paths": [p.model_dump() for p in ds_result.possible_paths],
+            "score_details": None,
             "context_factors": {
                 "age_band": ds_result.context_factors.age_band,
                 "province_code": ds_result.context_factors.province_code or ds_result.context_factors.province_name,
@@ -125,7 +128,22 @@ async def get_or_create_session_report(
     return ReportResponse(
         response_pattern=[ReportPattern(**p) for p in report_model.response_pattern],
         possible_paths=[ReportPath(**p) for p in report_model.possible_paths],
+        answers=[
+            ReportAnswer(
+                question_id=answer.question_id,
+                option_codes=list(answer.option_codes or []),
+                other_text=answer.other_text,
+                extra_text=answer.extra_text,
+                text_value=answer.text_value,
+            )
+            for answer in answers
+        ],
         context_factors=persisted_context,
+        score_details=(
+            ReportScoreDetails(**report_data["score_details"])
+            if report_data.get("score_details")
+            else None
+        ),
         unknowns=report_model.unknowns,
         versions=ReportVersions(**report_model.versions),
         summary_text=report_model.summary_text,

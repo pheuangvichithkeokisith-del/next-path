@@ -17,6 +17,39 @@ class ReportPath(BaseModel):
     group_id: str
     label_lao: str
     is_sample: bool = False
+    classification: str = "explore"
+    fit_score: Optional[float] = None
+    feasibility_score: Optional[float] = None
+    compatibility_score: Optional[float] = None
+    evidence_question_ids: List[str] = Field(default_factory=list)
+    reasons_lao: List[str] = Field(default_factory=list)
+    conditions_lao: List[str] = Field(default_factory=list)
+
+
+class ReportAnswer(BaseModel):
+    """Sanitized answer data returned with a user's own report."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    question_id: str
+    option_codes: List[str] = Field(default_factory=list)
+    other_text: Optional[str] = None
+    extra_text: Optional[str] = None
+    text_value: Optional[str] = None
+
+
+class ReportScoreDetails(BaseModel):
+    """Deterministic v4 score evidence; absent for legacy reports/incomplete runs."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    scores: dict[str, float] = Field(default_factory=dict)
+    positive_scores: dict[str, float] = Field(default_factory=dict)
+    negative_penalty: dict[str, float] = Field(default_factory=dict)
+    section_scores: dict[str, dict[str, float]] = Field(default_factory=dict)
+    section_coverage: dict[str, float] = Field(default_factory=dict)
+    correlations: dict[str, float] = Field(default_factory=dict)
+    r_max: Optional[float] = None
 
 
 class ContextFactors(BaseModel):
@@ -48,7 +81,9 @@ class ReportResponse(BaseModel):
 
     response_pattern: List[ReportPattern]
     possible_paths: List[ReportPath]
+    answers: List[ReportAnswer] = Field(default_factory=list)
     context_factors: Union[V4ContextFactors, ContextFactors]
+    score_details: Optional[ReportScoreDetails] = None
     unknowns: List[str]
     versions: ReportVersions
     summary_text: str
