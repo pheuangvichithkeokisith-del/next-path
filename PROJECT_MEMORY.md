@@ -1,7 +1,7 @@
 # 🧠 PATHAI — Project Memory & Architecture Context
 
 **Single Source of Truth & Context Memory Document**  
-**Updated:** 2026-10-02 | Recorded path-fit logic, report/AI evidence flow, and release verification
+**Updated:** 2026-10-02 | Pre-Deploy System Audit: 73/73 backend tests passed, build 9/9 routes passed, production config checklist identified
 
 ---
 
@@ -88,6 +88,29 @@ npm run build                                      # Production build verificati
 ---
 
 ## 6. 📅 Session Logs
+
+### Session 2026-10-02 — Pre-Deploy System Stability Audit
+
+**✅ Verified and passed:**
+- **Backend Test Suite:** 73/73 tests passed (100%) — API, Session Lifecycle, v4 Scoring, Fluctuation Engine, Report Concurrency, PII Validation, and E2E flows all clean.
+- **DS Fluctuation Benchmark:** 5/5 archetypes matched targets — 0% Laser Focus (Er=0.13), 25% Clear Direction (Er=0.28), 50% Dual Interest (Er=0.49), 75% Multi-Scattered (Er=0.70), 100% Total Uncertainty (Er=1.00).
+- **Frontend Production Build:** 9/9 static routes prerendered (Next.js 16 Webpack, Exit 0).
+- **v4.0.0 Form integrity:** 3 Demographics (D1–D3) + 28 Questions (Q1–Q28) confirmed present and structured correctly.
+
+**⚠️ Pre-Deploy Production Config Checklist (NOT done yet — required before going live):**
+
+| # | รายการ | ระดับ | Action |
+|---|---|---|---|
+| DEP-P01 | `NEXT_PUBLIC_API_BASE_URL` ยัง `localhost:8000` | 🔴 Critical | ต้องเปลี่ยนเป็น production API URL ใน Vercel environment variables |
+| DEP-P02 | `CORS_ORIGINS` ใน `config.py` มี `"*"` ใน default list | 🔴 Critical | ต้องลบ `"*"` ออก และกำหนด `CORS_ORIGINS` เฉพาะ production domain ใน backend env |
+| DEP-P03 | `DATABASE_URL` ยังชี้ SQLite (`pathai.db`) | 🟡 High | ต้องเปลี่ยนเป็น PostgreSQL URL และรัน `alembic upgrade head` |
+| DEP-P04 | `DEBUG=True` และ `ENVIRONMENT=development` ใน backend `.env` | 🟡 High | ต้องตั้ง `DEBUG=False`, `ENVIRONMENT=production` ก่อน deploy |
+| DEP-P05 | มี uncommitted changes 3 ไฟล์ (`app/page.tsx`, `app/processing/page.tsx`, `app/report/page.tsx`) | 🟡 Medium | ต้อง commit หรือ revert ก่อน deploy |
+| DEP-P06 | ยังไม่มี `vercel.json` หรือ production deployment config | 🟡 Medium | ต้องตั้ง environment variables ใน Vercel dashboard และ verify API URL routing |
+| DEP-P07 | มี `pathai.db` 2 ไฟล์ในเครื่อง (root + backend/) | 🟢 Low | อยู่ใน `.gitignore` แล้ว — ไม่ถูก push แต่ควร clear ก่อน test production |
+| DEP-P08 | ESLint มี 20 errors (unescaped JSX quotes, unused vars) | 🟢 Low | ไม่กระทบ production build แต่ควรแก้เพื่อความสะอาดของ codebase |
+
+**Boundary:** ผลการ audit นี้เป็น snapshot ของระบบ ณ วันที่ 2026-10-02 ก่อน deploy จริง — code และ logic พร้อม 100% แต่ production environment config ยังต้องดำเนินการตาม checklist ข้างต้นก่อนเปิดให้ผู้ใช้จริง
 
 ### Session 2026-10-02 — Path Fit, Feasibility & Real-User Readiness
 

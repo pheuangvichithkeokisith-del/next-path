@@ -19,8 +19,6 @@ import {
   ChevronDown,
   HeartHandshake,
   CheckCircle2,
-  Layers,
-  Footprints,
   Flame,
 } from "lucide-react";
 
@@ -201,7 +199,6 @@ export default function LandingPage() {
   };
 
   const activeDemo = DEMO_ARCHETYPES.find((a) => a.id === selectedArchetype) || DEMO_ARCHETYPES[0];
-  const ActiveIcon = activeDemo.icon;
 
   return (
     <div className="space-y-16 sm:space-y-24 py-8 sm:py-12 overflow-hidden">
@@ -513,7 +510,7 @@ export default function LandingPage() {
               2. ບໍ່ຕັດສິນ ຫຼື ບອກວ່າເຈົ້າຕ້ອງເປັນຫຍັງ
             </h3>
             <p className="text-xs sm:text-sm text-[#2D4C3E]/75 leading-relaxed">
-              ເຮົາບໍ່ມີຄຳສັ່ງວ່າເຈົ້າ 'ຕ້ອງຮຽນອັນນັ້ນ' ແຕ່ເປັນ 'ແວ່ນແຍງ (Mirror)' ທີ່ຊ່ວຍເປີດມຸມມອງ ແລະ ທາງເລືອກໃຫ້ເຈົ້າຕັດສິນໃຈເອງ.
+              ເຮົາບໍ່ມີຄຳສັ່ງວ່າເຈົ້າ &apos;ຕ້ອງຮຽນອັນນັ້ນ&apos; ແຕ່ເປັນ &apos;ແວ່ນແຍງ (Mirror)&apos; ທີ່ຊ່ວຍເປີດມຸມມອງ ແລະ ທາງເລືອກໃຫ້ເຈົ້າຕັດສິນໃຈເອງ.
             </p>
           </div>
 
@@ -525,7 +522,7 @@ export default function LandingPage() {
               3. ທົດລອງນ້ອຍໆ ກ່ອນຕັດສິນໃຈໃຫຍ່
             </h3>
             <p className="text-xs sm:text-sm text-[#2D4C3E]/75 leading-relaxed">
-              ແທນທີ່ຈະເລືອກຮຽນ 4-5 ປີແລ້ວຜິດຫວັງ, ພວກເຮົາສະເໜີ 'Micro-experiments' ທີ່ໃຊ້ເວລາ 1 ອາທິດ ເພື່ອໃຫ້ລອງລົງມືເຮັດຈິງກ່ອນ.
+              ແທນທີ່ຈະເລືອກຮຽນ 4-5 ປີແລ້ວຜິດຫວັງ, ພວກເຮົາສະເໜີ &apos;Micro-experiments&apos; ທີ່ໃຊ້ເວລາ 1 ອາທິດ ເພື່ອໃຫ້ລອງລົງມືເຮັດຈິງກ່ອນ.
             </p>
           </div>
 

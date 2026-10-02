@@ -13,8 +13,6 @@ import {
   AlertCircle,
   ArrowRight,
   ArrowLeft,
-  Sparkles,
-  MessageSquare,
 } from "lucide-react";
 
 const RATING_DESCRIPTIONS = [

@@ -16,7 +16,6 @@ import Loading from "@/components/Loading";
 import Question from "@/components/Question";
 import { clearDraft, restoreDraft, saveDraft } from "@/utils/draft";
 import {
-  CheckCircle2,
   ArrowRight,
   Sparkles,
   Compass,
@@ -31,7 +30,6 @@ import {
   AlertCircle,
   ChevronUp,
   ChevronDown,
-  RotateCcw,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type {
@@ -153,9 +151,9 @@ export default function AssessmentPage() {
       if (typeof window !== "undefined") {
         clearDraft(window.localStorage);
       }
-      setDraft({});
       createSession(CURRENT_FORM_VERSION)
         .then(({ session_id }) => {
+          setDraft({});
           storeSessionId(session_id);
         })
         .catch(() => {

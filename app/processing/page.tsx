@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { isSessionNotFound } from "@/api/errors";
 import { getSessionStatus } from "@/api/session";
 import { clearSessionId, useSessionId } from "@/hooks/useSession";
-import { Compass, Sparkles, CheckCircle2, AlertCircle, ArrowRight, RotateCw, Check } from "lucide-react";
+import { Compass, Sparkles, AlertCircle, ArrowRight, RotateCw, Check } from "lucide-react";
 
 const WARM_MESSAGES = [
   "ກຳລັງອ່ານຮູບແບບຄວາມສົນໃຈ ແລະ ທ່າແຮງຈາກຄຳຕອບ...",

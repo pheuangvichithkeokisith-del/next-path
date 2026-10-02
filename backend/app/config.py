@@ -29,7 +29,6 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://localhost:8000",
         "http://127.0.0.1:8000",
-        "*",
     ]
 
     @field_validator("CORS_ORIGINS", mode="before")
@@ -39,7 +38,12 @@ class Settings(BaseSettings):
             return [i.strip() for i in v.split(",") if i.strip()]
         elif isinstance(v, list):
             return v
-        return ["*"]
+        return [
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+        ]
 
     # Form & System defaults
     DEFAULT_FORM_VERSION: str = "v0.9.1"
