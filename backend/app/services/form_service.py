@@ -11,7 +11,9 @@ _cached_forms: dict[str, QuestionnaireForm] = {}
 
 def _questionnaire_path(version: str) -> Path:
     if version == "v4.0.0":
-        return Path(__file__).resolve().parents[3] / "v4.0" / "questions_full.json"
+        # Railway builds the backend with ``backend/`` as its context, so the
+        # repository-level ``v4.0/`` directory is not present in the image.
+        return Path(settings.DATA_DIR) / "questions_v4.json"
     return Path(settings.QUESTIONS_FILE_PATH)
 
 
