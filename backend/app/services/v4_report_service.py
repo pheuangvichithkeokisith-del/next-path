@@ -24,7 +24,10 @@ from app.schemas.report import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[3]
+# The Railway image uses ``backend/`` as its application root.  Keeping the
+# v4 assets under ``backend/v4.0`` makes this path work both locally and in the
+# production image.
+ROOT = Path(__file__).resolve().parents[2]
 V4_ROOT = ROOT / "v4.0"
 CLUSTERS = ("C1", "C2", "C3", "C4", "C5", "C6", "C7")
 SCORING_SECTIONS = ("interests", "skills", "values", "work_style", "academic", "goals")
