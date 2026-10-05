@@ -56,7 +56,6 @@ class ContextFactors(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     age_band: Optional[str] = None
-    age_years: Optional[int] = None
     province_code: Optional[str] = None
     has_constraints: bool = False
 

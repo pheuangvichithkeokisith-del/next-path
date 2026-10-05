@@ -81,70 +81,110 @@ def _age_years(value: Any) -> int | None:
 
 
 def upgrade() -> None:
-    op.create_table(
-        "province_catalog",
-        sa.Column("province_code", sa.String(length=16), primary_key=True),
-        sa.Column("form_option_code", sa.String(length=50), nullable=False, unique=True),
-        sa.Column("label_lao", sa.String(length=200), nullable=False),
-    )
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    existing_tables = set(inspector.get_table_names())
+
+    if "province_catalog" not in existing_tables:
+        op.create_table(
+            "province_catalog",
+            sa.Column("province_code", sa.String(length=16), primary_key=True),
+            sa.Column("form_option_code", sa.String(length=50), nullable=False, unique=True),
+            sa.Column("label_lao", sa.String(length=200), nullable=False),
+        )
     province_table = sa.table(
         "province_catalog",
         sa.column("province_code", sa.String),
         sa.column("form_option_code", sa.String),
         sa.column("label_lao", sa.String),
     )
-    op.bulk_insert(
-        province_table,
-        [
-            {"province_code": code, "form_option_code": option, "label_lao": label}
-            for code, option, label in PROVINCES
-        ],
+    existing_provinces = set(
+        bind.execute(sa.select(province_table.c.province_code)).scalars()
     )
+    missing_provinces = [
+        {"province_code": code, "form_option_code": option, "label_lao": label}
+        for code, option, label in PROVINCES
+        if code not in existing_provinces
+    ]
+    if missing_provinces:
+        op.bulk_insert(province_table, missing_provinces)
 
-    op.create_table(
-        "response_counters",
-        sa.Column("year", sa.Integer(), primary_key=True),
-        sa.Column("province_code", sa.String(length=16), primary_key=True),
-        sa.Column("last_sequence", sa.Integer(), nullable=False),
-    )
-
-    with op.batch_alter_table("sessions") as batch:
-        batch.add_column(sa.Column("response_code", sa.String(length=64), nullable=True))
-        batch.add_column(sa.Column("province_code", sa.String(length=16), nullable=True))
-        batch.add_column(sa.Column("age_years", sa.Integer(), nullable=True))
-        batch.create_foreign_key(
-            "fk_sessions_province_code_province_catalog",
-            "province_catalog",
-            ["province_code"],
-            ["province_code"],
+    if "response_counters" not in existing_tables:
+        op.create_table(
+            "response_counters",
+            sa.Column("year", sa.Integer(), primary_key=True),
+            sa.Column("province_code", sa.String(length=16), primary_key=True),
+            sa.Column("last_sequence", sa.Integer(), nullable=False),
         )
-        batch.create_index("ix_sessions_province_code", ["province_code"])
 
-    op.create_index("uq_sessions_response_code", "sessions", ["response_code"], unique=True)
+    session_columns = {
+        column["name"] for column in sa.inspect(bind).get_columns("sessions")
+    }
+    missing_session_columns = {
+        "response_code": sa.Column("response_code", sa.String(length=64), nullable=True),
+        "province_code": sa.Column("province_code", sa.String(length=16), nullable=True),
+        "age_years": sa.Column("age_years", sa.Integer(), nullable=True),
+    }
+    missing_session_columns = {
+        name: column
+        for name, column in missing_session_columns.items()
+        if name not in session_columns
+    }
+    session_foreign_keys = {
+        constraint["name"]
+        for constraint in sa.inspect(bind).get_foreign_keys("sessions")
+    }
+    if (
+        missing_session_columns
+        or "fk_sessions_province_code_province_catalog" not in session_foreign_keys
+    ):
+        with op.batch_alter_table("sessions") as batch:
+            for column in missing_session_columns.values():
+                batch.add_column(column)
+            if "fk_sessions_province_code_province_catalog" not in session_foreign_keys:
+                batch.create_foreign_key(
+                    "fk_sessions_province_code_province_catalog",
+                    "province_catalog",
+                    ["province_code"],
+                    ["province_code"],
+                )
 
-    op.create_table(
-        "report_paths",
-        sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
-        sa.Column("report_id", sa.Integer(), nullable=False),
-        sa.Column("rank", sa.Integer(), nullable=False),
-        sa.Column("path_code", sa.String(length=50), nullable=False),
-        sa.Column("label_lao", sa.String(length=500), nullable=False),
-        sa.Column("classification", sa.String(length=50), nullable=True),
-        sa.Column("fit_score", sa.Float(), nullable=True),
-        sa.Column("feasibility_score", sa.Float(), nullable=True),
-        sa.Column("compatibility_score", sa.Float(), nullable=True),
-        sa.Column("evidence_question_ids", sa.JSON(), nullable=False),
-        sa.Column("reasons_lao", sa.JSON(), nullable=False),
-        sa.Column("conditions_lao", sa.JSON(), nullable=False),
-        sa.Column("scoring_version", sa.String(length=100), nullable=True),
-        sa.CheckConstraint("rank >= 1 AND rank <= 3", name="ck_report_paths_rank_1_3"),
-        sa.ForeignKeyConstraint(["report_id"], ["reports.id"], ondelete="CASCADE"),
-        sa.UniqueConstraint("report_id", "rank", name="uq_report_paths_report_rank"),
+    session_indexes = {index["name"] for index in sa.inspect(bind).get_indexes("sessions")}
+    if "ix_sessions_province_code" not in session_indexes:
+        op.create_index("ix_sessions_province_code", "sessions", ["province_code"])
+    if "uq_sessions_response_code" not in session_indexes:
+        op.create_index("uq_sessions_response_code", "sessions", ["response_code"], unique=True)
+
+    if "report_paths" not in existing_tables:
+        op.create_table(
+            "report_paths",
+            sa.Column("id", sa.Integer(), primary_key=True, autoincrement=True),
+            sa.Column("report_id", sa.Integer(), nullable=False),
+            sa.Column("rank", sa.Integer(), nullable=False),
+            sa.Column("path_code", sa.String(length=50), nullable=False),
+            sa.Column("label_lao", sa.String(length=500), nullable=False),
+            sa.Column("classification", sa.String(length=50), nullable=True),
+            sa.Column("fit_score", sa.Float(), nullable=True),
+            sa.Column("feasibility_score", sa.Float(), nullable=True),
+            sa.Column("compatibility_score", sa.Float(), nullable=True),
+            sa.Column("evidence_question_ids", sa.JSON(), nullable=False),
+            sa.Column("reasons_lao", sa.JSON(), nullable=False),
+            sa.Column("conditions_lao", sa.JSON(), nullable=False),
+            sa.Column("scoring_version", sa.String(length=100), nullable=True),
+            sa.CheckConstraint("rank >= 1 AND rank <= 3", name="ck_report_paths_rank_1_3"),
+            sa.ForeignKeyConstraint(["report_id"], ["reports.id"], ondelete="CASCADE"),
+            sa.UniqueConstraint("report_id", "rank", name="uq_report_paths_report_rank"),
+        )
+    report_path_indexes = (
+        {index["name"] for index in sa.inspect(bind).get_indexes("report_paths")}
+        if "report_paths" in sa.inspect(bind).get_table_names()
+        else set()
     )
-    op.create_index("ix_report_paths_report_id", "report_paths", ["report_id"])
-    op.create_index("ix_report_paths_path_code", "report_paths", ["path_code"])
+    if "ix_report_paths_report_id" not in report_path_indexes:
+        op.create_index("ix_report_paths_report_id", "report_paths", ["report_id"])
+    if "ix_report_paths_path_code" not in report_path_indexes:
+        op.create_index("ix_report_paths_path_code", "report_paths", ["path_code"])
 
-    bind = op.get_bind()
     answer_rows = sa.table(
         "answers",
         sa.column("session_id", sa.String),
@@ -209,13 +249,28 @@ def upgrade() -> None:
         )
 
     if counters:
-        op.bulk_insert(
-            response_counters,
-            [
-                {"year": year, "province_code": province, "last_sequence": sequence}
-                for (year, province), sequence in counters.items()
-            ],
-        )
+        existing_counters = {
+            (row["year"], row["province_code"]): row["last_sequence"]
+            for row in bind.execute(sa.select(response_counters)).mappings()
+        }
+        new_counters = []
+        for (year, province), sequence in counters.items():
+            current_sequence = existing_counters.get((year, province))
+            if current_sequence is None:
+                new_counters.append(
+                    {"year": year, "province_code": province, "last_sequence": sequence}
+                )
+            elif sequence > current_sequence:
+                bind.execute(
+                    sa.update(response_counters)
+                    .where(
+                        response_counters.c.year == year,
+                        response_counters.c.province_code == province,
+                    )
+                    .values(last_sequence=sequence)
+                )
+        if new_counters:
+            op.bulk_insert(response_counters, new_counters)
 
     reports_table = sa.table(
         "reports",
@@ -266,7 +321,21 @@ def upgrade() -> None:
                 "scoring_version": scoring_version,
             })
     if path_inserts:
-        op.bulk_insert(report_paths_table, path_inserts)
+        existing_path_ranks = set(
+            bind.execute(
+                sa.select(
+                    report_paths_table.c.report_id,
+                    report_paths_table.c.rank,
+                )
+            ).tuples()
+        )
+        missing_paths = [
+            row
+            for row in path_inserts
+            if (row["report_id"], row["rank"]) not in existing_path_ranks
+        ]
+        if missing_paths:
+            op.bulk_insert(report_paths_table, missing_paths)
 
 
 def downgrade() -> None:
