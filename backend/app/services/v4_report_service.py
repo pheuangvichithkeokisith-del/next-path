@@ -115,12 +115,19 @@ def _context_factors(
     spec: Dict[str, Any],
     answers: Dict[str, Dict[str, Any]],
 ) -> Dict[str, Any]:
-    d1 = answers.get("D1", {}).get("option_codes", [])
+    d1_answer = answers.get("D1", {})
+    age_text = str(d1_answer.get("text_value") or "").strip()
+    try:
+        age_years = int(age_text) if age_text else None
+    except ValueError:
+        age_years = None
+    d1 = d1_answer.get("option_codes", [])
     d3 = answers.get("D3", {}).get("option_codes", [])
     q23 = answers.get("Q23", {}).get("option_codes", [])
     has_constraints = bool(q23 and "Q23-O5" not in q23 and "Q23-O6" not in q23)
     return {
-        "age_band": _option_label(spec, "D1", d1[0]) if d1 else None,
+        "age_band": _option_label(spec, "D1", d1[0]) if d1 else (f"{age_years} ປີ" if age_years is not None else None),
+        "age_years": age_years,
         "province_code": d3[0] if d3 else None,
         "has_constraints": has_constraints,
     }
@@ -264,7 +271,7 @@ def build_v4_report(
         validation = result.get("validation", {})
         unknowns = _unknowns(validation)
         summary = (
-            "ບົດສະທ້ອນຍັງບໍ່ສົມບູນ ເນື່ອງຈາກຄຳຕອບບາງຂໍ້ຍັງບໍ່ຄົບຖ້ວນ. "
+            "ພາບລວມຍັງບໍ່ສົມບູນ ເນື່ອງຈາກຄຳຕອບບາງຂໍ້ຍັງບໍ່ຄົບຖ້ວນ. "
             "ກະລຸນາກວດເບິ່ງລາຍການທີ່ຍັງຂາດ ແລະ ໃຊ້ຜົນນີ້ເປັນຮ່າງສຳຫຼວດເບື້ອງຕົ້ນ."
         )
         return {
@@ -300,13 +307,13 @@ def build_v4_report(
 
     if lead_cluster and lead_cluster in CLUSTER_LABELS:
         summary = (
-            f"ຈາກຄຳຕອບຂອງທ່ານ ສະທ້ອນໃຫ້ເຫັນຮູບແບບ \"{archetype_lao}\" "
+            f"ຈາກຄຳຕອບຂອງທ່ານ ສະແດງໃຫ້ເຫັນຮູບແບບ \"{archetype_lao}\" "
             f"ໂດຍມີ \"{CLUSTER_LABELS[lead_cluster]}\" ເປັນຈຸດເລີ່ມຕົ້ນທີ່ໜ້າສົນໃຈໃນການສຳຫຼວດຕໍ່. "
-            "ບົດສະທ້ອນນີ້ແມ່ນແວ່ນແຍງຊ່ວຍຈັດລະບຽບຄວາມຄິດ ບໍ່ແມ່ນການຕັດສິນອາຊີບ."
+            "ພາບລວມນີ້ຊ່ວຍຈັດລະບຽບຄວາມຄິດ ບໍ່ແມ່ນການຕັດສິນອາຊີບ."
         )
     else:
         summary = (
-            f"ຈາກຄຳຕອບຂອງທ່ານ ສະທ້ອນໃຫ້ເຫັນຮູບແບບ \"{archetype_lao}\" "
+            f"ຈາກຄຳຕອບຂອງທ່ານ ສະແດງໃຫ້ເຫັນຮູບແບບ \"{archetype_lao}\" "
             "ເຊິ່ງມີຫຼາຍດ້ານທີ່ໜ້າສົນໃຈພ້ອມໆກັນ. ທ່ານສາມາດເລີ່ມທົດລອງສິ່ງນ້ອຍໆໃນແຕ່ລະສາຍເພື່ອຄົ້ນຫາຕົນເອງຕໍ່ໄປ."
         )
 

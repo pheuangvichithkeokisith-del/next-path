@@ -32,7 +32,7 @@ export default function Footer() {
               <li>• ບໍ່ແມ່ນບົດສອບເສັງ ແລະ ບໍ່ມີຄຳຕອບຖືກ ຫຼື ຜິດ</li>
               <li>• ບໍ່ຕັດສິນ ຫຼື ບອກວ່າເຈົ້າຕ້ອງເປັນຫຍັງ</li>
               <li>• ບໍ່ຂໍຊື່, ອີເມວ ຫຼື ຂໍ້ມູນລະບຸຕົວຕົນ</li>
-              <li>• ຄຳຕອບຈະຖືກສົ່ງໄປສ້າງບົດສະທ້ອນ ແລະ ບໍ່ຕ້ອງລະບຸຊື່ ຫຼື ອີເມວ</li>
+              <li>• ຄຳຕອບຈະຖືກນຳໄປສ້າງພາບລວມຄວາມສາມາດ ແລະ ທິດທາງ ໂດຍບໍ່ຕ້ອງລະບຸຊື່ ຫຼື ອີເມວ</li>
             </ul>
           </div>
 
@@ -65,7 +65,7 @@ export default function Footer() {
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-[#2D4C3E]/60 gap-3">
           <p>Next-path · ສ້າງຂຶ້ນດ້ວຍຄວາມເຂົ້າໃຈ ແລະ ຄວາມຮັກເພື່ອໄວໜຸ່ມລາວ</p>
           <div className="flex items-center gap-1.5">
-            <span>ພື້ນທີ່ສະທ້ອນຄວາມຄິດ</span>
+            <span>ເວັບໄຊສຳຫຼວດຕົນເອງ</span>
             <Heart className="w-3.5 h-3.5 text-[#7A3E2D] inline fill-current" />
             <span>ໂດຍບໍ່ມີການຕັດສິນ</span>
           </div>

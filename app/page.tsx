@@ -108,11 +108,11 @@ const FAQS = [
   },
   {
     question: "ພໍ່ແມ່ຢາກໃຫ້ຮຽນຢ່າງອື່ນ ແຕ່ຂ້ອຍຢາກໄປສາຍອື່ນ ຄວນເຮັດແນວໃດ?",
-    answer: "ໃນໜ້າລາຍງານຜົນສະທ້ອນ ເຮົາມີລະບົບ 'Stakeholder Translation Layer (Family Bridge)' ເຊິ່ງຊ່ວຍແປສິ່ງທີ່ເຈົ້າສົນໃຈໃຫ້ກາຍເປັນພາສາ ແລະ ມຸມມອງຄວາມໝັ້ນຄົງທີ່ພໍ່ແມ່ເຂົ້າໃຈ ແລະ ພ້ອມສະໜັບສະໜູນ.",
+    answer: "ໃນໜ້າພາບລວມ ເຮົາມີລະບົບ 'Stakeholder Translation Layer (Family Bridge)' ເຊິ່ງຊ່ວຍແປສິ່ງທີ່ເຈົ້າສົນໃຈໃຫ້ກາຍເປັນພາສາ ແລະ ມຸມມອງຄວາມໝັ້ນຄົງທີ່ພໍ່ແມ່ເຂົ້າໃຈ ແລະ ພ້ອມສະໜັບສະໜູນ.",
   },
   {
     question: "ຜົນທີ່ໄດ້ຈະຕັດສິນອະນາຄົດຂ້ອຍເລີຍບໍ?",
-    answer: "ບໍ່ແມ່ນເລີຍ. Next-path ເປັນພຽງ 'ແວ່ນແຍງ (Mirror)' ຊ່ວຍສະທ້ອນສິ່ງທີ່ຢູ່ໃນໃຈເຈົ້າ. ພ້ອມໃຫ້ 'ການທົດລອງນ້ອຍໆ (Micro-experiments)' 1-2 ຊົ່ວໂມງໃຫ້ລອງເຮັດເບິ່ງກ່ອນຕັດສິນໃຈໃຫຍ່.",
+    answer: "ບໍ່ແມ່ນເລີຍ. Next-path ຊ່ວຍສະຫຼຸບຄວາມສາມາດ ແລະ ເປີດໃຫ້ເຫັນທິດທາງຫຼາຍທາງເລືອກ. ພ້ອມໃຫ້ 'ການທົດລອງນ້ອຍໆ (Micro-experiments)' 1-2 ຊົ່ວໂມງໃຫ້ລອງເຮັດເບິ່ງກ່ອນຕັດສິນໃຈໃຫຍ່.",
   },
   {
     question: "ຂໍ້ມູນຄຳຕອບຂອງຂ້ອຍປອດໄພແທ້ບໍ?",
@@ -230,7 +230,7 @@ export default function LandingPage() {
         {/* Soft tag */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E5E1D8]/70 border border-[#E5E1D8] text-[#2D4C3E] text-xs sm:text-sm font-medium mb-6 shadow-2xs">
           <Compass className="w-4 h-4 text-[#8D5B28]" />
-          <span>ພື້ນທີ່ສຳຫຼວດຕົນເອງສຳລັບໄວໜຸ່ມລາວ (ອາຍຸ 15 ປີຂຶ້ນໄປ)</span>
+          <span>ເວັບໄຊສຳຫຼວດຕົນເອງສຳລັບໄວໜຸ່ມລາວ (ອາຍຸ 15 ປີຂຶ້ນໄປ)</span>
         </div>
 
         {/* Headline with curved underline */}
@@ -530,7 +530,7 @@ export default function LandingPage() {
               2. ບໍ່ຕັດສິນ ຫຼື ບອກວ່າເຈົ້າຕ້ອງເປັນຫຍັງ
             </h3>
             <p className="text-xs sm:text-sm text-[#2D4C3E]/75 leading-relaxed">
-              ເຮົາບໍ່ມີຄຳສັ່ງວ່າເຈົ້າ &apos;ຕ້ອງຮຽນອັນນັ້ນ&apos; ແຕ່ເປັນ &apos;ແວ່ນແຍງ (Mirror)&apos; ທີ່ຊ່ວຍເປີດມຸມມອງ ແລະ ທາງເລືອກໃຫ້ເຈົ້າຕັດສິນໃຈເອງ.
+              ເຮົາບໍ່ມີຄຳສັ່ງວ່າເຈົ້າ &apos;ຕ້ອງຮຽນອັນນັ້ນ&apos; ແຕ່ເປັນພາບລວມຄວາມສາມາດ ແລະ ທາງເລືອກທີ່ຊ່ວຍໃຫ້ເຈົ້າຕັດສິນໃຈເອງ.
             </p>
           </div>
 

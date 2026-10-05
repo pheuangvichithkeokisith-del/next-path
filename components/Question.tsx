@@ -89,6 +89,26 @@ export default function Question({
           hasValidation={hasValidation}
           validationId={validationId}
         />
+      ) : item.type === "number" ? (
+        <div className="mt-4">
+          <label htmlFor={`${item.id}-number`} className="block text-sm font-semibold text-[#2D4C3E] mb-2">
+            ປ້ອນອາຍຸເປັນຕົວເລກ (ປີ)
+          </label>
+          <input
+            id={`${item.id}-number`}
+            name={item.id}
+            aria-describedby={hasValidation ? validationId : undefined}
+            aria-invalid={hasValidation}
+            className="min-h-[48px] w-full rounded-xl border border-[#E5E1D8] bg-[#F9F8F5] px-4 text-sm sm:text-base text-[#2D4C3E] placeholder:text-[#2D4C3E]/40 outline-none focus:border-[#2D4C3E] focus:ring-1 focus:ring-[#2D4C3E] transition"
+            onChange={(event) => onChange({ text_value: event.target.value })}
+            placeholder="ເຊັ່ນ 18"
+            type="number"
+            inputMode="numeric"
+            min={15}
+            max={120}
+            value={answer.text_value ?? ""}
+          />
+        </div>
       ) : item.type === "text" ? (
         <div className="mt-4">
           <label htmlFor={`${item.id}-text`} className="block text-sm font-semibold text-[#2D4C3E] mb-2">

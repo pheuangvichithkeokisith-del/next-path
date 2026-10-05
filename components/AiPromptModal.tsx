@@ -51,7 +51,7 @@ export const AiPromptModal: React.FC<AiPromptModalProps> = ({
             </div>
             <div>
               <h2 id="ai-modal-title" className="font-bold text-base sm:text-lg text-[#2D4C3E]">
-                ນຳບົດສະທ້ອນໄປຄຸຍກັບ AI
+                ນຳພາບລວມໄປຄຸຍກັບ AI
               </h2>
               <p className="text-xs text-[#2D4C3E]/70">
                 ໃຊ້ເປັນຕົວຊ່ວຍຄິດ ແລະ ສຳຫຼວດໄອເດຍຕໍ່ຍອດກັບ ChatGPT, Claude ຫຼື Gemini

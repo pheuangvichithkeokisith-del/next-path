@@ -7,7 +7,7 @@ export type FormOption = {
 
 export type FormItem = {
   id: string;
-  type: "single" | "multi" | "text";
+  type: "single" | "multi" | "text" | "number";
   stem: string;
   note?: string;
   section?: string;

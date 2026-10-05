@@ -38,6 +38,7 @@ export type ReportScoreDetails = {
 
 export type ReportContextFactors = {
   age_band: string | null;
+  age_years?: number | null;
   province_code: string | null;
   has_constraints: boolean;
   constraints?: string[];

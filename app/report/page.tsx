@@ -207,9 +207,13 @@ export default function ReportPage() {
       .map((u: string) => `- ${u}`)
       .join("\n");
 
-    const ageText = reportAnswers["D1"]?.option_codes?.[0]
+    const ageText = reportAnswers["D1"]?.text_value?.trim()
+      ? `${reportAnswers["D1"].text_value.trim()} ປີ`
+      : reportAnswers["D1"]?.option_codes?.[0]
       ? optionsMap[reportAnswers["D1"].option_codes[0]] || reportAnswers["D1"].option_codes[0]
-      : (report.context_factors.age_band || "ບໍ່ໄດ້ລະບຸ");
+      : (report.context_factors.age_years != null
+          ? `${report.context_factors.age_years} ປີ`
+          : report.context_factors.age_band || "ບໍ່ໄດ້ລະບຸ");
     const eduText = reportAnswers["D2"]?.text_value || "ບໍ່ໄດ້ລະບຸ";
     const provText = reportAnswers["D3"]?.option_codes?.[0]
       ? optionsMap[reportAnswers["D3"].option_codes[0]] || reportAnswers["D3"].option_codes[0]
@@ -222,7 +226,7 @@ export default function ReportPage() {
       `- ຄວາມພ້ອມດ້ານຄວາມປອດໄພ: ${report.context_factors.safety_readiness == null ? "ບໍ່ໄດ້ລະບຸ" : `${report.context_factors.safety_readiness} / 5`}`,
     ].join("\n");
 
-    return `# 🧭 ບົດສະທ້ອນຕົນເອງຈາກ Next-path
+    return `# 🧭 ພາບລວມຄວາມສາມາດ ແລະ ທິດທາງຈາກ Next-path
 (ສຳລັບໄວໜຸ່ມລາວ)
 
 ## 👤 1. ຂໍ້ມູນບໍລິບົດຂອງຜູ້ຕອບ (Context Profile)
@@ -250,7 +254,7 @@ ${unknownLines || "- ບໍ່ມີ"}
 ---
 ## 🤖 4. ຄຳຖາມເຈາະເລິກສຳລັບ AI ພາຍນອກ (Prompt for ChatGPT / Claude / Gemini)
 ເຈົ້າຄື "ເພື່ອນຮ່ວມຄິດສຳລັບການສຳຫຼວດການຮຽນ, ວຽກ ແລະ ຊີວິດຂອງໄວໜຸ່ມລາວ".
-ຈາກຂໍ້ມູນຄຳຕອບຕົວຈິງ ແລະ ບົດສະທ້ອນຂອງ Next-path ຂ້າງເທິງນີ້, ຂໍໃຫ້ຊ່ວຍ:
+ຈາກຂໍ້ມູນຄຳຕອບຕົວຈິງ ແລະ ພາບລວມຂອງ Next-path ຂ້າງເທິງນີ້, ຂໍໃຫ້ຊ່ວຍ:
 1. ສະທ້ອນຈຸດແຂງ ແລະ ຄວາມສົນໃຈໂດຍອ້າງອີງຈາກຄຳຕອບຈິງ; ບອກໃຫ້ເຫັນວ່າຄຳຕອບໃດເຊື່ອມກັບຂໍ້ສະທ້ອນໃດ.
 2. ຊ່ວຍສຳຫຼວດ 2-3 ທາງເລືອກຈາກທິດທາງຂ້າງເທິງ ໂດຍຄຳນຶງເຖິງອາຍຸ, ການສຶກສາ, ຂໍ້ຈຳກັດ ແລະ ບໍລິບົດຄອບຄົວ.
 3. ແນະນຳກິດຈະກຳທົດລອງ 2-3 ຢ່າງ ທີ່ເຮັດໄດ້ໃນ 1-2 ອາທິດ ຕົ້ນທຶນຕ່ຳ ແລະ ປອດໄພ; ໃຫ້ບອກວ່າຄວນສັງເກດຫຍັງຈາກການລອງ.
@@ -273,8 +277,8 @@ ${unknownLines || "- ບໍ່ມີ"}
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title: "Next-path: ຜົນສະທ້ອນຕົນເອງ",
-          text: "ຜົນສະທ້ອນຄວາມສົນໃຈ ແລະ ເສັ້ນທາງຊີວິດຈາກ Next-path ສຳລັບໄວໜຸ່ມລາວ",
+          title: "Next-path: ພາບລວມຄວາມສາມາດ",
+          text: "ພາບລວມຄວາມສົນໃຈ, ຄວາມສາມາດ ແລະ ທິດທາງຈາກ Next-path ສຳລັບໄວໜຸ່ມລາວ",
           url: window.location.href,
         });
       } catch {
@@ -335,7 +339,7 @@ ${unknownLines || "- ບໍ່ມີ"}
       <main className="flex-1 px-4 py-16 flex items-center justify-center">
         <div className="w-full max-w-xl text-center space-y-4">
           <Loading className="h-48" />
-          <p className="text-sm text-[#746C5F]">ກຳລັງສ້າງບົດສະທ້ອນຄວາມຄິດ...</p>
+          <p className="text-sm text-[#746C5F]">ກຳລັງສ້າງພາບລວມຄວາມສາມາດ...</p>
         </div>
       </main>
     );
@@ -350,7 +354,7 @@ ${unknownLines || "- ບໍ່ມີ"}
       <main className="flex-1 px-4 py-16 flex items-center justify-center">
         <div className="w-full max-w-xl rounded-3xl border border-[#D7B97A] bg-[#FFF8E8] p-6 sm:p-8 text-center space-y-4">
           <h1 className="text-xl sm:text-2xl font-bold text-[#5B4525]">
-            ຍັງສ້າງບົດສະທ້ອນບໍ່ໄດ້
+            ຍັງສ້າງພາບລວມບໍ່ໄດ້
           </h1>
           <p className="text-sm leading-relaxed text-[#6A5535]">
             ຄຳຕອບບາງຂໍ້ຍັງບໍ່ຄົບຕາມເກນ. ກະລຸນາເລີ່ມການສຳຫຼວດຮອບໃໝ່ ແລະ ກວດຄຳຕອບກ່ອນສົ່ງ.
@@ -389,7 +393,13 @@ ${unknownLines || "- ບໍ່ມີ"}
   const provinceLabel =
     provinceOption?.text ?? report.context_factors.province_code ?? "ປະເທດລາວ";
   const contextRows = [
-    { label: "ອາຍຸ", value: report.context_factors.age_band || "ບໍ່ໄດ້ລະບຸ" },
+    {
+      label: "ອາຍຸ",
+      value:
+        report.context_factors.age_years != null
+          ? `${report.context_factors.age_years} ປີ`
+          : report.context_factors.age_band || "ບໍ່ໄດ້ລະບຸ",
+    },
     {
       label: "ການສຶກສາ",
       value: reportAnswers.D2?.text_value?.trim() || "ບໍ່ໄດ້ລະບຸ",
@@ -462,10 +472,10 @@ ${unknownLines || "- ບໍ່ມີ"}
           <div className="flex items-center gap-2">
             <span className="font-semibold text-[#2D4C3E]">Next-path</span>
             <span>•</span>
-            <span>ບົດສະທ້ອນຕົນເອງ (Self-reflection Report)</span>
+            <span>ພາບລວມຄວາມສາມາດ (Report)</span>
           </div>
           <div className="flex items-center gap-3">
-            <span>{report.context_factors.age_band || "ອາຍຸ 15+"}</span>
+            <span>{report.context_factors.age_years != null ? `${report.context_factors.age_years} ປີ` : report.context_factors.age_band || "ອາຍຸ 15+"}</span>
             <span>•</span>
             <span>{provinceLabel}</span>
           </div>
@@ -480,7 +490,7 @@ ${unknownLines || "- ບໍ່ມີ"}
 
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#2D4C3E] tracking-tight">
-            ແວ່ນແຍງສະທ້ອນຕົວຕົນ ແລະ ເສັ້ນທາງທີ່ໜ້າລອງ
+            ຄວາມສາມາດ ແລະ ທິດທາງທີ່ເລືອກສຳຫຼວດໄດ້
           </h1>
           <p className="text-sm sm:text-base text-[#2D4C3E]/80 mt-2 leading-relaxed">
             {report.summary_text}
@@ -494,7 +504,7 @@ ${unknownLines || "- ບໍ່ມີ"}
             className="px-4 py-2.5 rounded-xl bg-[#2D4C3E] text-[#F9F8F5] text-xs sm:text-sm font-semibold hover:bg-[#233c31] transition-all flex items-center gap-2 shadow-xs cursor-pointer active:scale-[0.985]"
           >
             <MessageSquare className="w-4 h-4 text-[#E5E1D8]" />
-            <span>ນຳບົດສະທ້ອນໄປຄຸຍກັບ AI</span>
+            <span>ນຳພາບລວມໄປຄຸຍກັບ AI</span>
           </button>
 
           <button
@@ -519,7 +529,7 @@ ${unknownLines || "- ບໍ່ມີ"}
             className="px-4 py-2.5 rounded-xl border border-[#E5E1D8] text-xs sm:text-sm font-medium text-[#2D4C3E] hover:bg-[#F4EFEA] transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Download className="w-4 h-4 text-[#8D5B28]" />
-            <span>{downloading ? "ກຳລັງດາວໂຫລດ..." : "ບັນທຶກບົດສະທ້ອນ"}</span>
+            <span>{downloading ? "ກຳລັງດາວໂຫລດ..." : "ບັນທຶກພາບລວມ"}</span>
           </button>
 
           <button
@@ -572,7 +582,7 @@ ${unknownLines || "- ບໍ່ມີ"}
                     🧭 ບໍລິບົດຈາກຄຳຕອບທີ່ນຳມາອ່ານຮ່ວມກັບຜົນ
                   </h3>
                   <p className="text-xs text-[#2D4C3E]/70 mt-1 leading-relaxed">
-                    ສ່ວນນີ້ສະແດງຄຳຕອບ ແລະ ບໍລິບົດຈິງຂອງເຈົ້າ. ບົດສະທ້ອນນີ້ເປັນຈຸດເລີ່ມຕົ້ນໃຫ້ຄິດຕໍ່ ບໍ່ແມ່ນຄະແນນ ຫຼື ຄຳຕັດສິນ.
+                    ສ່ວນນີ້ສະແດງຄຳຕອບ ແລະ ບໍລິບົດຈິງຂອງເຈົ້າ. ພາບລວມນີ້ເປັນຈຸດເລີ່ມຕົ້ນໃຫ້ຄິດຕໍ່ ບໍ່ແມ່ນຄະແນນ ຫຼື ຄຳຕັດສິນ.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -889,7 +899,7 @@ ${unknownLines || "- ບໍ່ມີ"}
                   ກວດຄືນຄຳຕອບຂອງເຈົ້າ
                 </h2>
                 <p className="text-xs sm:text-sm text-[#2D4C3E]/75 mt-1">
-                  ລອງອ່ານຄຳຕອບຂອງເຈົ້າຄືນ. ມັນຊ່ວຍໃຫ້ເຫັນວ່າ ບົດສະທ້ອນນີ້ເກີດຈາກສິ່ງໃດ ແລະ ຈຸດໃດທີ່ຢາກຄົ້ນຫາຕໍ່.
+                  ລອງອ່ານຄຳຕອບຂອງເຈົ້າຄືນ. ມັນຊ່ວຍໃຫ້ເຫັນວ່າ ພາບລວມນີ້ເກີດຈາກສິ່ງໃດ ແລະ ຈຸດໃດທີ່ຢາກຄົ້ນຫາຕໍ່.
                 </p>
               </div>
 
@@ -906,7 +916,7 @@ ${unknownLines || "- ບໍ່ມີ"}
                     </div>
                   ) : (
                     <p className="text-xs text-[#2D4C3E]/70">
-                      ບໍ່ພົບຄຳຕອບທີ່ຍັງຢູ່ໃນອຸປະກອນ. ບົດສະທ້ອນດ້ານເທິງຍັງສາມາດອ່ານເພື່ອຄິດຕໍ່ໄດ້.
+                      ບໍ່ພົບຄຳຕອບທີ່ຍັງຢູ່ໃນອຸປະກອນ. ພາບລວມດ້ານເທິງຍັງສາມາດອ່ານເພື່ອຄິດຕໍ່ໄດ້.
                     </p>
                   )}
                 </div>
@@ -921,13 +931,13 @@ ${unknownLines || "- ບໍ່ມີ"}
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#E5E1D8]">
             <Sparkles className="w-4 h-4 text-[#8D5B28]" />
-            <span>ນຳບົດສະທ້ອນໄປປຶກສາ AI ຕໍ່</span>
+            <span>ນຳພາບລວມໄປປຶກສາ AI ຕໍ່</span>
           </div>
           <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
-            ນຳບົດສະທ້ອນໄປປຶກສາ AI ຕໍ່
+            ນຳພາບລວມໄປປຶກສາ AI ຕໍ່
           </h3>
           <p className="text-xs sm:text-sm text-[#F9F8F5]/85 max-w-2xl leading-relaxed">
-            ລະບົບ Next-path ໄດ້ຮວບຮວມຄຳຕອບຕົວຈິງ ແລະ ບົດສະທ້ອນຂອງທ່ານ ເປັນຂໍ້ຄວາມທີ່ພ້ອມນຳໄປປຶກສາ ChatGPT, Claude ຫຼື Gemini ຕໍ່ໄດ້ທັນທີ.
+            ລະບົບ Next-path ໄດ້ຮວບຮວມຄຳຕອບຕົວຈິງ ແລະ ພາບລວມຂອງທ່ານ ເປັນຂໍ້ຄວາມທີ່ພ້ອມນຳໄປປຶກສາ ChatGPT, Claude ຫຼື Gemini ຕໍ່ໄດ້ທັນທີ.
           </p>
         </div>
 
@@ -938,7 +948,7 @@ ${unknownLines || "- ບໍ່ມີ"}
             className="px-8 py-4 rounded-2xl bg-[#F9F8F5] text-[#2D4C3E] font-bold text-sm sm:text-base hover:bg-[#FFFFFF] transition-all flex items-center gap-3 cursor-pointer shadow-md active:scale-[0.985]"
           >
             <MessageSquare className="w-5 h-5 text-[#8D5B28]" />
-            <span>ຄັດລອກບົດສະທ້ອນໄປຖາມ AI ຕໍ່</span>
+            <span>ຄັດລອກພາບລວມໄປຖາມ AI ຕໍ່</span>
           </button>
         </div>
       </div>

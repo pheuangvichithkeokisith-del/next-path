@@ -43,7 +43,7 @@ export default function Header() {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-xl tracking-tight text-[#2D4C3E]">Next-path</span>
-              <span className="text-xs text-[#8D5B28] font-medium hidden sm:inline">· ພື້ນທີ່ສຳຫຼວດຕົນເອງ</span>
+              <span className="text-xs text-[#8D5B28] font-medium hidden sm:inline">· ເວັບໄຊສຳຫຼວດຕົນເອງ</span>
             </div>
             <p className="text-xs text-[#2D4C3E]/70 line-clamp-1">ສຳລັບໄວໜຸ່ມລາວ (Lao Youth)</p>
           </div>
@@ -84,7 +84,7 @@ export default function Header() {
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-[#8D5B28]" />
-              <span>ຜົນສະທ້ອນ</span>
+              <span>ພາບລວມ</span>
             </Link>
           )}
 

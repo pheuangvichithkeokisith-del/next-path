@@ -56,7 +56,7 @@ function getScrollBehavior(): ScrollBehavior {
 
 function isAnswered(item: FormItem, answer: DraftAnswer | undefined): boolean {
   if (!answer) return false;
-  if (item.type === "text") {
+  if (item.type === "text" || item.type === "number") {
     return Boolean(answer.text_value?.trim());
   }
   if (answer.option_codes.length === 0) {
@@ -252,7 +252,7 @@ export default function AssessmentPage() {
       result.push({
         id: "sec-demo",
         titleLo: "ຂໍ້ມູນພື້ນຖານ (Demographics)",
-        descLo: "ຂໍ້ມູນທົ່ວໄປເພື່ອຊ່ວຍໃຫ້ບົດສະທ້ອນສອດຄ່ອງກັບທ່ານຫຼາຍຂຶ້ນ (ບໍ່ລະບຸຕົວຕົນ)",
+        descLo: "ຂໍ້ມູນທົ່ວໄປເພື່ອຊ່ວຍສະຫຼຸບຜົນການສຳຫຼວດໃຫ້ສອດຄ່ອງກັບທ່ານຫຼາຍຂຶ້ນ (ບໍ່ລະບຸຕົວຕົນ)",
         icon: UserCheck,
         items: dList,
       });
@@ -266,7 +266,7 @@ export default function AssessmentPage() {
       },
       skills: {
         titleLo: "ໝວດ 2 — ທັກສະ ແລະ ຄວາມຖະໜັດ (Skills)",
-        descLo: "ສິ່ງທີ່ເຮັດໄດ້ດີ ຖືກຊົມເຊີຍ ແລະ ເຄີຍສ້າງຄວາມພູມໃຈ",
+        descLo: "ສິ່ງທີ່ເຮັດໄດ້ດີ ແລະ ເຄີຍສ້າງຄວາມພູມໃຈ",
         icon: Sparkles,
       },
       values: {
@@ -538,7 +538,7 @@ export default function AssessmentPage() {
 
             <span className="text-xs text-[#2D4C3E]/70 hidden md:inline">
               {answeredQCount === totalQuestions
-                ? "ຕອບຄົບທຸກຂໍ້ແລ້ວ! ພ້ອມເບິ່ງຜົນສະທ້ອນ 🎉"
+                ? "ຕອບຄົບທຸກຂໍ້ແລ້ວ! ພ້ອມເບິ່ງພາບລວມຄວາມສາມາດ 🎉"
                 : answeredQCount >= 20
                 ? "ຍັງເຫຼືອອີກໜ້ອຍດຽວ, ຕອບສະບາຍໆ"
                 : "ຄ່ອຍໆ ຕອບຕາມຄວາມຮູ້ສຶກ"}
@@ -718,7 +718,7 @@ export default function AssessmentPage() {
               {submitting
                 ? "ກຳລັງສັງເຄາະຂໍ້ມູນ..."
                 : completionStatus.isReady
-                ? "ສຳເລັດການຕອບ ແລະ ເບິ່ງຜົນສະທ້ອນ"
+                ? "ສຳເລັດການຕອບ ແລະ ເບິ່ງພາບລວມຄວາມສາມາດ"
                 : "ກວດຄຳຕອບກ່ອນ"}
             </span>
             <ArrowRight className="w-5 h-5" />

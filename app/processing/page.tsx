@@ -132,7 +132,7 @@ export default function ProcessingPage() {
                 ເກີດຂໍ້ຂັດຂ້ອງໃນການປະມວນຜົນ
               </h2>
               <p className="text-sm text-[#2D4C3E]/80 leading-relaxed">
-                ຂໍອະໄພ, ບໍ່ສາມາດສັງເຄາະຜົນສະທ້ອນໄດ້ໃນຕອນນີ້. ຂໍ້ມູນຄຳຕອບຂອງທ່ານຍັງຄົງປອດໄພ.
+                ຂໍອະໄພ, ບໍ່ສາມາດສະຫຼຸບຜົນການສຳຫຼວດໄດ້ໃນຕອນນີ້. ຂໍ້ມູນຄຳຕອບຂອງທ່ານຍັງຄົງປອດໄພ.
               </p>
             </div>
 
@@ -194,12 +194,12 @@ export default function ProcessingPage() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EBF2EE] text-[#2D4C3E] text-xs font-semibold">
                 <Sparkles className="w-3.5 h-3.5 text-[#8D5B28]" />
                 <span>
-                  {isDone ? "ສັງເຄາະສຳເລັດແລ້ວ!" : "ລະບົບກຳລັງສັງເຄາະຜົນສະທ້ອນ"}
+                  {isDone ? "ສະຫຼຸບຜົນສຳເລັດແລ້ວ!" : "ລະບົບກຳລັງສະຫຼຸບຜົນການສຳຫຼວດ"}
                 </span>
               </div>
 
               <h2 className="text-xl font-bold text-[#2D4C3E] tracking-tight">
-                {isDone ? "ພ້ອມເປີດແວ່ນແຍງສະທ້ອນຕົນເອງ" : "ກະລຸນາລໍຖ້າຈັກໜ່ອຍ..."}
+                {isDone ? "ພ້ອມເບິ່ງພາບລວມຄວາມສາມາດ ແລະ ທິດທາງ" : "ກະລຸນາລໍຖ້າຈັກໜ່ອຍ..."}
               </h2>
 
               <p className="text-xs sm:text-sm text-[#2D4C3E]/75 min-h-[40px] flex items-center justify-center leading-relaxed">
@@ -234,7 +234,7 @@ export default function ProcessingPage() {
                 onClick={() => router.replace("/report")}
                 className="w-full py-3.5 px-6 rounded-2xl bg-[#2D4C3E] text-[#F9F8F5] text-sm font-semibold hover:bg-[#233c31] transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-[0.985] animate-fade-in-up"
               >
-                <span>ເປີດເບິ່ງບົດສະທ້ອນດຽວນີ້</span>
+                <span>ເປີດເບິ່ງພາບລວມດຽວນີ້</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             )}

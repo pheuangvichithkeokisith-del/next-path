@@ -79,7 +79,7 @@ export default function FeedbackPage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-[#2D4C3E]">ຍັງບໍ່ພົບເຊດຊັນການສຳຫຼວດ</h1>
           <p className="text-sm text-[#2D4C3E]/75 leading-relaxed">
-            ທ່ານຈຳເປັນຕ້ອງຕອບແບບສຳຫຼວດເພື່ອເບິ່ງຜົນສະທ້ອນກ່ອນ ຈຶ່ງຈະສາມາດສົ່ງຄຳຕິຊົມກ່ຽວກັບຜົນໄດ້.
+            ທ່ານຈຳເປັນຕ້ອງຕອບແບບສຳຫຼວດເພື່ອເບິ່ງພາບລວມກ່ອນ ຈຶ່ງຈະສາມາດສົ່ງຄຳຕິຊົມກ່ຽວກັບຜົນໄດ້.
           </p>
         </div>
         <button
@@ -101,7 +101,7 @@ export default function FeedbackPage() {
         className="inline-flex items-center gap-2 text-sm text-[#2D4C3E]/70 hover:text-[#2D4C3E] mb-6 transition-colors cursor-pointer"
       >
         <ArrowLeft className="w-4 h-4" />
-        <span>ກັບຄືນໜ້າຜົນສະທ້ອນ (Report)</span>
+        <span>ກັບຄືນໜ້າພາບລວມ (Report)</span>
       </button>
 
       {submitted ? (
@@ -125,7 +125,7 @@ export default function FeedbackPage() {
               onClick={() => router.push("/report")}
               className="w-full sm:w-auto px-6 py-3 rounded-xl border border-[#E5E1D8] text-sm font-medium text-[#2D4C3E] hover:bg-[#F4EFEA] transition-colors cursor-pointer"
             >
-              ກັບໄປອ່ານຜົນສະທ້ອນ
+              ກັບໄປອ່ານພາບລວມ
             </button>
             <button
               onClick={() => router.push("/")}
@@ -144,7 +144,7 @@ export default function FeedbackPage() {
               <span>ຄຳຕິຊົມ ແລະ ຄວາມຄິດເຫັນ (Feedback)</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-[#2D4C3E]">
-              ຜົນສະທ້ອນນີ້ເປັນແນວໃດແດ່ສຳລັບທ່ານ?
+              ພາບລວມນີ້ເປັນແນວໃດແດ່ສຳລັບທ່ານ?
             </h1>
             <p className="text-sm text-[#2D4C3E]/75 mt-1 leading-relaxed">
               ພວກເຮົາຢາກຟັງຄວາມຮູ້ສຶກຂອງທ່ານ ເພື່ອປັບປຸງປະສົບການໃຫ້ດີຂຶ້ນເລື້ອຍໆ.
@@ -235,7 +235,7 @@ export default function FeedbackPage() {
                 rows={4}
                 value={comments}
                 onChange={(e) => setComments(e.target.value)}
-                placeholder="ບອກສິ່ງທີ່ເຈົ້າມັກ, ສິ່ງທີ່ຢາກໃຫ້ປັບປຸງ ຫຼື ຄວາມຮູ້ສຶກຫຼັງຈາກໄດ້ອ່ານບົດສະທ້ອນ..."
+                placeholder="ບອກສິ່ງທີ່ເຈົ້າມັກ, ສິ່ງທີ່ຢາກໃຫ້ປັບປຸງ ຫຼື ຄວາມຮູ້ສຶກຫຼັງຈາກໄດ້ອ່ານພາບລວມ..."
                 className="w-full p-4 rounded-2xl border border-[#E5E1D8] bg-[#F9F8F5] text-sm text-[#2D4C3E] placeholder:text-[#2D4C3E]/40 focus:outline-none focus:border-[#2D4C3E] focus:bg-[#FFFFFF] transition-all"
               />
             </div>

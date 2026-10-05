@@ -48,7 +48,7 @@ export default function IntroductionPage() {
             <span>ຄຳແນະນຳກ່ອນເລີ່ມຕົ້ນ (Introduction)</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#2D4C3E] tracking-tight">
-            ຍິນດີຕ້ອນຮັບສູ່ພື້ນທີ່ສະທ້ອນຕົນເອງ
+            ຍິນດີຕ້ອນຮັບສູ່ເວັບໄຊສຳຫຼວດຕົນເອງ
           </h1>
           <p className="mt-2 text-sm sm:text-base text-[#2D4C3E]/80 leading-relaxed">
             ກ່ອນທີ່ເຈົ້າຈະເລີ່ມຕອບຄຳຖາມ, ພວກເຮົາຢາກໃຫ້ເຈົ້າຮູ້ສຶກສະບາຍໃຈ ແລະ ຜ່ອນຄາຍທີ່ສຸດ. ຂໍໃຫ້ອ່ານຂໍ້ແນະນຳສັ້ນໆ ນີ້:
@@ -91,10 +91,10 @@ export default function IntroductionPage() {
             </div>
             <div>
               <h2 className="font-semibold text-sm sm:text-base text-[#2D4C3E]">
-                ຄຳຕອບຈະຖືກໃຊ້ເພື່ອສ້າງ “ຜົນສະທ້ອນຕົນເອງ” ເທົ່ານັ້ນ
+                ຄຳຕອບຈະຖືກໃຊ້ເພື່ອສ້າງ “ພາບລວມຄວາມສາມາດ ແລະ ທິດທາງ” ເທົ່ານັ້ນ
               </h2>
               <p className="text-xs sm:text-sm text-[#2D4C3E]/75 mt-1 leading-relaxed">
-                ລະບົບຈະນຳເອົາຮູບແບບຄວາມສົນໃຈມາສັງເຄາະເປັນແວ່ນແຍງສະທ້ອນທ່າແຮງ, ແນະນຳເສັ້ນທາງທີ່ໜ້າລອງ ແລະ ການທົດລອງນ້ອຍໆ ທີ່ເຈົ້າສາມາດລອງເຮັດໄດ້.
+                ລະບົບຈະສະຫຼຸບຮູບແບບຄວາມສົນໃຈ ແລະ ຄວາມສາມາດ, ພ້ອມແນະນຳທິດທາງທີ່ໜ້າລອງ ແລະ ການທົດລອງນ້ອຍໆ ທີ່ເຈົ້າສາມາດລອງເຮັດໄດ້.
               </p>
             </div>
           </div>
