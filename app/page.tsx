@@ -122,7 +122,7 @@ const FAQS = [
 
 export default function LandingPage() {
   const router = useRouter();
-  const { sessionId } = useSessionId();
+  const { sessionId, resolved } = useSessionId();
   const [hasExistingDraft, setHasExistingDraft] = useState(() => {
     if (typeof window === "undefined") return false;
     return Object.keys(restoreDraft(window.localStorage, sessionId)).length > 0;
@@ -130,27 +130,39 @@ export default function LandingPage() {
   const [selectedArchetype, setSelectedArchetype] = useState<string>(DEMO_ARCHETYPES[0].id);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [starting, setStarting] = useState(false);
+  const [sessionCheckComplete, setSessionCheckComplete] = useState(false);
+  const [sessionCheckFailed, setSessionCheckFailed] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hasAnswers = Object.keys(restoreDraft(window.localStorage, sessionId)).length > 0;
-      if (sessionId) {
-        getSessionStatus(sessionId)
-          .then(({ status }) => {
-            if (status === "completed") {
-              clearSessionId();
-              clearDraft(window.localStorage);
-              setHasExistingDraft(false);
-            } else {
-              setHasExistingDraft(hasAnswers);
-            }
-          })
-          .catch(() => {
-            setHasExistingDraft(hasAnswers);
-          });
-      }
+    if (!resolved || typeof window === "undefined") return;
+
+    const hasAnswers = Object.keys(restoreDraft(window.localStorage, sessionId)).length > 0;
+    if (!sessionId) {
+      setHasExistingDraft(false);
+      setSessionCheckFailed(false);
+      setSessionCheckComplete(true);
+      return;
     }
-  }, [sessionId]);
+
+    setSessionCheckComplete(false);
+    getSessionStatus(sessionId)
+      .then(({ status }) => {
+        setSessionCheckFailed(false);
+        if (status === "completed") {
+          clearSessionId();
+          clearDraft(window.localStorage);
+          setHasExistingDraft(false);
+        } else {
+          setHasExistingDraft(hasAnswers);
+        }
+      })
+      .catch(() => {
+        // Do not resume a local draft when its server status cannot be confirmed.
+        setSessionCheckFailed(true);
+        setHasExistingDraft(false);
+      })
+      .finally(() => setSessionCheckComplete(true));
+  }, [resolved, sessionId]);
 
   const handleStart = async () => {
     setStarting(true);
@@ -167,7 +179,12 @@ export default function LandingPage() {
             return;
           }
         } catch {
-          // Fallback if status check fails
+          clearSessionId();
+          if (typeof window !== "undefined") {
+            clearDraft(window.localStorage);
+          }
+          router.push("/introduction");
+          return;
         }
         router.push("/assessment");
       } else {
@@ -181,7 +198,10 @@ export default function LandingPage() {
   };
 
   const handleStartFresh = async () => {
-    if (hasExistingDraft && !window.confirm("ເລີ່ມຕົ້ນໃໝ່ທັງໝົດ? ຂໍ້ມູນເກົ່າທີ່ຕອບໄວ້ຈະຖືກລຶບ.")) {
+    const confirmMessage = sessionCheckFailed
+      ? "ບໍ່ສາມາດກວດສອບຮ່າງເກົ່າໄດ້. ຕ້ອງການເລີ່ມໃໝ່ ແລະ ລ້າງຂໍ້ມູນຮ່າງໃນເຄື່ອງນີ້ບໍ?"
+      : "ເລີ່ມຕົ້ນໃໝ່ທັງໝົດ? ຂໍ້ມູນເກົ່າທີ່ຕອບໄວ້ຈະຖືກລຶບ.";
+    if ((hasExistingDraft || sessionCheckFailed) && !window.confirm(confirmMessage)) {
       return;
     }
     setStarting(true);
@@ -246,7 +266,7 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
           <button
             onClick={hasExistingDraft ? handleStart : handleStartFresh}
-            disabled={starting}
+            disabled={starting || !sessionCheckComplete}
             className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#2D4C3E] text-[#F9F8F5] text-base font-semibold hover:bg-[#233c31] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-3 cursor-pointer group active:scale-[0.985] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2D4C3E]"
           >
             <span>{hasExistingDraft ? "ຕອບຕໍ່ຈາກຮ່າງເກົ່າ" : "ເລີ່ມຕົ້ນສຳຫຼວດຕົນເອງ"}</span>
@@ -597,7 +617,7 @@ export default function LandingPage() {
           <div className="relative z-10 pt-2">
             <button
               onClick={hasExistingDraft ? handleStart : handleStartFresh}
-              disabled={starting}
+              disabled={starting || !sessionCheckComplete}
               className="px-8 py-4 rounded-2xl bg-[#F9F8F5] text-[#2D4C3E] text-base font-semibold hover:bg-[#FFFFFF] transition-all shadow-md inline-flex items-center gap-3 cursor-pointer group active:scale-[0.985]"
             >
               <span>{hasExistingDraft ? "ຕອບຕໍ່ຈາກຮ່າງເກົ່າ" : "ເລີ່ມຕົ້ນການສຳຫຼວດ"}</span>
