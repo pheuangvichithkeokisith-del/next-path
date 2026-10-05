@@ -119,8 +119,11 @@ cp .env.example .env
 ### 3. Run Migrations (Optional)
 
 ```bash
+python -m app.migration_bootstrap
 alembic upgrade head
 ```
+
+The bootstrap step safely stamps the original revision only when it finds the complete legacy schema created by `create_all`. It stops on a partial or unknown schema.
 
 ### 4. Start the Server
 

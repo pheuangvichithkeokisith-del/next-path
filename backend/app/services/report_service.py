@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,6 +9,7 @@ from app.config import settings
 from app.ds.engine import evaluate_ds_assessment
 from app.models.answer import AnswerModel
 from app.models.report import ReportModel
+from app.models.report_path import ReportPathModel
 from app.schemas.report import (
     ContextFactors,
     ReportAnswer,
@@ -111,6 +112,28 @@ async def get_or_create_session_report(
         report_model.updated_at = datetime.now(timezone.utc)
 
     try:
+        await db.flush()
+        await db.execute(
+            delete(ReportPathModel).where(ReportPathModel.report_id == report_model.id)
+        )
+        scoring_version = report_data.get("versions", {}).get("ds")
+        for rank, path in enumerate(report_data["possible_paths"][:3], start=1):
+            db.add(
+                ReportPathModel(
+                    report_id=report_model.id,
+                    rank=rank,
+                    path_code=path["group_id"],
+                    label_lao=path["label_lao"],
+                    classification=path.get("classification"),
+                    fit_score=path.get("fit_score"),
+                    feasibility_score=path.get("feasibility_score"),
+                    compatibility_score=path.get("compatibility_score"),
+                    evidence_question_ids=path.get("evidence_question_ids") or [],
+                    reasons_lao=path.get("reasons_lao") or [],
+                    conditions_lao=path.get("conditions_lao") or [],
+                    scoring_version=scoring_version,
+                )
+            )
         await db.commit()
         await db.refresh(report_model)
     except IntegrityError:

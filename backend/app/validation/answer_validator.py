@@ -40,6 +40,21 @@ def validate_and_sanitize_answer(
     valid_option_codes = {opt.code: opt for opt in (item.options or [])}
     exclusive_codes = {opt.code for opt in (item.options or []) if opt.exclusive}
 
+    if item.type == "number" and answer.text_value is not None and answer.text_value.strip():
+        raw_number = answer.text_value.strip()
+        try:
+            number_value = int(raw_number)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Question '{item.id}' requires a whole number.",
+            ) from exc
+        if item.id == "D1" and not 15 <= number_value <= 120:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Age must be between 15 and 120.",
+            )
+
     # 1. Validate option codes against allowed options for this item
     for code in answer.option_codes:
         if code not in valid_option_codes:

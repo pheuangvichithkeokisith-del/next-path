@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
-from sqlalchemy import DateTime, String, func
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -26,6 +26,11 @@ class SessionModel(Base):
         nullable=False,
         index=True,
     )
+    response_code: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    province_code: Mapped[Optional[str]] = mapped_column(
+        String(16), ForeignKey("province_catalog.province_code"), nullable=True, index=True
+    )
+    age_years: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -61,3 +66,5 @@ class SessionModel(Base):
         back_populates="session",
         cascade="all, delete-orphan",
     )
+
+    __table_args__ = (Index("uq_sessions_response_code", "response_code", unique=True),)
