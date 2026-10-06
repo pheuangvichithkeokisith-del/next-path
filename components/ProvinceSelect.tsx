@@ -50,6 +50,7 @@ export default function ProvinceSelect({
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setSearch("");
       }
     }
     if (isOpen) {
@@ -66,8 +67,6 @@ export default function ProvinceSelect({
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
-    } else {
-      setSearch("");
     }
   }, [isOpen]);
 
@@ -101,7 +100,6 @@ export default function ProvinceSelect({
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-describedby={hasValidation ? validationId : undefined}
-          aria-invalid={hasValidation}
           className={`w-full text-left p-3.5 sm:p-4 rounded-xl border bg-[#F9F8F5] text-sm sm:text-base flex items-center justify-between cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-[#8D5B28] ${
             hasValidation
               ? "border-[#7A3E2D] bg-[#FDF3F0]/30"
@@ -166,6 +164,7 @@ export default function ProvinceSelect({
                       onClick={() => {
                         onChange(opt.code);
                         setIsOpen(false);
+                        setSearch("");
                       }}
                       className={`w-full text-left px-3.5 py-2.5 text-sm sm:text-base flex items-center justify-between rounded-lg transition-colors cursor-pointer ${
                         isSelected

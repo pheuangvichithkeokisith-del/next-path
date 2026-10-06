@@ -42,20 +42,18 @@ export default function EducationSelect({
 }: EducationSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [isOther, setIsOther] = useState(false);
+  const [otherSelected, setOtherSelected] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const selectedOption = EDUCATION_OPTIONS.find((option) => option.value === value);
-
-  useEffect(() => {
-    setIsOther(Boolean(value) && !selectedOption);
-  }, [selectedOption, value]);
+  const isOther = otherSelected || (Boolean(value) && !selectedOption);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setSearch("");
       }
     };
 
@@ -66,8 +64,6 @@ export default function EducationSelect({
   useEffect(() => {
     if (isOpen) {
       window.setTimeout(() => searchInputRef.current?.focus(), 50);
-    } else {
-      setSearch("");
     }
   }, [isOpen]);
 
@@ -94,7 +90,6 @@ export default function EducationSelect({
           aria-haspopup="listbox"
           aria-expanded={isOpen}
           aria-describedby={hasValidation ? validationId : undefined}
-          aria-invalid={hasValidation}
           className={`w-full min-h-[52px] text-left p-3.5 sm:p-4 rounded-xl border bg-[#F9F8F5] text-sm sm:text-base flex items-center justify-between gap-3 cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-[#8D5B28] ${
             hasValidation
               ? "border-[#7A3E2D] bg-[#FDF3F0]/30"
@@ -119,7 +114,10 @@ export default function EducationSelect({
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 onKeyDown={(event) => {
-                  if (event.key === "Escape") setIsOpen(false);
+                  if (event.key === "Escape") {
+                    setIsOpen(false);
+                    setSearch("");
+                  }
                 }}
                 placeholder="ພິມຄຳຄົ້ນຫາ (Lao / English)..."
                 aria-label="ຄົ້ນຫາລະດັບການຮຽນ"
@@ -144,9 +142,10 @@ export default function EducationSelect({
                       role="option"
                       aria-selected={isSelected}
                       onClick={() => {
-                        setIsOther(false);
+                        setOtherSelected(false);
                         onChange(option.value);
                         setIsOpen(false);
+                        setSearch("");
                       }}
                       className={`w-full text-left px-3.5 py-3 text-sm sm:text-base flex items-center justify-between rounded-lg transition-colors cursor-pointer ${
                         isSelected
@@ -165,8 +164,9 @@ export default function EducationSelect({
             <button
               type="button"
               onClick={() => {
-                setIsOther(true);
+                setOtherSelected(true);
                 setIsOpen(false);
+                setSearch("");
                 onChange("");
               }}
               className="w-full p-3 border-t border-[#E5E1D8] text-left text-sm font-semibold text-[#8D5B28] hover:bg-[#F7EFE3]"

@@ -131,20 +131,24 @@ export default function LandingPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [starting, setStarting] = useState(false);
   const [sessionCheckComplete, setSessionCheckComplete] = useState(false);
+  const [checkedSessionId, setCheckedSessionId] = useState<string | null>(null);
   const [sessionCheckFailed, setSessionCheckFailed] = useState(false);
+
+  // A missing session is already a clean state; keep stale state from a
+  // previous session from changing the landing-page actions.
+  const visibleHasExistingDraft = Boolean(sessionId) && hasExistingDraft;
+  const visibleSessionCheckFailed = Boolean(sessionId) && sessionCheckFailed;
+  const visibleSessionCheckComplete =
+    resolved && (!sessionId || (sessionCheckComplete && checkedSessionId === sessionId));
 
   useEffect(() => {
     if (!resolved || typeof window === "undefined") return;
 
     const hasAnswers = Object.keys(restoreDraft(window.localStorage, sessionId)).length > 0;
     if (!sessionId) {
-      setHasExistingDraft(false);
-      setSessionCheckFailed(false);
-      setSessionCheckComplete(true);
       return;
     }
 
-    setSessionCheckComplete(false);
     getSessionStatus(sessionId)
       .then(({ status }) => {
         setSessionCheckFailed(false);
@@ -161,7 +165,10 @@ export default function LandingPage() {
         setSessionCheckFailed(true);
         setHasExistingDraft(false);
       })
-      .finally(() => setSessionCheckComplete(true));
+      .finally(() => {
+        setCheckedSessionId(sessionId);
+        setSessionCheckComplete(true);
+      });
   }, [resolved, sessionId]);
 
   const handleStart = async () => {
@@ -198,10 +205,10 @@ export default function LandingPage() {
   };
 
   const handleStartFresh = async () => {
-    const confirmMessage = sessionCheckFailed
+    const confirmMessage = visibleSessionCheckFailed
       ? "ບໍ່ສາມາດກວດສອບຮ່າງເກົ່າໄດ້. ຕ້ອງການເລີ່ມໃໝ່ ແລະ ລ້າງຂໍ້ມູນຮ່າງໃນເຄື່ອງນີ້ບໍ?"
       : "ເລີ່ມຕົ້ນໃໝ່ທັງໝົດ? ຂໍ້ມູນເກົ່າທີ່ຕອບໄວ້ຈະຖືກລຶບ.";
-    if ((hasExistingDraft || sessionCheckFailed) && !window.confirm(confirmMessage)) {
+    if ((visibleHasExistingDraft || visibleSessionCheckFailed) && !window.confirm(confirmMessage)) {
       return;
     }
     setStarting(true);
@@ -265,15 +272,15 @@ export default function LandingPage() {
         {/* Call to action & Time estimate */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
           <button
-            onClick={hasExistingDraft ? handleStart : handleStartFresh}
-            disabled={starting || !sessionCheckComplete}
+            onClick={visibleHasExistingDraft ? handleStart : handleStartFresh}
+            disabled={starting || !visibleSessionCheckComplete}
             className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#2D4C3E] text-[#F9F8F5] text-base font-semibold hover:bg-[#233c31] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-3 cursor-pointer group active:scale-[0.985] focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2D4C3E]"
           >
-            <span>{hasExistingDraft ? "ຕອບຕໍ່ຈາກຮ່າງເກົ່າ" : "ເລີ່ມຕົ້ນສຳຫຼວດຕົນເອງ"}</span>
+            <span>{visibleHasExistingDraft ? "ຕອບຕໍ່ຈາກຮ່າງເກົ່າ" : "ເລີ່ມຕົ້ນສຳຫຼວດຕົນເອງ"}</span>
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </button>
 
-          {hasExistingDraft && (
+          {visibleHasExistingDraft && (
             <button
               onClick={handleStartFresh}
               disabled={starting}
@@ -616,11 +623,11 @@ export default function LandingPage() {
           </div>
           <div className="relative z-10 pt-2">
             <button
-              onClick={hasExistingDraft ? handleStart : handleStartFresh}
-              disabled={starting || !sessionCheckComplete}
+              onClick={visibleHasExistingDraft ? handleStart : handleStartFresh}
+              disabled={starting || !visibleSessionCheckComplete}
               className="px-8 py-4 rounded-2xl bg-[#F9F8F5] text-[#2D4C3E] text-base font-semibold hover:bg-[#FFFFFF] transition-all shadow-md inline-flex items-center gap-3 cursor-pointer group active:scale-[0.985]"
             >
-              <span>{hasExistingDraft ? "ຕອບຕໍ່ຈາກຮ່າງເກົ່າ" : "ເລີ່ມຕົ້ນການສຳຫຼວດ"}</span>
+              <span>{visibleHasExistingDraft ? "ຕອບຕໍ່ຈາກຮ່າງເກົ່າ" : "ເລີ່ມຕົ້ນການສຳຫຼວດ"}</span>
               <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
             </button>
           </div>

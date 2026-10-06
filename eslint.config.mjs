@@ -12,6 +12,18 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Non-frontend workspaces are validated by their own tooling. Ignoring
+    // them here keeps the Next.js lint command focused and avoids traversing
+    // the backend virtual environment.
+    "backend/**",
+    ".agents/**",
+    ".codex/**",
+    "docs/**",
+    "scripts/**",
+    "snapshots/**",
+    "v4.0/**",
+    "design-system/**",
+    "data/**",
   ]),
 ]);
 

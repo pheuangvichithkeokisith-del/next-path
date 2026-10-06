@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Compass, BookOpen, RotateCcw, HeartHandshake, Sparkles } from "lucide-react";
+import { Compass, RotateCcw, HeartHandshake, Sparkles } from "lucide-react";
 import { clearSessionId, useSessionId } from "@/hooks/useSession";
 import { clearDraft } from "@/utils/draft";
 

@@ -76,7 +76,7 @@ export const AiPromptModal: React.FC<AiPromptModalProps> = ({
               <span className="font-bold block">ຂໍ້ຄວນລະວັງເພື່ອຄວາມປອດໄພ</span>
               <p className="leading-relaxed text-xs sm:text-sm">
                 1. ກະລຸນາກວດສອບຂໍ້ຄວາມກ່ອນສົ່ງ. ຢ່າໃສ່ຂໍ້ມູນສ່ວນຕົວລະອຽດ (ເຊັ່ນ: ທີ່ຢູ່ແທ້ ຫຼື ລະຫັດຜ່ານ).<br />
-                2. AI ເປັນພຽງ "ຜູ້ຊ່ວຍຄິດ" ເທົ່ານັ້ນ ບໍ່ແມ່ນຜູ້ຕັດສິນ ຫຼື ກຳນົດອະນາຄົດຂອງທ່ານ.
+                2. AI ເປັນພຽງ &quot;ຜູ້ຊ່ວຍຄິດ&quot; ເທົ່ານັ້ນ ບໍ່ແມ່ນຜູ້ຕັດສິນ ຫຼື ກຳນົດອະນາຄົດຂອງທ່ານ.
               </p>
             </div>
           </div>
