@@ -6,13 +6,13 @@
 
 | ส่วนระบบ | ผู้ให้บริการ | URL |
 | --- | --- | --- |
-| Frontend | Netlify | [nextpathla-public.netlify.app](https://nextpathla-public.netlify.app/) |
-| Frontend branch สำรอง | Netlify | [main--nextpathla-public.netlify.app](https://main--nextpathla-public.netlify.app/) |
+| Frontend | Netlify | [nextpathla-public-v2.netlify.app](https://nextpathla-public-v2.netlify.app/) |
+| Frontend branch สำรอง | Netlify | [main--nextpathla-public-v2.netlify.app](https://main--nextpathla-public-v2.netlify.app/) |
 | Backend API | Railway | [next-path-production.up.railway.app](https://next-path-production.up.railway.app/) |
 | Backend health check | Railway | [GET /health](https://next-path-production.up.railway.app/health) |
 | Database | Supabase | `nextpath-db` (`rxuosvuatbzjadmynpgo`) |
 
-ชื่อเดิม `nextpathla.netlify.app` มีปัญหา DNS และไม่ใช่ URL production ปัจจุบันแล้ว
+ชื่อเดิม `nextpathla.netlify.app` และ `nextpathla-public.netlify.app` ไม่ใช่ URL production ปัจจุบันแล้ว
 
 ## Architecture
 
@@ -27,7 +27,7 @@ flowchart LR
 
 - GitHub: [pheuangvichithkeokisith-del/next-path](https://github.com/pheuangvichithkeokisith-del/next-path)
 - Branch ที่ deploy: `main`
-- ล่าสุดที่ใช้แก้ backend: `8288a596e471fddd14b7c192339403f95c33842d`
+- ล่าสุดที่ใช้แก้ backend: `baef3827c26c848e8786b493fc1c976998c42e3c`
 
 ## Environment configuration
 
@@ -63,7 +63,7 @@ NEXT_PUBLIC_API_BASE_URL=https://next-path-production.up.railway.app
 
 ## Verification checklist
 
-- เปิด [production frontend](https://nextpathla-public.netlify.app/)
+- เปิด [production frontend](https://nextpathla-public-v2.netlify.app/)
 - เปิด [backend health check](https://next-path-production.up.railway.app/health) และตรวจว่าตอบสถานะ `ok`
 - เริ่มแบบสำรวจจนถึงหน้า assessment
 - ตรวจว่าไม่มีข้อความ error ตอนสร้าง session หรือบันทึกคำตอบ
@@ -73,7 +73,7 @@ NEXT_PUBLIC_API_BASE_URL=https://next-path-production.up.railway.app
 
 - แบบสอบถามรุ่น `v4.0.0` ถูกเก็บไว้ใน backend image ที่ `backend/app/data/questions_v4.json`
 - Backend ต้อง deploy จาก commit ที่มีไฟล์นี้ ไม่เช่นนั้นการสร้าง session รุ่น `v4.0.0` จะตอบ `500`
-- หากเปลี่ยนชื่อ Netlify site ต้องเพิ่ม URL ใหม่ใน `CORS_ORIGINS` ของ Railway แล้วรอให้ service redeploy
+- หากเปลี่ยนชื่อ Netlify site ต้องเพิ่ม URL ใหม่ใน `CORS_ORIGINS` ของ Railway แล้วรอให้ service redeploy; URL ปัจจุบันคือ `https://nextpathla-public-v2.netlify.app`
 - Netlify production และ deploy preview เปิด public แล้ว ไม่ต้องใช้ Netlify SSO หรือ password
 - การเปลี่ยน schema ใช้ Alembic migrations; อย่าลบหรือ reset ตาราง production เพื่อแก้ schema
 
