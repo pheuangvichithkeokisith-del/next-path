@@ -1,90 +1,72 @@
 # Next-path — Phase 3 Dashboard Plan
 
-เอกสารนี้เป็นแผนของ Phase 3 สำหรับ Dashboard/Analytics ซึ่งจะพัฒนาใน repo แยกจากเว็บหลัก
+Phase 3 is the dashboard and analytics project. It will be developed in a separate repository from the public assessment website.
 
-## 1. เว็บหลักที่มีอยู่แล้ว
+## 1. Existing public website
 
-ระบบหลักปัจจุบัน:
-
-```text
-Frontend แบบประเมิน
-    ↓
-Backend รับคำตอบ
-    ↓
-v4.0 Scoring
-    ↓
-Report
-    ↓
-Supabase
-```
-
-### ขอบเขตการแก้เว็บหลัก
-
-- Frontend แก้เฉพาะ label และข้อความที่แสดงต่อผู้ใช้
-- ไม่เปลี่ยน flow การตอบแบบประเมิน
-- ไม่เปลี่ยนสูตร scoring
-- ไม่เปลี่ยน API เดิม
-- ไม่เปลี่ยนโครงสร้าง Database เดิม
-- ไม่เพิ่ม Dashboard ในหน้าเว็บหลัก
-
-## Phase 3: Dashboard/Analytics ใน repo แยก
-
-Dashboard เป็นงานแยกจากเว็บหลัก แม้จะใช้ Backend และ Database ชุดเดียวกัน
+The current production system is:
 
 ```text
-Dashboard Frontend
+Assessment frontend
     ↓
-Read-only Analytics API
+Backend API receives answers
     ↓
-Supabase Database
+Versioned scoring service
+    ↓
+User report
+    ↓
+Supabase database
 ```
 
-ข้อมูลจะถูกบันทึกที่ Supabase เพียงแห่งเดียว Dashboard จะอ่านข้อมูลสรุปผ่าน API และไม่เชื่อมต่อ raw tables จาก Browser โดยตรง
+### Scope of the public website
 
-## 3. ขอบเขต Dashboard ระยะเริ่มต้น
+- Frontend copy and labels may be updated when needed.
+- The assessment flow remains stable.
+- Existing scoring formulas remain versioned and isolated.
+- Existing public API contracts remain backward compatible.
+- The public website does not contain the dashboard.
 
-Dashboard จะดูข้อมูลภาพรวม ไม่ดึงคำตอบดิบรายบุคคล
+## 2. Phase 3 architecture
 
-ข้อมูลที่ต้องการ:
+```text
+Dashboard frontend
+    ↓
+Read-only analytics API
+    ↓
+Supabase database
+```
 
-- ภาพรวมประเทศ
-- ภาพรวมรายแขวง
-- ภาพรวมรายอำเภอเมื่อมีข้อมูล
-- แนวโน้มตามปี/เดือน
-- จำนวนผู้ตอบ
-- สัดส่วนของเส้นทาง
-- อันดับเส้นทาง
-- ช่วงเวลาของข้อมูล
-- วันที่อัปเดตล่าสุด
+The database remains the single source of stored data. The dashboard reads summarized results through an API and never connects directly from the browser to raw database tables.
 
-Phase นี้ใช้เฉพาะข้อมูลที่เว็บ Next-path เก็บจากผู้ตอบ ไม่รวมหรือนำเข้าข้อมูลจากเว็บไซต์ภายนอก
+## 3. Initial dashboard scope
 
-## 4. งานที่ต้องทำใน Dashboard phase
+The dashboard should show aggregate information, not individual raw responses:
 
-### Database
+- national overview
+- province-level overview
+- district-level overview only when the website collects district data
+- yearly and monthly trends
+- respondent counts
+- path proportions and rankings
+- data coverage period
+- last-updated timestamp
 
-- ใช้เวลาส่งคำตอบ `completed_at` แล้ว derive ปี/เดือน/วันใน view
-- เก็บ `response_code`, `province_code` และ `age_years` เป็นฟิลด์ที่ query ได้บน session โดยยังเก็บคำตอบดิบใน `answers`
-- เพิ่มตาราง `province_catalog` สำหรับ map ตัวเลือกแขวงของเว็บเป็นรหัสอังกฤษ
-- เพิ่มตาราง `report_paths` แบบหนึ่งแถวต่อหนึ่งอันดับ เพื่อให้นับเส้นทางได้
-- ทำ views สำหรับข้อมูลราย session, คำตอบ และแนวโน้มเส้นทางจากเว็บ
-- ไม่เพิ่มตารางนำเข้าข้อมูลภายนอกในขอบเขตนี้
+The first phase uses only data collected by the Next-path website. External labor-market statistics and third-party website data are out of scope until a separate data contract is approved.
 
-### Backend
+## 4. Database work
 
-- เพิ่ม Read-only Analytics API ใน Backend ปัจจุบันบน Railway
-- API อ่านจาก Supabase เป็นหลัก
-- API อ่านข้อมูลสรุปจาก views; ไม่ให้ Dashboard browser ต่อ raw database โดยตรง
-- แยก endpoint สำหรับ current, trends, provinces และการเปรียบเทียบกลุ่มข้อมูลจากเว็บ
-- ไม่สร้างข้อมูลซ้ำและไม่รบกวน API เว็บหลัก
+- Use `sessions.completed_at` as the event time and derive year, month, and day in views.
+- Keep `response_code`, `province_code`, and `age_years` as queryable session fields.
+- Keep raw answers in `answers` as the source of truth.
+- Use `province_catalog` to map province selections to stable English codes.
+- Use `report_paths` as one relational row per ranked path.
+- Build read-only views for completed sessions, answers, ranked paths, and trends.
+- Do not create district data until the website collects it.
+- Do not add tables for external data in the first phase.
 
-### Dashboard Frontend
+## 5. Backend work
 
-- สร้างหน้า Dashboard แยกจากหน้าแบบประเมินและหน้า Report
-- แสดงตัวเลข ตาราง และกราฟจาก Analytics API
-- ยังไม่กำหนดหน้าตาหรือ chart จนกว่า API contract จะชัดเจน
-
-## 5. API ที่คาดว่าจะใช้
+Add a read-only analytics API to the existing Railway Backend:
 
 ```text
 GET /api/v1/analytics/current
@@ -93,41 +75,60 @@ GET /api/v1/analytics/provinces
 GET /api/v1/analytics/compare
 ```
 
-API จะส่งข้อมูลสรุป เช่น จำนวนผู้ตอบ สัดส่วน อันดับเส้นทาง ช่วงเวลา และพื้นที่ เพื่อเปรียบเทียบกลุ่มข้อมูลจากเว็บ โดยไม่ส่งข้อมูลดิบรายบุคคลหรือข้อมูลระบุตัวตน
+The API should:
 
-## 6. สิ่งที่ยังไม่อยู่ในขอบเขต
+- read from Supabase views and relational tables;
+- return counts, proportions, rankings, periods, and areas;
+- avoid returning individual raw responses;
+- avoid duplicating data;
+- avoid changing the public assessment flow;
+- remain separate from the write endpoints used by the website.
 
-- ไม่เปลี่ยน scoring v4.0
-- ไม่รวมสูตร v4.0 กับ v0.9.1
-- ไม่เพิ่ม confidence fields
-- ไม่ทำ calibration หรือ C5 rebalance
-- ไม่เก็บหรือนำเข้าข้อมูลจากเว็บไซต์ภายนอกใน Phase นี้
-- ไม่ทำ Dashboard ในเว็บหลัก
-- ไม่ย้ายหรือทำสำเนาฐานข้อมูล
+## 6. Dashboard frontend work
 
-## 7. ลำดับการทำงานภายหลัง
+The dashboard repository will contain:
+
+- dashboard pages and filters;
+- charts and tables backed by the analytics API;
+- access control appropriate for the intended audience;
+- a clear last-updated indicator;
+- no direct database credentials in browser code.
+
+Visual design and chart selection should follow the API contract rather than precede it.
+
+## 7. Explicitly out of scope
+
+- changing v4.0 scoring;
+- combining v4.0 with v0.9.1 scoring;
+- adding confidence fields or calibration without a product decision;
+- C5 matrix rebalancing;
+- adding external labor-market data;
+- placing the dashboard inside the public website;
+- copying the production database to another service.
+
+## 8. Work sequence
 
 ```text
-กำหนด Database contract
+Confirm database contract
     ↓
-กำหนด Analytics API contract
+Confirm analytics API contract
     ↓
-สร้าง Analytics API แบบอ่านอย่างเดียว
+Implement read-only analytics API
     ↓
-ทดสอบ Current Snapshot และ Historical Trend
+Test current snapshot and historical trends
     ↓
-สร้าง Dashboard Frontend
+Implement dashboard frontend in a separate repository
     ↓
-ส่งข้อมูลสรุปให้ Dashboard repo แยก
+Connect dashboard to the analytics API
 ```
 
-## สถานะปัจจุบัน
+## Current status
 
-- เว็บหลัก: ใช้งานได้แล้ว
-- Frontend เว็บหลัก: เปลี่ยนเฉพาะ label เมื่อเริ่มงาน
-- Backend เว็บหลัก: ไม่เปลี่ยนในเฟสนี้
-- Database production: ไม่เปลี่ยนในเฟสนี้
-- Database schema/migration: เพิ่มใน Backend แล้ว; Railway จะ migrate schema ก่อนเปิด API เมื่อ deploy
-- Analytics API: งาน Backend หลักที่เหลือ หลัง migration พร้อมใช้งาน
-- Dashboard Frontend: อยู่ใน repo แยกและยังไม่เริ่ม implementation
-- ขอบเขตข้อมูล Phase 3: เฉพาะข้อมูลที่เก็บจากเว็บ Next-path
+- Public website: production-ready for the current scope
+- Public frontend: copy and label updates complete
+- Public Backend: session, answer, report, export, and feedback flow operational
+- Production database: connected and migration-managed
+- Analytics-ready fields: added through Backend migrations
+- Analytics views: not yet implemented
+- Analytics API: Phase 3 work
+- Dashboard frontend: separate repository and not yet implemented

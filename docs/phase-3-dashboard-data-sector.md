@@ -1,111 +1,115 @@
-# Phase 3 — Database Sector (ข้อมูลจากเว็บ Next-path)
+# Phase 3 — Database Sector: First-party Next-path Data
 
-เอกสารนี้กำหนดโครงสร้างข้อมูลสำหรับการวิเคราะห์คำตอบที่เก็บจากเว็บ Next-path เท่านั้น Dashboard จะพัฒนาใน repo แยก ส่วนฐานข้อมูลยังเป็นแหล่งข้อมูลหลักชุดเดิม
+This document defines the data structure for analysis of responses collected by the Next-path website. The dashboard will live in a separate repository, while Supabase remains the shared database source.
 
-## เป้าหมายและขอบเขต
+## Goals and scope
 
-- วิเคราะห์ภาพรวมระดับประเทศและรายแขวงจากแบบประเมินของเว็บ
-- รองรับแนวโน้มรายปี/เดือน และอันดับเส้นทางที่ระบบคำนวณให้ผู้ตอบ
-- เก็บคำตอบดิบเป็นแหล่งข้อมูลต้นทาง และเก็บผลคำนวณแยกจากคำตอบ
-- ไม่รวมการนำเข้าข้อมูลจากเว็บไซต์ภายนอกหรือสถิติแรงงานภายนอกใน Phase นี้
-- ไม่เพิ่ม Dashboard เข้าในเว็บแบบประเมิน และไม่เปลี่ยน flow การตอบ
+- Analyze national and province-level patterns from the website assessment.
+- Support yearly and monthly trends.
+- Support ranked paths generated for completed respondents.
+- Preserve raw answers and store derived results separately.
+- Exclude external websites and labor statistics from the first phase.
+- Do not change the public assessment flow.
 
-## ตารางปัจจุบัน
+## Current tables
 
-| ตาราง | หน้าที่ | ข้อสังเกต |
+| Table | Purpose | Notes |
 |---|---|---|
-| `sessions` | session, form version, สถานะ และเวลาสร้าง/ตอบเสร็จ | ใช้ `completed_at` เป็นเวลาหลักของการส่งคำตอบ |
-| `answers` | คำตอบดิบหนึ่งแถวต่อคำถามต่อ session | มี unique key ที่ `(session_id, question_id)` |
-| `reports` | ผลคำนวณและข้อความสำหรับแสดงรายงาน | JSON เป็น snapshot สำหรับอ่านรายงาน ไม่ใช่รูปหลักสำหรับ aggregate |
-| `feedbacks` | ความเห็นหลังอ่านรายงาน | ผูกกับ session |
+| `sessions` | Session, form version, status, and timestamps | `completed_at` is the submission time |
+| `answers` | One raw answer row per question and session | Unique by `(session_id, question_id)` |
+| `reports` | Generated report and display snapshot | JSON is for presentation, not aggregation |
+| `feedbacks` | Feedback submitted after the report | Linked to the session |
+| `province_catalog` | Province codes and labels | Stable mapping for analysis |
+| `response_counters` | Sequence allocation | Used to create readable response codes |
+| `report_paths` | Ranked report paths | One row per report rank |
 
-ตารางเหล่านี้เป็นโครงสร้างที่ใช้อยู่จริงใน Backend ปัจจุบัน การเปลี่ยนแปลงใน Phase 3 ต้องต่อยอดแบบ migration และรักษาการอ่านข้อมูลเดิมได้
+These tables are part of the current Backend schema. Future changes must use migrations and preserve existing records.
 
-หลัง migration รอบเตรียมข้อมูล ตาราง `sessions` จะมี `response_code`, `province_code` และ `age_years` เพิ่มเพื่อให้ข้อมูลหลักที่เว็บถามนำไปกรองและวิเคราะห์ได้โดยตรง โดย `answers` ยังคงเป็น raw source of truth
+## Answer storage rules
 
-## หลักการเก็บคำตอบ
+- Keep the original form version with every session.
+- Store one answer row per question.
+- Keep multi-select `option_codes` as a JSON array for now.
+- Use separate `text_value`, `other_text`, and `extra_text` fields where the answer type needs them.
+- Copy age from `D1` into `sessions.age_years` when a session is completed.
+- Map province selection `D3` to `sessions.province_code`.
+- Keep the original demographic answers in `answers` for audit and recomputation.
+- Do not invent district values; the current form does not collect a district.
 
-- เก็บคำตอบดิบและ form version ไว้ ไม่เขียนทับด้วยผลวิเคราะห์
-- `answers` เก็บหนึ่งแถวต่อคำถาม โดย `option_codes` เป็น JSON array สำหรับตัวเลือก (รวมกรณี multi-select) และแยก `text_value`, `other_text`, `extra_text` ตามชนิดคำตอบ
-- คง `option_codes` เป็น JSON array ในระยะแรกได้ ไม่ต้องแตกทุกตัวเลือกเป็นตารางเพิ่มทันที
-- ตอนปิด session Backend คัดลอกอายุจาก `D1` เป็นจำนวนเต็มใน `sessions.age_years` และ map ตัวเลือก `D3` ไป `sessions.province_code`
-- ความสัมพันธ์ `sessions.province_code` อ้างอิง `province_catalog`; เก็บรหัสแขวงภาษาอังกฤษและ label ภาษาลาวไว้ใน catalog ไม่พิมพ์ชื่อซ้ำใน session
-- ค่าที่คัดลอกลง `sessions` เป็นข้อมูลที่ derive จากคำตอบเพื่อ query ได้ง่าย; คำตอบเดิมใน `answers` ยังคงเป็นหลักสำหรับตรวจสอบและคำนวณใหม่
-- ปัจจุบันแบบประเมินไม่ได้เก็บอำเภอ จึงไม่สร้างข้อมูลอำเภอขึ้นเอง; เพิ่มได้เมื่อเว็บเริ่มถามและเก็บข้อมูลนั้น
+## Time and response identifiers
 
-## เวลาและรหัสผู้ตอบ
+- Use `sessions.completed_at` as the submission timestamp.
+- Derive year, month, and day in views instead of storing duplicate date columns.
+- Keep UUIDs as internal primary keys.
+- Assign a readable `response_code` after the session has the required demographics and is completed.
+- Use a format such as `2026-VTE-000001`.
+- Use `UNK` when a province is unavailable.
+- Do not put an occupation, path, name, or email in the response code.
 
-- ใช้ `sessions.completed_at` เป็นเวลาส่งคำตอบ แล้ว derive ปี/เดือน/วันใน view; ไม่เก็บคอลัมน์ปี เดือน วันซ้ำ
-- คง UUID เป็น Primary Key ภายในระบบ
-- เพิ่ม `response_code` ที่อ่านง่าย เช่น `2026-VTE-000001` สำหรับอ้างอิงผลตอบแบบไม่ใช้ชื่อผู้ตอบ
-- ออก `response_code` หลังมีคำตอบแขวงและปิด session แล้ว รูปแบบต้องมี unique constraint และจัดลำดับแบบปลอดภัยเมื่อมีหลาย session พร้อมกัน
-- ใช้ `response_counters` จัดลำดับแยกตามปีและรหัสแขวง; ถ้าไม่ตอบแขวงให้ใช้ `UNK`
-- รหัสอาชีพ/เส้นทางและหมวดหมู่ห้ามนำไปใส่ใน `response_code`
+## Relational report paths
 
-## ผลคำนวณที่ใช้วิเคราะห์
+`reports.possible_paths` remains a presentation snapshot. The `report_paths` table is the queryable result structure:
 
-`reports.possible_paths` คงไว้เป็น snapshot สำหรับให้เว็บแสดงรายงานได้ แต่การนับเส้นทางและอันดับให้ใช้ตารางเชิงสัมพันธ์เพิ่ม:
-
-### `report_paths`
-
-หนึ่งแถวต่อหนึ่งเส้นทางที่ระบบจัดอันดับในรายงาน:
-
-- `id` — Primary Key
-- `report_id` — Foreign Key ไป `reports.id`
-- `rank` — ลำดับ 1, 2, หรือ 3
-- `path_code` — รหัสเส้นทาง เช่น C1–C7 ใน scoring version ปัจจุบัน
-- `label_lao` — ป้ายชื่อที่แสดงในรายงาน ณ เวลาคำนวณ
+- `id` — primary key
+- `report_id` — foreign key to `reports.id`
+- `rank` — usually 1, 2, or 3
+- `path_code` — current scoring path code, such as `C1`–`C7`
+- `label_lao` — label captured when the report was generated
 - `classification`
-- `fit_score`, `feasibility_score`, `compatibility_score`
+- `fit_score`
+- `feasibility_score`
+- `compatibility_score`
 - `scoring_version`
-- unique constraint ที่ `(report_id, rank)`
+- unique constraint on `(report_id, rank)`
 
-บันทึกแถวเหล่านี้พร้อมการสร้าง/ปรับรายงาน และให้ Backend อ่าน snapshot เดิมเพื่อแสดงผลต่อไปได้ การเก็บ JSON ใน `reports` จึงมีไว้เพื่อการแสดงผล ส่วน `report_paths` ใช้เป็นข้อมูลผลลัพธ์สำหรับ query/aggregate
+Taxonomies for occupations and skills should be introduced as separate catalogs later. Do not rewrite raw answers when a taxonomy changes.
 
-ข้อมูลหมวดหมู่อาชีพและทักษะยังไม่ต้องกำหนดรหัสตายตัวในตอนเก็บคำตอบ เมื่อมี taxonomy ที่ตกลงแล้วจึงเพิ่ม catalog/mapping แยก โดยไม่แก้ raw answers
+## Read-only analytical views
 
-## View สำหรับวิเคราะห์ข้อมูลจากเว็บ
+The dashboard API should use views or equivalent read-only query models:
 
-ใช้ read-only views เป็นชั้นจัดรูปข้อมูลจากตารางจริง ไม่เก็บยอดรวมซ้ำในตารางคำตอบ:
+- `v_response_dataset` — one row per completed session with response code, completion date, form/scoring version, age, and province
+- `v_response_answers` — normalized question-answer rows for analysis
+- `v_path_outcomes` — one row per session and ranked path
+- `v_national_path_trends` — national counts and proportions
+- `v_province_path_trends` — province counts and proportions
+- `v_yearly_path_trends` — yearly counts and proportions
 
-- `v_response_dataset` — หนึ่งแถวต่อ completed session พร้อม response code, วันส่ง, form/scoring version, อายุ และรหัสแขวง
-- `v_response_answers` — คำตอบต่อข้อในรูปที่นำไป pivot หรือวิเคราะห์ต่อได้
-- `v_path_outcomes` — หนึ่งแถวต่อ session ต่ออันดับเส้นทาง
-- `v_national_path_trends`, `v_province_path_trends`, `v_yearly_path_trends` — สรุปจำนวนและสัดส่วนจากผู้ตอบเว็บ
+Every proportion must include the respondent count used as its denominator and the covered date range. Small groups should be handled in the API or dashboard layer according to the approved privacy rule.
 
-ทุกสัดส่วนต้องมีจำนวนผู้ตอบที่ใช้เป็นตัวหาร และช่วงวันที่ข้อมูลล่าสุด ถ้ากลุ่มผู้ตอบในพื้นที่มีจำนวนน้อย ให้รวม/ซ่อนผลในชั้น API หรือ Dashboard
-
-## Workflow
+## Data workflow
 
 ```text
-สร้าง session
+Create session
     ↓
-เก็บคำตอบดิบใน answers
+Store raw answers
     ↓
-ผู้ตอบทำแบบประเมินครบและปิด session
+Complete the questionnaire
     ↓
-บันทึก completed_at และ response_code
+Store completion time and response code
     ↓
-คำนวณและบันทึก reports + report_paths
+Generate reports and report_paths
     ↓
-views จัดรูปข้อมูลของเว็บเพื่อการวิเคราะห์
+Expose website data through read-only views
     ↓
-Read-only Analytics API ส่งข้อมูลสรุปให้ Dashboard repo แยก
+Serve summarized data to the separate dashboard API
 ```
 
-## ข้อกำหนดการเปลี่ยน schema
+## Schema-change requirements
 
-1. ทำผ่าน Alembic migration แบบ additive และรองรับข้อมูลเก่าที่ไม่มี `response_code` หรือ `report_paths`
-2. รักษาตารางเดิมและข้อมูล raw answers; ห้ามลบหรือเขียนทับคำตอบเดิม
-3. เพิ่ม catalog เฉพาะข้อมูลที่เว็บเก็บจริง เช่น รหัสแขวง; ยังไม่สร้างอำเภอหรือข้อมูลสถิติจากภายนอก
-4. ตรวจ unique/FK และทดสอบ migration กับฐานข้อมูลสำรองก่อน deploy
-5. ไม่ apply migration กับ production จนกว่าจะตรวจ migration และแผน backfill เสร็จ
+1. Use additive Alembic migrations.
+2. Keep existing sessions and raw answers readable.
+3. Make migrations safe for existing databases and rerunnable where practical.
+4. Add catalog rows only for data collected by the website.
+5. Test unique constraints and foreign keys before production deployment.
+6. Test migrations against a database with the current production shape.
+7. Do not reset or delete production data to apply a schema change.
 
-## สถานะ
+## Status
 
-- เว็บ production และการบันทึก session/answers/reports/feedbacks: ใช้งานแล้ว
-- ข้อกำหนด Database Sector สำหรับข้อมูลจากเว็บ: บันทึกในเอกสารนี้
-- `report_paths`, `response_code`, typed age/province fields และ province mapping: เพิ่มใน Backend และ Alembic migration แล้ว; production จะรับ migration ตอน Railway deploy
-- Analytics views: ยังไม่ implement
-- ข้อมูลจากเว็บไซต์ภายนอก: อยู่นอกขอบเขตงานนี้
-- Dashboard และ Analytics API: Phase 3, Dashboard อยู่ repo แยก
+- Production session, answer, report, export, and feedback flow: operational
+- Response code, typed age/province fields, province catalog, counters, and ranked paths: implemented in Backend migrations
+- Analytical views: not implemented
+- External data ingestion: out of scope
+- Analytics API: Phase 3
+- Dashboard frontend: separate repository

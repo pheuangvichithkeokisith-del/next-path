@@ -1,16 +1,17 @@
-# PATHAI Version Archive
+# Next-path Version Archive
 
-เอกสารในโฟลเดอร์นี้แยก “ของเดิมที่ระบบใช้งานจริง” ออกจาก “รุ่น v4.0 ที่เปิดใช้งานแบบ versioned” เพื่อป้องกันการเปลี่ยนคำถามหรือ algorithm โดยไม่ตั้งใจ
+This directory separates the legacy runtime contract from the versioned v4.0 contract. Keeping them separate prevents accidental changes to questions, option codes, or algorithms used by existing sessions.
 
-## เอกสารหลัก
+## Main documents
 
-- [คำถามเดิมและ algorithm รุ่น runtime](./PATHAI_v0.9.1_legacy_questionnaire_and_algorithm.md)
-- [PATHAI Career Assessment Instrument v4.0 — Lao proposal](./PATHAI_Career_Assessment_Instrument_v4.0_Lao_proposal.md)
+- [Legacy v0.9.1 questionnaire and algorithm](./PATHAI_v0.9.1_legacy_questionnaire_and_algorithm.md)
+- [v4.0 career assessment instrument](./PATHAI_Career_Assessment_Instrument_v4.0_Lao_proposal.md)
 
-## กติกาการใช้งาน
+## Version policy
 
-1. เว็บหลักสร้าง session ด้วย `form_version: v4.0.0` และโหลด `v4.0/questions_full.json` ผ่าน backend version loader
-2. `v0.9.1` ยังเก็บไว้เป็น legacy/default API fallback เพื่อรองรับ session และข้อมูลเดิม
-3. v4 มี scoring และ report adapter แยกจาก legacy DS engine; ห้ามนำ option codes หรือสูตรข้ามเวอร์ชันโดยตรง
-4. การเปลี่ยน algorithm ต้องเพิ่ม version, snapshot, test และ release note ของตัวเอง
-5. ถ้าเอกสารกับ source code ขัดกัน ให้ source code และ test ที่ผ่านใน release นั้นเป็นหลัก แล้วแก้เอกสารให้ตรงใน commit เดียวกัน
+1. The public website currently creates sessions with `form_version: v4.0.0`.
+2. The v0.9.1 form remains available as a legacy/API fallback for older sessions.
+3. v4 scoring and its report adapter are separate from the legacy Signal Engine.
+4. Never reuse option codes or formulas across versions without an explicit migration plan.
+5. Every algorithm change must add a version, snapshot, tests, and release notes.
+6. If documentation conflicts with executable source code and passing tests, the released source and tests are authoritative. Update the documentation in the same commit.

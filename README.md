@@ -78,6 +78,7 @@ The five fluctuation regression cases cover entropy targets of 0%, 25%, 50%, 75%
 
 ## Documentation entry points
 
+- [`docs/project-documentation.md`](./docs/project-documentation.md) — complete English architecture, operations, data, and upgrade guide
 - [`PROJECT_MEMORY.md`](./PROJECT_MEMORY.md) — current architecture and session decisions
 - [`docs/README.md`](./docs/README.md) — documentation index
 - [`docs/versions/README.md`](./docs/versions/README.md) — questionnaire and algorithm versions
