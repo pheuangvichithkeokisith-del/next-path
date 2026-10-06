@@ -3,6 +3,8 @@
 ## Start here
 
 - [`project-documentation.md`](project-documentation.md) — complete English project guide, architecture, contracts, operations, and upgrade rules
+- [`system-architecture.md`](system-architecture.md) — three-sector architecture, database codebook, delivery risks, and incident triage
+- [`sectors/`](sectors/) — frontend, backend, and database debugging boundaries
 - [`deployment.md`](deployment.md) — current production services, environment variables, deployment flow, and rollback checks
 - [`next-phase-plan.md`](next-phase-plan.md) — Phase 3 dashboard and analytics plan
 - [`phase-3-dashboard-data-sector.md`](phase-3-dashboard-data-sector.md) — database contract for first-party analytics data

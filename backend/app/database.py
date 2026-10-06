@@ -58,6 +58,16 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 async def init_db() -> None:
-    """Initialize database tables."""
+    """Initialize local development tables.
+
+    Production schema changes are owned by Alembic and are applied by the
+    container entrypoint before Uvicorn starts.  Calling ``create_all`` in a
+    production process can silently create an incomplete schema and skip seed
+    data from later migrations, so production startup must fail through the
+    migration step instead of trying to repair the database here.
+    """
+    if settings.ENVIRONMENT.strip().lower() in {"production", "prod"}:
+        return
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

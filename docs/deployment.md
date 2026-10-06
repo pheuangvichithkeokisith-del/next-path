@@ -79,6 +79,7 @@ Never commit real secrets or database credentials to Git.
 - If the Netlify site name changes, add the new HTTPS origin to Railway `CORS_ORIGINS` and redeploy Railway. The current origin is `https://nextpathla-public-v2.netlify.app`.
 - The public production site does not require Netlify SSO or password protection.
 - Database changes must use Alembic migrations. Do not reset or manually delete production tables to change the schema.
+- Production application startup does not call SQLAlchemy `create_all`; Alembic is the only production schema owner.
 
 ## Rollback
 
